@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Chip } from '@/components/ui/Chip'
 import { HeroVisual } from '@/components/visuals/HeroVisual'
 import { TechnicalLines } from '@/components/visuals/TechnicalLines'
-import { CV_HU_PATH, LINKEDIN_URL, SECTION_IDS } from '@/lib/constants'
+import { CV_EN_PATH, CV_HU_PATH, LINKEDIN_URL, SECTION_IDS } from '@/lib/constants'
 import { scrollToSection } from '@/hooks/useActiveSection'
 
 const container = {
@@ -25,7 +25,8 @@ const item = {
 }
 
 export function Hero() {
-  const { content } = useI18n()
+  const { content, locale } = useI18n()
+  const cvPath = locale === 'hu' ? CV_HU_PATH : CV_EN_PATH
 
   return (
     <section
@@ -53,7 +54,7 @@ export function Hero() {
             </Button>
             <Button
               variant="outline"
-              href={CV_HU_PATH}
+              href={cvPath}
               external
             >
               {content.hero.ctaCv}

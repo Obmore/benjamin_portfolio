@@ -94,4 +94,15 @@ export interface SiteContent {
   footer: {
     text: string
   }
+  common: {
+    sectionLabel: string
+    emailLabel: string
+    locationLabel: string
+    linkedInLabel: string
+    menuToggle: string
+    themeToDark: string
+    themeToLight: string
+    langToEn: string
+    langToHu: string
+  }
 }

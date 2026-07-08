@@ -224,4 +224,15 @@ export const contentEn: SiteContent = {
   footer: {
     text: '© 2026 Ott Benjámin. Electrical Engineering × Software Development.',
   },
+  common: {
+    sectionLabel: 'section',
+    emailLabel: 'Email',
+    locationLabel: 'Location',
+    linkedInLabel: 'LinkedIn',
+    menuToggle: 'Open menu',
+    themeToDark: 'Switch to dark mode',
+    themeToLight: 'Switch to light mode',
+    langToEn: 'Switch to English',
+    langToHu: 'Switch to Hungarian',
+  },
 }

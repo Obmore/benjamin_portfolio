@@ -105,20 +105,28 @@ interface ContactInfoProps {
 }
 
 export function ContactInfo({ email, location, linkedIn }: ContactInfoProps) {
+  const { content } = useI18n()
+
   return (
     <div className="space-y-5">
       <div>
-        <p className="font-mono text-xs uppercase tracking-wider text-accent">Email</p>
+        <p className="font-mono text-xs uppercase tracking-wider text-accent">
+          {content.common.emailLabel}
+        </p>
         <a href={`mailto:${email}`} className="mt-1 block text-foreground hover:text-accent">
           {email}
         </a>
       </div>
       <div>
-        <p className="font-mono text-xs uppercase tracking-wider text-accent">Location</p>
+        <p className="font-mono text-xs uppercase tracking-wider text-accent">
+          {content.common.locationLabel}
+        </p>
         <p className="mt-1 text-foreground">{location}</p>
       </div>
       <div>
-        <p className="font-mono text-xs uppercase tracking-wider text-accent">LinkedIn</p>
+        <p className="font-mono text-xs uppercase tracking-wider text-accent">
+          {content.common.linkedInLabel}
+        </p>
         <a
           href={LINKEDIN_URL}
           target="_blank"

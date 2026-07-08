@@ -28,6 +28,21 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  useEffect(() => {
+    if (!menuOpen) return
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false)
+    }
+
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [menuOpen])
+
   const handleNavClick = (id: string) => {
     scrollToSection(id)
     setMenuOpen(false)
@@ -73,7 +88,8 @@ export function Navbar() {
           <button
             type="button"
             className="rounded-lg border border-border/70 p-2 text-muted lg:hidden"
-            aria-label="Toggle menu"
+            aria-label={content.common.menuToggle}
+            aria-expanded={menuOpen}
             onClick={() => setMenuOpen((open) => !open)}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">

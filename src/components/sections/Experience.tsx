@@ -13,7 +13,7 @@ export function Experience() {
       <div className="relative mx-auto max-w-3xl">
         <div
           aria-hidden="true"
-          className="absolute left-4 top-0 hidden h-full w-px bg-gradient-to-b from-accent/50 via-cyan/30 to-transparent md:left-1/2 md:block md:-translate-x-1/2"
+          className="absolute left-4 top-0 h-full w-px bg-gradient-to-b from-accent/50 via-cyan/30 to-transparent md:left-1/2 md:-translate-x-1/2"
         />
 
         <div className="space-y-10">
@@ -26,12 +26,12 @@ export function Experience() {
                 initial={{ opacity: 0, x: isEven ? -40 : 40 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
                 className={`relative md:w-[calc(50%-2rem)] ${
                   isEven ? 'md:mr-auto md:pr-8' : 'md:ml-auto md:pl-8'
                 }`}
               >
-                <div className="absolute left-4 top-6 hidden h-3 w-3 -translate-x-1/2 rounded-full border-2 border-accent bg-background md:left-1/2 md:block" />
+                <div className="absolute left-4 top-6 h-3 w-3 -translate-x-1/2 rounded-full border-2 border-accent bg-background md:left-1/2" />
                 <div className="ml-10 rounded-2xl border border-border/70 bg-surface/70 p-6 backdrop-blur-md md:ml-0">
                   <p className="font-mono text-xs text-accent">{item.period}</p>
                   <h3 className="mt-2 text-lg font-medium text-foreground">{item.title}</h3>
