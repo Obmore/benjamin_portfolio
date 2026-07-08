@@ -22,8 +22,17 @@
       rel="stylesheet"
     />
     <title>Ott Benjámin — Villamosmérnök és szoftverfejlesztő</title>
-    <script type="module" crossorigin src="/benjamin_portfolio/assets/index-Dji6GujS.js"></script>
-    <link rel="stylesheet" crossorigin href="/benjamin_portfolio/assets/index-CggdAGYC.css">
+    <script>
+      ;(function () {
+        const stored = localStorage.getItem('portfolio-theme')
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (stored === 'dark' || (!stored && prefersDark)) {
+          document.documentElement.classList.add('dark')
+        }
+      })()
+    </script>
+    <script type="module" crossorigin src="/benjamin_portfolio/assets/index-KxtB6Hvt.js"></script>
+    <link rel="stylesheet" crossorigin href="/benjamin_portfolio/assets/index-CxiRNQAC.css">
   </head>
   <body>
     <div id="root"></div>
