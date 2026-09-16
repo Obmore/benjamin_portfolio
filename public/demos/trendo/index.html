@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lapszabászati rendelő • Trendo demó</title><meta name="description" content="Lapszabászati megrendelőlap, Excel-letöltéssel. Bemutatóváltozat."><meta name="robots" content="noindex, nofollow"><link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="./style.css"><script defer src="./jszip.min.js"></script><script defer src="./app.js"></script></head>
+<body><header><span class="brand">TRENDO <span>Lapszabászat</span></span><span class="badge">Bemutatóváltozat · Ott Benjámin</span></header>
+<main><div class="intro"><div><h1>Lapszabászati megrendelőlap</h1><p>Adja meg a kész méreteket és az élzárást. A kitöltött lap Excelként letölthető.</p></div><button class="secondary" id="sample" type="button">Kitöltési példa</button></div>
+<div class="notice"><strong>Bemutató.</strong> A kitöltés nem ad le rendelést. Az adatok frissítéskor elvesznek, előtte töltse le az Excelt.</div>
+<form id="order" novalidate><div class="workspace"><div>
+<section class="panel"><div class="section-title"><h2>Megrendelő és anyag</h2></div><div class="grid">
+<label>Név vagy cégnév<input id="customer" required autocomplete="off" placeholder="Megrendelő neve"></label>
+<label>Telefon vagy e-mail<input id="contact" required autocomplete="off" placeholder="Elérhetőség a visszaigazoláshoz"></label>
+<label class="wide">Számlázási cím<input id="billing" required autocomplete="off" placeholder="Irányítószám, település, utca, házszám"></label>
+<label>Anyag színkódja, elnevezése<input id="material" required placeholder="Pl. fehér bútorlap, színkód"></label>
+<label>Rendelés neve vagy kódja<input id="project" placeholder="Pl. előszobaszekrény"></label>
+<label>Megrendelés dátuma<input id="date" type="date" required></label>
+<label>Kért teljesítési határidő<input id="due" type="date"><small>A határidő külön visszaigazolást igényel.</small></label>
+<label>Szállítás igénylése<select id="delivery"><option value="nem">Nem</option><option value="igen">Igen</option></select></label>
+<label id="shipping-wrap" hidden>Szállítási cím<input id="shipping" autocomplete="off" placeholder="Kiszállítás helye"></label>
+</div></section>
+<section class="panel"><div class="section-title"><h2>Szabandó tételek</h2><span id="itemCount" class="counter"></span></div><p class="hint">A méretek az élzárással együtt értendő <strong>kész méretek</strong>. A hosszúság a szálirány. Minden méret milliméterben szerepel.</p><div id="rows"></div><button id="add" type="button" class="secondary add">+ Új tétel</button></section>
+</div><aside><section class="panel summary"><p class="eyebrow">Összesítés</p><h2 id="summaryTitle">Új megrendelés</h2><div class="total"><strong id="pieces">0</strong><span>darab alkatrész</span></div><dl><div><dt>Nettó kész felület</dt><dd id="area">0 m²</dd></div><div><dt>0,4 / 0,8 mm élzárás</dt><dd id="thinLength">0 m</dd></div><div><dt>2 mm ABS élzárás</dt><dd id="thickLength">0 m</dd></div></dl><p class="hint">Kész méretekből számolva, vágási veszteség és ráhagyás nélkül. Ez nem árajánlat.</p><div id="feedback" role="status" aria-live="polite"></div><button type="submit" class="primary">Excel letöltése <span aria-hidden="true">↓</span></button><p class="hint export-note">A letöltés .xlsx formátumú. Gyártás előtti ellenőrzése szükséges.</p></section><p class="footnote">A mezők alapja a <a href="https://www.trendo-butor.hu/ajanlatkeres/" target="_blank" rel="noopener">Trendo nyilvános megrendelőlapja</a>. A gyártási szabályok és az Excel feldolgozása még egyeztetés alatt állnak.</p></aside></div></form>
+<footer>Demó és fejlesztés: <a href="https://ottbenjamin.hu/" target="_blank" rel="noopener">Ott Benjámin</a><a href="https://github.com/Obmore/benjamin_portfolio/tree/main/public/demos/trendo" target="_blank" rel="noopener">Forráskód a GitHubon</a></footer></main></body></html>
