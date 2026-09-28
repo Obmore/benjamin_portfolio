@@ -14,7 +14,7 @@ export function Hero() {
       <SignalSegment staticDraw />
       <div className="mx-auto grid w-full max-w-6xl gap-3 px-5 py-3 md:gap-5 md:px-8 md:py-8 lg:grid-cols-12 lg:items-start lg:gap-10">
         <div className="lg:col-span-5">
-          <div className="flex items-baseline justify-between gap-3">
+          <div className="flex items-baseline gap-3">
             <p className="font-mono text-xs tracking-wide text-line">Ott Benjámin</p>
             <p className="font-mono text-[10px] tracking-wide text-line">{hero.sheetLabel}</p>
           </div>
