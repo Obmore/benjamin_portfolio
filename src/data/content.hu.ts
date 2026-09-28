@@ -209,21 +209,14 @@ export const contentHu: SiteContent = {
         alt: 'Életrendező bemutatkozó oldal kezdőképernyője kapcsolatfelvétel gombokkal',
       },
       {
-        id: 'piktor',
-        title: 'Piktor 94',
-        subtitle: 'Termékadat-minta webáruháznak',
-        site: {
-          label: 'obmore.github.io/piktor-content-pilot',
-          href: 'https://obmore.github.io/piktor-content-pilot',
-        },
+        id: 'hotel-rental',
+        title: 'Szállodai járműbérlő rendszer',
+        subtitle: 'Elektromos rollerek és kerékpárok automatizált bérlése szállodáknak',
+        tag: 'Csapatmunka',
         paragraphs: [
-          'Működő minta egy webáruház számára. A gyártói cikkszám alapján párosítja a termékeket, a forrásokkal igazolt adatokból magyar termékleírást állít össze, és jelzi, ha valamelyik adat hiányzik. Az eredményt egy ellenőrző táblázatban és a webáruházba feltölthető formában adja át.',
+          'A szállodai bérlés webes felületén, a szerveroldali rendszeren, az elektromos kerékpárok távoli vezérlésén és a töltőállomások szoftverén dolgoztam.',
         ],
-        tech: 'Technológia: JavaScript, Python, automatikus tesztek.',
-        image: 'work/piktor.webp',
-        imageWidth: 1280,
-        imageHeight: 800,
-        alt: 'Piktor 94 termékadat-minta: termékleírások és hiányzó adatok ellenőrző nézete',
+        tech: 'Technológia: React, TypeScript, .NET, Azure, Raspberry Pi, Python.',
       },
       {
         id: 'lelek-es-nyelv',

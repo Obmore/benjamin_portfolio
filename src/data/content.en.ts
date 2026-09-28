@@ -211,21 +211,14 @@ export const contentEn: SiteContent = {
         alt: 'Életrendező introduction site landing screen with contact buttons',
       },
       {
-        id: 'piktor',
-        title: 'Piktor 94',
-        subtitle: 'Product-data sample for a webshop',
-        site: {
-          label: 'obmore.github.io/piktor-content-pilot',
-          href: 'https://obmore.github.io/piktor-content-pilot',
-        },
+        id: 'hotel-rental',
+        title: 'Hotel vehicle rental system',
+        subtitle: 'Automated rental of electric scooters and bikes for hotels',
+        tag: 'Team project',
         paragraphs: [
-          'A working sample for a webshop. It matches products by manufacturer part number, builds a Hungarian product description from source-backed data, and flags any missing field. It hands over the result in a review table and in a form that can be uploaded to the webshop.',
+          'I worked on the hotel rental web interface, the server-side system, remote control of the e-bikes and the charging station software.',
         ],
-        tech: 'Technology: JavaScript, Python, automated tests.',
-        image: 'work/piktor.webp',
-        imageWidth: 1280,
-        imageHeight: 800,
-        alt: 'Piktor 94 product-data sample: product descriptions and missing-data review',
+        tech: 'Technology: React, TypeScript, .NET, Azure, Raspberry Pi, Python.',
       },
       {
         id: 'lelek-es-nyelv',

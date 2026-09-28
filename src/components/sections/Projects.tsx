@@ -55,23 +55,25 @@ function WorkCard({
   layout: 'featured' | 'half' | 'sample'
   sampleBadge: string
 }) {
-  const src = `${import.meta.env.BASE_URL}${project.image}`
+  const hasImage = Boolean(project.image)
+  const src = hasImage ? `${import.meta.env.BASE_URL}${project.image}` : ''
   const imageHref = project.site?.href ?? project.links?.[0]?.href
   const domain = project.site?.label ?? ''
+  const badge = project.sample ? sampleBadge : project.tag
 
-  const image = (
+  const image = hasImage ? (
     <img
       src={src}
-      alt={project.alt}
+      alt={project.alt ?? ''}
       width={project.imageWidth}
       height={project.imageHeight}
       loading="lazy"
       decoding="async"
       className="browser-shot"
     />
-  )
+  ) : null
 
-  const frame = (
+  const frame = hasImage ? (
     <BrowserFrame domain={domain || project.title}>
       {imageHref ? (
         <a href={imageHref} target="_blank" rel="noopener noreferrer" className="block">
@@ -81,26 +83,29 @@ function WorkCard({
         image
       )}
     </BrowserFrame>
-  )
+  ) : null
 
   return (
     <article
       className={`crop-marks overflow-hidden rounded-[6px] border border-line/25 bg-surface ${
-        layout === 'featured' ? 'grid gap-0 lg:grid-cols-2' : ''
-      } ${layout === 'sample' ? 'grid gap-4 p-4 md:grid-cols-[14rem_1fr] md:items-center' : ''}`}
+        layout === 'featured' && hasImage ? 'grid gap-0 lg:grid-cols-2' : ''
+      } ${layout === 'sample' && hasImage ? 'grid gap-4 p-4 md:grid-cols-[14rem_1fr] md:items-center' : ''}`}
     >
-      <div className={layout === 'sample' ? '' : 'p-3'}>{frame}</div>
-      <div className={`min-w-0 ${layout === 'sample' ? 'md:py-2' : 'p-5 md:p-6'}`}>
+      {frame ? <div className={layout === 'sample' ? '' : 'p-3'}>{frame}</div> : null}
+      <div className={`min-w-0 ${layout === 'sample' && hasImage ? 'md:py-2' : 'p-4 md:p-5'}`}>
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-xl font-medium tracking-tight text-foreground">{project.title}</h3>
-          {project.sample ? (
+          {badge ? (
             <span className="rounded-[6px] border border-line/40 px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider text-line">
-              {sampleBadge}
+              {badge}
             </span>
           ) : null}
         </div>
         {project.subtitle ? (
           <p className="mt-1 text-base leading-snug text-muted">{project.subtitle}</p>
+        ) : null}
+        {project.relation ? (
+          <p className="mt-1 font-mono text-xs text-line">{project.relation}</p>
         ) : null}
         {project.site ? (
           <p className="mt-2 font-mono text-sm">

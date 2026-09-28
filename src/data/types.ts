@@ -22,16 +22,18 @@ export interface WorkProject {
   title: string
   subtitle?: string
   sample?: boolean
+  tag?: string
+  relation?: string
   site?: {
     label: string
     href: string
   }
   paragraphs: string[]
   tech: string
-  image: string
-  imageWidth: number
-  imageHeight: number
-  alt: string
+  image?: string
+  imageWidth?: number
+  imageHeight?: number
+  alt?: string
   links?: { label: string; href: string }[]
 }
 
