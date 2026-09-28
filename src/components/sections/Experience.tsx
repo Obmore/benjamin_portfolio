@@ -10,7 +10,7 @@ export function Experience() {
   return (
     <SectionWrapper id={SECTION_IDS.experience}>
       <SectionHeading title={content.experience.title} />
-      <div className="relative mx-auto max-w-3xl">
+      <div className="relative mx-auto max-w-3xl overflow-x-hidden">
         <div
           aria-hidden="true"
           className="absolute left-4 top-0 h-full w-px bg-gradient-to-b from-accent/50 via-cyan/30 to-transparent md:left-1/2 md:-translate-x-1/2"
@@ -23,8 +23,8 @@ export function Experience() {
             return (
               <motion.article
                 key={`${item.title}-${item.period}`}
-                initial={{ opacity: 0, x: isEven ? -40 : 40 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
                 className={`relative md:w-[calc(50%-2rem)] ${
