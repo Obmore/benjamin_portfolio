@@ -32,7 +32,10 @@ export function Contact() {
         <p className="mb-6 max-w-2xl text-muted leading-relaxed">{content.contact.text}</p>
       </Reveal>
       <FinaleSwitch>
-        <Button data-cta="assess" href={`mailto:${EMAIL}`}>
+        <Button
+          data-cta="assess"
+          href={`mailto:${EMAIL}?subject=${encodeURIComponent(content.contact.mailSubject)}`}
+        >
           {content.services.cta.title}
         </Button>
         <p className="text-sm text-foreground">
@@ -54,7 +57,7 @@ export function Contact() {
               {EMAIL}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button href={`mailto:${EMAIL}`} className="max-w-full break-all">
+              <Button href={`mailto:${EMAIL}`} variant="outline" className="max-w-full break-all">
                 {EMAIL}
               </Button>
               <Button

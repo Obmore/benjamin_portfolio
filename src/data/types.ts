@@ -200,6 +200,7 @@ export interface SiteContent {
     email: string
     location: string
     linkedIn: string
+    mailSubject: string
   }
   footer: {
     text: string

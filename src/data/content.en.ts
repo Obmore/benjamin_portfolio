@@ -413,6 +413,7 @@ export const contentEn: SiteContent = {
     text: 'If you need a web quote form, an introduction site or a custom web solution, write me an email. We will talk briefly, then I will write what I recommend, and what the work includes. I am also glad to reply to industrial and energy-related professional enquiries.',
     email: 'bendzsiott1998@gmail.com',
     location: 'Budapest, Hungary',
+    mailSubject: 'Assessment request',
     linkedIn: 'linkedin.com/in/benjaminottee',
   },
   footer: {

@@ -411,7 +411,8 @@ export const contentHu: SiteContent = {
     title: 'Kapcsolat',
     text: 'Ha webes ajánlatkérő űrlapra, bemutatkozó oldalra vagy egyedi webes megoldásra van szüksége, írjon nekem e-mailt. Röviden egyeztetünk, utána megírom, mit javaslok, és mit tartalmaz a munka. Ipari és energetikai szakmai megkeresésekre is szívesen válaszolok.',
     email: 'bendzsiott1998@gmail.com',
-    location: 'Budapest, Hungary',
+    location: 'Budapest',
+    mailSubject: 'Felmérés kérése',
     linkedIn: 'linkedin.com/in/benjaminottee',
   },
   footer: {
