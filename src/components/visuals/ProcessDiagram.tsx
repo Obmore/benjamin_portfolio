@@ -26,7 +26,7 @@ export function ProcessDiagram() {
           aria-hidden="true"
           style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
         >
-          <path className="process-path" pathLength="1" d="M18 14 H82 V62 H18" />
+          <path className="process-path" pathLength="1" d="M0 14 H82 V62 H18" />
         </svg>
         <svg
           className="process-trace process-trace-desk"
@@ -37,7 +37,7 @@ export function ProcessDiagram() {
           aria-hidden="true"
           style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
         >
-          <path className="process-path" pathLength="1" d="M8 10 H92" />
+          <path className="process-path" pathLength="1" d="M0 10 H100" />
         </svg>
         <ol className="process-nodes">
           {content.services.processSteps.map((step, index) => {

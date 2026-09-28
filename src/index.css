@@ -605,13 +605,6 @@
     }
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .process-board .process-pad {
-      border-color: var(--motion-ink);
-      background: var(--color-background);
-    }
-  }
-
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
       .process-path {
@@ -621,19 +614,12 @@
         animation-range: entry 0% cover 70%;
       }
 
-      .process-pad {
+      .process-board .process-pad {
+        border-color: var(--motion-ink);
+        background: var(--color-background);
         animation: process-pad-lit var(--motion-short) var(--motion-ease) both;
         animation-timeline: view();
         animation-range: entry calc(var(--step, 0) * 14%) cover calc(28% + var(--step, 0) * 14%);
-      }
-    }
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    @supports not (animation-timeline: view()) {
-      .process-board .process-pad {
-        animation: process-pad-lit var(--motion-short) var(--motion-ease) both;
-        animation-delay: calc(var(--step, 0) * var(--motion-medium));
       }
     }
   }
