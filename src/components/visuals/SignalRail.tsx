@@ -4,17 +4,13 @@ import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 export function SignalSegment({ staticDraw = false }: { staticDraw?: boolean }) {
   return (
-    <svg
-      className={`signal-seg ${staticDraw ? 'is-static' : ''}`}
-      viewBox="0 0 12 200"
-      preserveAspectRatio="none"
-      width="12"
-      height="100%"
-      aria-hidden="true"
-    >
-      <path className="signal-vert" pathLength="1" d="M6 0 V200" />
-      <path className="signal-tick" pathLength="1" d="M6 10 H12" />
-    </svg>
+    <div className={`signal-seg ${staticDraw ? 'is-static' : ''}`} aria-hidden="true">
+      <span className="signal-vert" />
+      <svg className="signal-jog" viewBox="0 0 12 12" width="12" height="12">
+        <path className="signal-tick" pathLength="1" d="M4 6 H12" />
+        <circle className="signal-pad" cx="4" cy="6" r="2.2" />
+      </svg>
+    </div>
   )
 }
 

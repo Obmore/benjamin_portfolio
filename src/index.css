@@ -848,10 +848,33 @@
     border: var(--motion-stroke) solid color-mix(in srgb, var(--motion-ink) 28%, transparent);
   }
 
+  @media (min-width: 1024px) {
+    .sheet-frame {
+      background-image:
+        repeating-linear-gradient(
+          to right,
+          transparent 0,
+          transparent calc(12.5% - 1px),
+          color-mix(in srgb, var(--motion-ink) 28%, transparent) calc(12.5% - 1px),
+          color-mix(in srgb, var(--motion-ink) 28%, transparent) 12.5%
+        ),
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent calc(16.66% - 1px),
+          color-mix(in srgb, var(--motion-ink) 28%, transparent) calc(16.66% - 1px),
+          color-mix(in srgb, var(--motion-ink) 28%, transparent) 16.66%
+        );
+      background-repeat: no-repeat;
+      background-position: 0 0, 0 0;
+      background-size: 100% 8px, 8px 100%;
+    }
+  }
+
   .signal-seg {
     pointer-events: none;
     position: absolute;
-    left: 4px;
+    left: 8px;
     top: 0;
     bottom: 0;
     z-index: 1;
@@ -860,24 +883,54 @@
     overflow: visible;
   }
 
-  .signal-vert,
+  .signal-vert {
+    position: absolute;
+    left: 3px;
+    top: 0;
+    width: var(--motion-stroke);
+    height: 100%;
+    background: var(--motion-ink);
+    opacity: 0.85;
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+
+  .signal-jog {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    overflow: visible;
+  }
+
   .signal-tick {
     fill: none;
     stroke: var(--motion-ink);
     stroke-width: var(--motion-stroke);
     stroke-linecap: square;
     vector-effect: non-scaling-stroke;
-    opacity: 0.55;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    opacity: 0.85;
+  }
+
+  .signal-pad {
+    fill: var(--motion-cta);
+    stroke: var(--motion-cta);
+    stroke-width: var(--motion-stroke);
+  }
+
+  .signal-seg.is-static .signal-vert,
+  .signal-seg.is-static .signal-tick,
+  .signal-seg.is-static .signal-pad {
+    animation: none;
   }
 
   .signal-seg.is-static .signal-vert {
     transform: scaleY(1);
-    animation: none;
   }
 
   .signal-seg.is-static .signal-tick {
     stroke-dashoffset: 0;
-    animation: none;
   }
 
   .signal-measure {
@@ -888,14 +941,15 @@
     bottom: 0;
     z-index: 2;
     width: 16px;
+    container-type: size;
   }
 
   .signal-dot {
     position: absolute;
-    left: 4px;
+    left: 7px;
     bottom: 1.5rem;
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border: var(--motion-stroke) solid var(--motion-ink);
     border-radius: 999px;
     background: var(--color-background);
@@ -911,11 +965,18 @@
       }
 
       .signal-tick {
-        stroke-dasharray: 1;
         stroke-dashoffset: 1;
         animation: signal-tick linear forwards;
         animation-timeline: view();
         animation-range: entry 0% cover 40%;
+      }
+
+      .signal-pad {
+        fill: var(--color-background);
+        stroke: var(--motion-ink);
+        animation: signal-pad-lit var(--motion-short) var(--motion-ease) both;
+        animation-timeline: view();
+        animation-range: entry 20% cover 50%;
       }
 
       .signal-seg.is-static .signal-vert {
@@ -925,6 +986,12 @@
 
       .signal-seg.is-static .signal-tick {
         stroke-dashoffset: 0;
+        animation: none;
+      }
+
+      .signal-seg.is-static .signal-pad {
+        fill: var(--motion-cta);
+        stroke: var(--motion-cta);
         animation: none;
       }
     }
@@ -959,12 +1026,23 @@
     }
   }
 
-  @keyframes signal-dot {
+  @keyframes signal-pad-lit {
     from {
-      top: 0;
+      fill: var(--color-background);
+      stroke: var(--motion-ink);
     }
     to {
-      top: calc(100% - 10px);
+      fill: var(--motion-cta);
+      stroke: var(--motion-cta);
+    }
+  }
+
+  @keyframes signal-dot {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(calc(100cqh - 10px));
     }
   }
 
