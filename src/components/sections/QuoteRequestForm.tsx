@@ -216,21 +216,35 @@ export function QuoteRequestForm() {
           required={false}
           optionalLabel={copy.optional}
         />
-        <input
-          ref={fileInputRef}
-          id="quote-file"
-          name="attachment"
-          type="file"
-          disabled={submitting}
-          accept=".xlsx,.pdf,.dxf,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          aria-invalid={Boolean(errors.file)}
-          aria-describedby={errors.file ? 'quote-file-error' : 'quote-file-hint'}
-          onChange={(event) => setField('file', event.target.files?.[0] ?? null)}
-          className="block w-full text-sm text-muted file:mr-4 file:rounded-lg file:border file:border-border/70 file:bg-surface file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:border-accent/50"
-        />
+        <div className="relative flex min-w-0 flex-wrap items-center gap-3">
+          <input
+            ref={fileInputRef}
+            id="quote-file"
+            name="attachment"
+            type="file"
+            disabled={submitting}
+            accept=".xlsx,.pdf,.dxf,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            aria-invalid={Boolean(errors.file)}
+            aria-describedby={
+              errors.file ? 'quote-file-error quote-file-hint' : 'quote-file-status quote-file-hint'
+            }
+            onChange={(event) => setField('file', event.target.files?.[0] ?? null)}
+            className="peer sr-only focus-visible:outline-none"
+          />
+          <label
+            htmlFor="quote-file"
+            className={`inline-flex cursor-pointer items-center justify-center rounded-xl border border-border/70 bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent/50 peer-focus-visible:border-accent peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2 ${
+              submitting ? 'pointer-events-none cursor-not-allowed opacity-60' : ''
+            }`}
+          >
+            {copy.fileChoose}
+          </label>
+          <span id="quote-file-status" className="min-w-0 break-all text-sm text-muted" aria-live="polite">
+            {values.file ? values.file.name : copy.fileNone}
+          </span>
+        </div>
         <p id="quote-file-hint" className="mt-1 text-xs text-muted">
           {copy.fileHint}
-          {values.file ? ` ${copy.fileChosen}: ${values.file.name}` : ''}
         </p>
         <FieldError id="quote-file-error" message={errors.file} />
       </div>

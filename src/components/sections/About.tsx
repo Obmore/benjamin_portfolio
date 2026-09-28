@@ -25,7 +25,7 @@ export function About() {
 
   return (
     <SectionWrapper id={SECTION_IDS.about}>
-      <SectionHeading title={content.about.title} />
+      <SectionHeading title={content.about.title} label={content.nav.about} />
       <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
         <div className="space-y-4 text-muted leading-relaxed">
           {paragraphs.map((paragraph) => (

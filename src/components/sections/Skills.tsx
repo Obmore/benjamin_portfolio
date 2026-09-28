@@ -10,7 +10,7 @@ export function Skills() {
 
   return (
     <SectionWrapper id={SECTION_IDS.skills}>
-      <SectionHeading title={content.skills.title} />
+      <SectionHeading title={content.skills.title} label={content.nav.skills} />
       <div className="grid gap-6 md:grid-cols-2">
         {content.skills.groups.map((group, index) => (
           <Card key={group.title} delay={index * 0.08} className="border-t-2 border-t-accent/30">

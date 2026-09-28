@@ -36,14 +36,14 @@ export function Hero() {
       <TechnicalLines />
       <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-5 py-16 md:px-8 lg:grid-cols-2 lg:gap-16">
         <motion.div variants={container} initial="hidden" animate="show">
-          <motion.p variants={item} className="mb-4 font-mono text-sm text-accent">
-            Ott Benjámin
-          </motion.p>
           <motion.h1
             variants={item}
             className="text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl"
           >
-            {content.hero.headline}
+            <span className="block">Ott Benjámin</span>
+            <span className="mt-3 block text-2xl font-medium tracking-tight text-muted md:text-3xl">
+              {content.hero.headline}
+            </span>
           </motion.h1>
           <motion.p variants={item} className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
             {content.hero.subheadline}
