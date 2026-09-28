@@ -40,7 +40,10 @@ async function shot(page, width, height, fullPage, reduced, destName) {
   }
   await page.goto(BASE, { waitUntil: 'load', timeout: 30000 })
   await page.waitForSelector('h1')
-  await page.evaluate(() => document.fonts.ready)
+  await Promise.race([
+    page.evaluate(() => document.fonts.ready),
+    page.waitForTimeout(3000),
+  ])
   if (!reduced) {
     await page.waitForSelector('.morph-stage.is-done', { timeout: 6000 }).catch(() => page.waitForTimeout(3500))
   }

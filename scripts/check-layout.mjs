@@ -23,16 +23,18 @@ function assert(condition, message) {
 
 async function waitForServer(url, timeoutMs = 20000) {
   const start = Date.now()
+  let lastErr = 'no response'
   while (Date.now() - start < timeoutMs) {
     try {
-      const res = await fetch(url)
+      const res = await fetch(url, { signal: AbortSignal.timeout(1500) })
       if (res.ok) return
-    } catch {
-      // retry
+      lastErr = `HTTP ${res.status}`
+    } catch (error) {
+      lastErr = error instanceof Error ? error.message : String(error)
     }
     await new Promise((r) => setTimeout(r, 200))
   }
-  throw new Error(`Preview did not start at ${url}`)
+  throw new Error(`Preview did not start at ${url}: ${lastErr}`)
 }
 
 function startPreview() {
@@ -66,10 +68,14 @@ async function withPage(browser, viewport, reducedMotion, fn) {
 }
 
 async function ready(page) {
-  await page.goto(BASE, { waitUntil: 'load', timeout: 30000 })
+  page.setDefaultTimeout(20000)
+  await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 20000 })
   await page.waitForSelector('h1')
   await page.waitForSelector('[data-testid="price-quote-form"]')
-  await page.evaluate(() => document.fonts.ready)
+  await Promise.race([
+    page.evaluate(() => document.fonts.ready),
+    page.waitForTimeout(3000),
+  ])
 }
 
 async function measure(page) {
@@ -108,6 +114,11 @@ async function measure(page) {
 }
 
 async function run() {
+  const killer = setTimeout(() => {
+    console.error('layout check timed out after 80s')
+    process.exit(1)
+  }, 80000)
+
   if (!existsSync('dist') && !process.env.BASE_URL) {
     console.error('dist/ missing. Run npm run build first.')
     process.exit(1)
@@ -181,9 +192,8 @@ async function run() {
 
     await withPage(browser, { width: 390, height: 844 }, false, async (page) => {
       for (const id of ANCHORS) {
-        await page.goto(`${BASE}#${id}`, { waitUntil: 'load', timeout: 30000 })
+        await page.goto(`${BASE}#${id}`, { waitUntil: 'domcontentloaded', timeout: 20000 })
         await page.waitForSelector(`#${id}`)
-        await page.evaluate(() => document.fonts.ready)
         await page.waitForFunction(
           (sectionId) => {
             const el = document.getElementById(sectionId)
@@ -213,6 +223,7 @@ async function run() {
   }
 
   for (const note of notes) console.log(note)
+  clearTimeout(killer)
   if (failures.length) {
     console.error('\nLayout check failed:')
     for (const failure of failures) console.error(`- ${failure}`)
