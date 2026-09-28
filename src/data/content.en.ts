@@ -242,11 +242,11 @@ export const contentEn: SiteContent = {
           'A short, hand-coded site to present the company. Not a template page builder. The domain stays with the client.',
         includes: [
           'Built in code, not with a template page builder',
-          'Up to 6 content sections with the company’s own copy',
+          'Up to 6 content sections',
           '6–10 royalty-free or client-supplied photos',
           'A contact form',
           'One revision round',
-          'The domain is a separate item, and stays with the client',
+          'The domain is charged separately, and stays with the client',
           'Works well on a phone',
         ],
         priceFromConfig: false,
@@ -272,7 +272,7 @@ export const contentEn: SiteContent = {
       title: 'Sample quote request',
       intro: 'Try it. This is how a customer would see it on a manufacturing or cutting-shop site.',
       demoBanner:
-        'Sample form, demo mode. No sending endpoint is configured, so nothing is sent.',
+        'This is a sample. Sending is not turned on, so nothing is sent.',
       liveBanner: 'Sample form. The submitted request will reach me by email.',
       submit: 'Request a quote',
       submitting: 'Sending…',

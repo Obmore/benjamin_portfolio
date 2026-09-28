@@ -242,11 +242,11 @@ export const contentHu: SiteContent = {
           'Rövid, kóddal készülő honlap a cég bemutatására. Nem sablon-oldalépítő. A domain a megrendelőé marad.',
         includes: [
           'Kóddal készül, nem sablon-oldalépítővel',
-          'Legfeljebb 6 tartalmi rész a cég saját szövegével',
+          'Legfeljebb 6 tartalmi rész',
           '6–10 jogdíjmentes vagy megrendelői fotó',
           'Kapcsolati űrlap',
           'Egy javítási kör',
-          'A domain külön tétel, és a megrendelőé marad',
+          'A domain külön díjas, és a megrendelőé marad',
           'Mobilon is jól használható',
         ],
         priceFromConfig: false,
@@ -271,14 +271,13 @@ export const contentHu: SiteContent = {
     form: {
       title: 'Ajánlatkérő minta',
       intro: 'Próbálja ki. Így látná az ügyfele egy gyártó vagy szabászati cég honlapján.',
-      demoBanner:
-        'Ez minta. A küldési végpont nincs beállítva, ezért semmi nem megy el.',
+      demoBanner: 'Ez minta. A küldés nincs bekapcsolva, ezért semmi nem megy el.',
       liveBanner: 'Ez minta. A kitöltött kérés e-mailben eljut hozzám.',
       submit: 'Ajánlat kérése',
       submitting: 'Küldés folyamatban',
       tryAgain: 'Új minta kitöltése',
       demoSuccess:
-        'Köszönöm. Ez minta volt, semmi nem került elküldésre. Igazi űrlapnál itt a megerősítés jelenne meg.',
+        'Köszönöm. Ez minta volt, semmi nem került elküldésre. Valós űrlapnál itt a megerősítés jelenne meg.',
       liveSuccess: 'Köszönöm. A kérést megkaptam, hamarosan válaszolok.',
       error: 'A küldés most nem sikerült. Próbálja újra, vagy írjon e-mailt.',
       required: 'kötelező',
