@@ -94,9 +94,9 @@ async function shot(page, width, height, fullPage, reduced, destName, scrollTo =
 
 async function run() {
   const killer = setTimeout(() => {
-    console.error('capture timed out after 120s')
+    console.error('capture timed out after 150s')
     process.exit(1)
-  }, 120000)
+  }, 150000)
 
   if (!existsSync('dist') && !process.env.BASE_URL) {
     console.error('dist/ missing. Run npm run build first.')
@@ -124,8 +124,13 @@ async function run() {
     await shot(page, 1440, 900, true, true, 'full_1440_reduced_motion.png')
     await shot(page, 390, 844, false, false, 'mid_390_process.png', '.process-diagram')
     await shot(page, 390, 844, false, false, 'mid_390_skills.png', '#kompetenciak')
+    await shot(page, 390, 844, false, false, 'mid_390_explode.png', '#munkaim')
+    await shot(page, 390, 844, false, false, 'mid_390_quote.png', '.mail-preview')
+    await shot(page, 390, 844, false, false, 'mid_390_finale.png', '.signal-finale')
     await shot(page, 1440, 900, false, false, 'mid_1440_process.png', '.process-diagram')
     await shot(page, 1440, 900, false, false, 'mid_1440_skills.png', '#kompetenciak')
+    await shot(page, 1440, 900, false, false, 'mid_1440_explode.png', '#munkaim')
+    await shot(page, 1440, 900, false, false, 'mid_1440_quote.png', '.mail-preview')
     await browser.close()
   } finally {
     stopPreview(preview)

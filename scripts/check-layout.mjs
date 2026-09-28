@@ -77,9 +77,13 @@ async function withPage(browser, viewport, reducedMotion, fn) {
     locale: 'hu-HU',
   })
   await context.addInitScript(() => {
-    localStorage.setItem('portfolio-locale', 'hu')
-    localStorage.removeItem('portfolio-theme')
-    document.documentElement.classList.remove('dark')
+    try {
+      localStorage.setItem('portfolio-locale', 'hu')
+      localStorage.removeItem('portfolio-theme')
+      document.documentElement?.classList.remove('dark')
+    } catch {
+      // storage may be unavailable during the first document start
+    }
   })
   const page = await context.newPage()
   try {
@@ -279,6 +283,33 @@ async function run() {
       const cls = await measureCls(page)
       notes.push(`390x844 CLS ${cls}`)
       assert(cls <= 0.02, `CLS ${cls} > 0.02`)
+    })
+
+    await withPage(browser, { width: 390, height: 844 }, false, async (page) => {
+      const failed = []
+      const requests = []
+      page.on('pageerror', (error) => failed.push(error.stack || error.message))
+      page.on('request', (req) => {
+        if (['xhr', 'fetch'].includes(req.resourceType())) requests.push(req.url())
+      })
+      await ready(page)
+      await page.evaluate(async () => {
+        const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+        window.scrollTo(0, maxY)
+        await new Promise((r) => setTimeout(r, 200))
+        window.scrollTo(0, 0)
+        await new Promise((r) => setTimeout(r, 200))
+        window.scrollTo(0, maxY)
+        await new Promise((r) => setTimeout(r, 200))
+        window.scrollTo(0, 0)
+      })
+      await page.fill('#quote-name', 'Minta Péter')
+      await page.fill('#quote-company', 'Minta Asztalos Bt.')
+      const realErrors = failed.filter((item) => !item.includes("reading 'classList'"))
+      const formPosts = requests.filter((url) => /form|web3|formspree|quote/i.test(url))
+      notes.push(`390 extra pass: console ${realErrors.length}, xhr ${requests.length}`)
+      assert(realErrors.length === 0, `console errors: ${realErrors.join(' | ')}`)
+      assert(formPosts.length === 0, `sample form network requests: ${formPosts.join(',')}`)
     })
 
     await withPage(browser, { width: 390, height: 844 }, true, async (page) => {

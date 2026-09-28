@@ -18,11 +18,11 @@ const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
-    document.documentElement.classList.remove('dark')
+    document.documentElement?.classList.remove('dark')
   }, [])
 
   const toggleTheme = useCallback(() => {
-    document.documentElement.classList.remove('dark')
+    document.documentElement?.classList.remove('dark')
   }, [])
 
   const value = useMemo(

@@ -972,6 +972,10 @@
     display: block;
   }
 
+  .explode-wrap {
+    display: block;
+  }
+
   .explode-stage {
     position: relative;
     aspect-ratio: 16 / 10;
@@ -995,17 +999,16 @@
     object-position: top center;
   }
 
-  .explode-label {
-    pointer-events: none;
-    position: absolute;
-    left: 0.4rem;
-    top: 0.35rem;
-    z-index: 2;
-    background: var(--color-background);
-    padding: 0.1rem 0.35rem;
+  .explode-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.85rem;
+    margin: 0.2rem 1rem 0.35rem;
+    padding: 0;
+    list-style: none;
     font-family: var(--font-mono);
-    font-size: 0.58rem;
-    letter-spacing: 0.06em;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
     color: var(--motion-ink);
   }
 
