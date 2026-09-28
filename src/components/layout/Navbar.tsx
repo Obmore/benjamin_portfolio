@@ -8,6 +8,7 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 const navItems = [
   { id: SECTION_IDS.about, key: 'about' as const },
+  { id: SECTION_IDS.services, key: 'services' as const },
   { id: SECTION_IDS.experience, key: 'experience' as const },
   { id: SECTION_IDS.skills, key: 'skills' as const },
   { id: SECTION_IDS.projects, key: 'projects' as const },
@@ -71,7 +72,7 @@ export function Navbar() {
               key={item.id}
               type="button"
               onClick={() => handleNavClick(item.id)}
-              className={`rounded-lg px-3 py-2 text-sm transition-colors ${
+              className={`whitespace-nowrap rounded-lg px-2.5 py-2 text-sm transition-colors ${
                 activeId === item.id
                   ? 'text-accent'
                   : 'text-muted hover:text-foreground'

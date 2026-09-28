@@ -27,6 +27,63 @@ export interface HighlightCard {
   description: string
 }
 
+export interface ServicePackage {
+  id: string
+  featured: boolean
+  title: string
+  summary: string
+  includes: string[]
+  excludesTitle?: string
+  excludes?: string[]
+  excludesNote?: string
+  priceFromConfig: boolean
+  price: string
+  priceNote?: string
+  extra?: string
+}
+
+export interface QuoteFormCopy {
+  title: string
+  intro: string
+  demoBanner: string
+  liveBanner: string
+  submit: string
+  submitting: string
+  tryAgain: string
+  demoSuccess: string
+  liveSuccess: string
+  error: string
+  required: string
+  optional: string
+  fileHint: string
+  fileChosen: string
+  fields: {
+    name: string
+    company: string
+    email: string
+    phone: string
+    material: string
+    materialPlaceholder: string
+    quantity: string
+    notes: string
+    file: string
+    consent: string
+  }
+  materials: { value: string; label: string }[]
+  errors: {
+    name: string
+    company: string
+    email: string
+    phone: string
+    material: string
+    quantity: string
+    notes: string
+    fileType: string
+    fileSize: string
+    consent: string
+  }
+}
+
 export interface SiteContent {
   meta: {
     title: string
@@ -34,6 +91,7 @@ export interface SiteContent {
   }
   nav: {
     about: string
+    services: string
     experience: string
     skills: string
     projects: string
@@ -71,6 +129,22 @@ export interface SiteContent {
     downloadHu: string
     downloadEn: string
     linkedIn: string
+  }
+  services: {
+    title: string
+    lead: string
+    problem: string
+    craft: string
+    emptyPrice: string
+    featuredBadge: string
+    includesTitle: string
+    packages: ServicePackage[]
+    form: QuoteFormCopy
+    cta: {
+      title: string
+      text: string
+      button: string
+    }
   }
   contact: {
     title: string
