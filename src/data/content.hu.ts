@@ -97,8 +97,8 @@ export const contentHu: SiteContent = {
         company: 'Ericsson',
         period: '2023 és 2025 között',
         bullets: [
-          'Kvantumkommunikációhoz és QKD rendszerekhez kapcsolódó K+F feladatok.',
-          'Python-alapú fejlesztések és mérési és kísérleti munkák támogatása.',
+          'Kvantumkommunikációhoz és QKD-rendszerekhez kapcsolódó K+F feladatok.',
+          'Szoftverfejlesztés több programozási nyelven, valamint mérési és kísérleti munkák támogatása.',
           'Szoftveres és hardveres problémák elemzése telekommunikációs kutatási környezetben.',
           'Git-alapú verziókezelés és mérnöki dokumentáció.',
         ],
