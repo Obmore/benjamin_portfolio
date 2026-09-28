@@ -10,7 +10,6 @@ import {
   SECTION_IDS,
   quoteFormPackagePriceLabel,
 } from '@/lib/constants'
-import { scrollToSection } from '@/hooks/useActiveSection'
 import type { ServicePackage } from '@/data/types'
 
 export function Services() {
@@ -19,7 +18,7 @@ export function Services() {
 
   return (
     <SectionWrapper id={SECTION_IDS.services}>
-      <SectionHeading title={services.title} />
+      <SectionHeading title={services.title} label={content.nav.services} />
       <div className="mb-12 max-w-2xl space-y-4 text-muted leading-relaxed">
         <p>{services.lead}</p>
         <p>{services.problem}</p>
@@ -53,11 +52,8 @@ export function Services() {
       <Card className="mt-10">
         <h3 className="text-xl font-semibold tracking-tight text-foreground">{services.cta.title}</h3>
         <p className="mt-3 max-w-2xl text-muted leading-relaxed">{services.cta.text}</p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Button type="button" onClick={() => scrollToSection(SECTION_IDS.contact)}>
-            {services.cta.button}
-          </Button>
-          <Button variant="outline" href={`mailto:${EMAIL}`}>
+        <div className="mt-6">
+          <Button href={`mailto:${EMAIL}`} className="max-w-full break-all">
             {EMAIL}
           </Button>
         </div>

@@ -209,7 +209,7 @@ export const contentEn: SiteContent = {
     problem:
       'Manual quoting is slow. The customer downloads, fills in and attaches. The company then retypes what arrived. With a web form the data arrives in one piece, complete.',
     craft:
-      'I build the site and the form in code, not with a template page builder. That is why almost any custom need can fit.',
+      'I build the form in code, not from a template, so it can follow the company’s own process.',
     emptyPrice: 'Fixed entry price — coming soon',
     priceSetSuffix: 'one-time (alanyi adómentes)',
     featuredBadge: 'Main offer',
@@ -243,7 +243,7 @@ export const contentEn: SiteContent = {
         includes: [
           'Built in code, not with a template page builder',
           'Up to 6 content sections',
-          '6–10 royalty-free or client-supplied photos',
+          '6–10 legally cleared photos',
           'A contact form',
           'One revision round',
           'The domain is charged separately, and stays with the client',
@@ -319,7 +319,7 @@ export const contentEn: SiteContent = {
     },
     cta: {
       title: 'Ask for an assessment',
-      text: 'If you would like an assessment, use the Contact section or send an email. After a short conversation I will say which package fits, and what the work includes.',
+      text: 'If you would like an assessment, send an email. After a short conversation I will say which package fits, and what the work includes.',
       button: 'Go to contact',
     },
   },

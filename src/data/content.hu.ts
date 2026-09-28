@@ -209,7 +209,7 @@ export const contentHu: SiteContent = {
     problem:
       'A kézi ajánlatkérés lassú. Az ügyfél letölt, kitölt és csatol. A cég a beérkezett adatot kézzel viszi tovább. Webes űrlappal az adat egyben, hiánytalanul érkezik.',
     craft:
-      'A honlapot és az űrlapot kóddal készítem, nem sablon-oldalépítővel. Ezért szinte bármilyen egyedi igény beilleszthető.',
+      'Az űrlapot kóddal készítem, nem sablonból, ezért a cég saját folyamatához igazítható.',
     emptyPrice: 'Fix belépő ár – hamarosan',
     priceSetSuffix: 'egyszeri (alanyi adómentes)',
     featuredBadge: 'Fő ajánlat',
@@ -243,7 +243,7 @@ export const contentHu: SiteContent = {
         includes: [
           'Kóddal készül, nem sablon-oldalépítővel',
           'Legfeljebb 6 tartalmi rész',
-          '6–10 jogdíjmentes vagy megrendelői fotó',
+          '6–10 jogtiszta fotó',
           'Kapcsolati űrlap',
           'Egy javítási kör',
           'A domain külön díjas, és a megrendelőé marad',
@@ -318,7 +318,7 @@ export const contentHu: SiteContent = {
     },
     cta: {
       title: 'Kérjen felmérést',
-      text: 'Ha felmérést kér, használja a Kapcsolat űrlapot, vagy küldjön e-mailt. Rövid egyeztetés után megmondom, melyik csomag illik, és mit tartalmaz a munka.',
+      text: 'Ha felmérést kér, küldjön e-mailt. Rövid egyeztetés után megmondom, melyik csomag illik, és mit tartalmaz a munka.',
       button: 'Ugrás a kapcsolathoz',
     },
   },
