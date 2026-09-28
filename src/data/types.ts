@@ -148,6 +148,11 @@ export interface SiteContent {
   projects: {
     title: string
     sampleBadge: string
+    explode: {
+      structure: string
+      content: string
+      finished: string
+    }
     items: WorkProject[]
   }
   cv: {

@@ -182,6 +182,11 @@ export const contentHu: SiteContent = {
   projects: {
     title: 'Munkáim',
     sampleBadge: 'Minta',
+    explode: {
+      structure: 'Szerkezet',
+      content: 'Tartalom',
+      finished: 'Kész oldal',
+    },
     items: [
       {
         id: 'anettesvendi',

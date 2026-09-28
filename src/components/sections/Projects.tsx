@@ -2,6 +2,7 @@ import { useI18n } from '@/context/I18nContext'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
 import { BrowserFrame } from '@/components/visuals/BrowserFrame'
+import { ExplodedShot } from '@/components/visuals/ExplodedShot'
 import { SECTION_IDS, SECTION_NUMBERS } from '@/lib/constants'
 import type { WorkProject } from '@/data/types'
 
@@ -21,7 +22,12 @@ export function Projects() {
       />
       <div className="space-y-6">
         {featured ? (
-          <WorkCard project={featured} layout="featured" sampleBadge={content.projects.sampleBadge} />
+          <WorkCard
+            project={featured}
+            layout="featured"
+            sampleBadge={content.projects.sampleBadge}
+            explodeLabels={content.projects.explode}
+          />
         ) : null}
         <div className="grid gap-6 md:grid-cols-2">
           {rest.map((project) => (
@@ -50,16 +56,19 @@ function WorkCard({
   project,
   layout,
   sampleBadge,
+  explodeLabels,
 }: {
   project: WorkProject
   layout: 'featured' | 'half' | 'sample'
   sampleBadge: string
+  explodeLabels?: { structure: string; content: string; finished: string }
 }) {
   const hasImage = Boolean(project.image)
   const src = hasImage ? `${import.meta.env.BASE_URL}${project.image}` : ''
   const imageHref = project.site?.href ?? project.links?.[0]?.href
   const domain = project.site?.label ?? ''
   const badge = project.sample ? sampleBadge : project.tag
+  const explode = Boolean(explodeLabels) && project.id === 'anettesvendi' && hasImage
 
   const image = hasImage ? (
     <img
@@ -73,21 +82,33 @@ function WorkCard({
     />
   ) : null
 
-  const frame = hasImage ? (
-    <BrowserFrame domain={domain || project.title}>
-      {imageHref ? (
-        <a href={imageHref} target="_blank" rel="noopener noreferrer" className="block">
-          {image}
-        </a>
-      ) : (
-        image
-      )}
-    </BrowserFrame>
-  ) : null
+  const frame =
+    explode && explodeLabels ? (
+      <ExplodedShot
+        src={src}
+        alt={project.alt ?? ''}
+        width={project.imageWidth ?? 1280}
+        height={project.imageHeight ?? 800}
+        href={imageHref}
+        labels={explodeLabels}
+      />
+    ) : hasImage ? (
+      <BrowserFrame domain={domain || project.title}>
+        {imageHref ? (
+          <a href={imageHref} target="_blank" rel="noopener noreferrer" className="block">
+            {image}
+          </a>
+        ) : (
+          image
+        )}
+      </BrowserFrame>
+    ) : null
 
   return (
     <article
-      className={`crop-marks overflow-hidden rounded-[6px] border border-line/25 bg-surface ${
+      className={`crop-marks rounded-[6px] border border-line/25 bg-surface ${
+        explode ? 'overflow-visible' : 'overflow-hidden'
+      } ${
         layout === 'featured' && hasImage ? 'grid gap-0 lg:grid-cols-2' : ''
       } ${layout === 'sample' && hasImage ? 'grid gap-4 p-4 md:grid-cols-[14rem_1fr] md:items-center' : ''}`}
     >

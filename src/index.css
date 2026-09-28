@@ -518,8 +518,10 @@
     stroke-width: var(--motion-stroke);
     stroke-linejoin: miter;
     stroke-linecap: square;
-    opacity: 0.7;
+    opacity: 0.85;
     vector-effect: non-scaling-stroke;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
   }
 
   .process-nodes {
@@ -543,7 +545,7 @@
     height: 8px;
     margin-bottom: 0.25rem;
     border-radius: 999px;
-    border: 1.5px solid var(--motion-cta);
+    border: var(--motion-stroke) solid var(--motion-cta);
     background: var(--motion-cta);
   }
 
@@ -570,16 +572,7 @@
   }
 
   .process-dot {
-    pointer-events: none;
-    position: absolute;
-    top: 12%;
-    left: 16%;
-    z-index: 1;
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
-    background: var(--motion-cta);
-    opacity: 0;
+    display: none;
   }
 
   @media (min-width: 768px) {
@@ -613,19 +606,35 @@
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .process-board.is-armed:not(.is-run) .process-pad {
+    .process-board .process-pad {
       border-color: var(--motion-ink);
       background: var(--color-background);
     }
+  }
 
-    .process-board.is-run .process-pad {
-      animation: process-pad-lit var(--motion-short) var(--motion-ease) both;
-      animation-delay: calc(var(--step, 0) * var(--motion-medium));
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .process-path {
+        stroke-dashoffset: 1;
+        animation: process-signal linear forwards;
+        animation-timeline: view();
+        animation-range: entry 0% cover 70%;
+      }
+
+      .process-pad {
+        animation: process-pad-lit var(--motion-short) var(--motion-ease) both;
+        animation-timeline: view();
+        animation-range: entry calc(var(--step, 0) * 14%) cover calc(28% + var(--step, 0) * 14%);
+      }
     }
+  }
 
-    .process-board.is-run .process-dot {
-      opacity: 1;
-      animation: process-dot-mobile var(--motion-long) var(--motion-ease) both;
+  @media (prefers-reduced-motion: no-preference) {
+    @supports not (animation-timeline: view()) {
+      .process-board .process-pad {
+        animation: process-pad-lit var(--motion-short) var(--motion-ease) both;
+        animation-delay: calc(var(--step, 0) * var(--motion-medium));
+      }
     }
   }
 
@@ -640,47 +649,12 @@
     }
   }
 
-  @keyframes process-dot-mobile {
-    0% {
-      top: 12%;
-      left: 16%;
+  @keyframes process-signal {
+    from {
+      stroke-dashoffset: 1;
     }
-    33% {
-      top: 12%;
-      left: 80%;
-    }
-    66% {
-      top: 58%;
-      left: 80%;
-    }
-    100% {
-      top: 58%;
-      left: 16%;
-    }
-  }
-
-  @keyframes process-dot-desk {
-    0% {
-      top: 14%;
-      left: 7%;
-    }
-    33% {
-      top: 14%;
-      left: 35%;
-    }
-    66% {
-      top: 14%;
-      left: 63%;
-    }
-    100% {
-      top: 14%;
-      left: 90%;
-    }
-  }
-
-  @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
-    .process-board.is-run .process-dot {
-      animation-name: process-dot-desk;
+    to {
+      stroke-dashoffset: 0;
     }
   }
 
@@ -991,6 +965,93 @@
     }
     to {
       top: calc(100% - 10px);
+    }
+  }
+
+  .explode-link {
+    display: block;
+  }
+
+  .explode-stage {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    min-height: 168px;
+  }
+
+  .explode-layer {
+    position: absolute;
+    inset: 16px;
+    margin: 0;
+    overflow: hidden;
+    border: var(--motion-stroke) solid color-mix(in srgb, var(--motion-ink) 35%, transparent);
+    background: var(--color-surface);
+  }
+
+  .explode-layer img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+
+  .explode-label {
+    pointer-events: none;
+    position: absolute;
+    left: 0.4rem;
+    top: 0.35rem;
+    z-index: 2;
+    background: var(--color-background);
+    padding: 0.1rem 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    color: var(--motion-ink);
+  }
+
+  .explode-layer-0 {
+    z-index: 1;
+    transform: translate(-12px, 10px);
+  }
+
+  .explode-layer-1 {
+    z-index: 2;
+    transform: none;
+  }
+
+  .explode-layer-2 {
+    z-index: 3;
+    transform: translate(12px, -10px);
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .explode-layer-0,
+      .explode-layer-2 {
+        transform: none;
+        animation: explode-shift linear forwards;
+        animation-timeline: view();
+        animation-range: entry 0% cover 55%;
+      }
+
+      .explode-layer-0 {
+        --explode-x: -12px;
+        --explode-y: 10px;
+      }
+
+      .explode-layer-2 {
+        --explode-x: 12px;
+        --explode-y: -10px;
+      }
+    }
+  }
+
+  @keyframes explode-shift {
+    from {
+      transform: none;
+    }
+    to {
+      transform: translate(var(--explode-x), var(--explode-y));
     }
   }
 }

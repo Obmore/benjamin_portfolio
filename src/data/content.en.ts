@@ -184,6 +184,11 @@ export const contentEn: SiteContent = {
   projects: {
     title: 'My work',
     sampleBadge: 'Sample',
+    explode: {
+      structure: 'Structure',
+      content: 'Content',
+      finished: 'Finished page',
+    },
     items: [
       {
         id: 'anettesvendi',
