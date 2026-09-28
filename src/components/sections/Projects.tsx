@@ -32,16 +32,16 @@ function WorkCard({ project, delay }: { project: WorkProject; delay: number }) {
       height={project.imageHeight}
       loading="lazy"
       decoding="async"
-      className="aspect-[16/10] h-auto w-full object-cover object-top"
+      className="aspect-[16/10] h-auto w-full object-cover object-top lg:h-full lg:min-h-full lg:aspect-auto"
     />
   )
 
   return (
     <Card delay={delay} padded={false} className="overflow-hidden">
       <article className="grid min-w-0 gap-0 lg:grid-cols-2">
-        <div className="min-w-0 bg-surface">
+        <div className="min-w-0 self-stretch bg-surface">
           {imageHref ? (
-            <a href={imageHref} target="_blank" rel="noopener noreferrer">
+            <a href={imageHref} target="_blank" rel="noopener noreferrer" className="block h-full">
               {image}
             </a>
           ) : (
