@@ -22,7 +22,7 @@ export function QuoteDemo() {
         <p className="border-l-2 border-line pl-4 text-foreground">{services.craft}</p>
         <p>{services.form.intro}</p>
       </Reveal>
-      <div className="crop-marks max-w-3xl rounded-[6px] border border-line/25 bg-surface p-5 md:p-8">
+      <div className="crop-marks rounded-[6px] border border-line/25 bg-surface p-5 md:p-8">
         <QuoteRequestForm />
       </div>
     </SectionWrapper>

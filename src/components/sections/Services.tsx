@@ -4,7 +4,6 @@ import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
 import { PencilUnderline } from '@/components/visuals/PencilUnderline'
 import { ProcessDiagram } from '@/components/visuals/ProcessDiagram'
-import { FinaleSwitch } from '@/components/visuals/SignalRail'
 import {
   EMAIL,
   QUOTE_FORM_PACKAGE_PRICE,
@@ -48,17 +47,15 @@ export function Services() {
 
       <ProcessDiagram />
 
-      <FinaleSwitch>
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 md:mt-5">
-          <Button data-cta="assess" href={`#${SECTION_IDS.contact}`}>
-            {services.cta.title}
-          </Button>
-          <p className="text-sm text-foreground">
-            <span className="font-mono text-xs text-line">{content.common.emailLabel}</span>{' '}
-            <span className="break-all">{EMAIL}</span>
-          </p>
-        </div>
-      </FinaleSwitch>
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 md:mt-5">
+        <Button data-cta="assess" href={`#${SECTION_IDS.contact}`}>
+          {services.cta.title}
+        </Button>
+        <p className="text-sm text-foreground">
+          <span className="font-mono text-xs text-line">{content.common.emailLabel}</span>{' '}
+          <span className="break-all">{EMAIL}</span>
+        </p>
+      </div>
     </SectionWrapper>
   )
 }

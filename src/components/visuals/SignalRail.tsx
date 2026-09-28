@@ -28,12 +28,22 @@ export function SheetFrame() {
 
 export function FinaleSwitch({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
-  const inView = useInViewOnce(ref, { threshold: 0.6 })
+  const inView = useInViewOnce(ref, { threshold: 0.45 })
   const reduced = usePrefersReducedMotion()
+  const lit = reduced || inView
 
   return (
-    <div ref={ref} className={`signal-finale ${inView && !reduced ? 'is-pulse' : ''}`}>
-      {children}
+    <div
+      ref={ref}
+      className={`signal-finale ${lit ? 'is-lit' : ''}`}
+      data-testid="finale"
+    >
+      <svg className="finale-lamp" viewBox="0 0 48 24" width="48" height="24" aria-hidden="true">
+        <path className="finale-lamp-stem" d="M1 12 H20" />
+        <path className="finale-lamp-arm" d="M20 12 L28 6" />
+        <circle className="finale-lamp-pad" cx="36" cy="12" r="5.5" />
+      </svg>
+      <div className="finale-copy">{children}</div>
     </div>
   )
 }

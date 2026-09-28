@@ -74,6 +74,7 @@ export interface QuoteFormCopy {
   fileChoose: string
   fileNone: string
   previewTitle: string
+  previewFrom: string
   previewTo: string
   previewRecipient: string
   previewSubjectLabel: string
@@ -82,6 +83,8 @@ export interface QuoteFormCopy {
   sampleCompany: string
   sampleEmail: string
   samplePhone: string
+  sampleQuantity: string
+  sampleNotes: string
   fields: {
     name: string
     company: string

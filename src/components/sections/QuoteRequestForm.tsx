@@ -113,7 +113,7 @@ export function QuoteRequestForm() {
 
       <div className="quote-live">
         <div className="space-y-5">
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <TextField
           id="quote-name"
           label={copy.fields.name}
@@ -385,45 +385,61 @@ function MailPreview({
   const email = values.email.trim() || copy.sampleEmail
   const phone = values.phone.trim() || copy.samplePhone
   const material =
-    copy.materials.find((item) => item.value === values.material)?.label || values.material.trim() || '—'
-  const quantity = values.quantity.trim() || '—'
-  const notes = values.notes.trim() || '—'
+    copy.materials.find((item) => item.value === values.material)?.label ||
+    copy.materials.find((item) => item.value === 'fa')?.label ||
+    '—'
+  const quantity = values.quantity.trim() || copy.sampleQuantity
+  const notes = values.notes.trim() || copy.sampleNotes
   const file = values.file?.name || copy.fileNone
 
   return (
     <aside className="mail-preview" aria-live="polite">
       <p className="mail-preview-title">{copy.previewTitle}</p>
-      <div className="mail-preview-body">
-        <p>
-          {copy.previewTo}: {copy.previewRecipient}
-        </p>
-        <p>
-          {copy.previewSubjectLabel}: {copy.previewSubject}
-        </p>
-        <p>
-          {copy.fields.name}: {name}
-        </p>
-        <p>
-          {copy.fields.company}: {company}
-        </p>
-        <p>
-          {copy.fields.email}: {email}
-        </p>
-        <p>
-          {copy.fields.phone}: {phone}
-        </p>
-        <p>
-          {copy.fields.material}: {material}
-        </p>
-        <p>
-          {copy.fields.quantity}: {quantity}
-        </p>
-        <p>
-          {copy.fields.notes}: {notes}
-        </p>
-        <p>
-          {copy.fields.file}: {file}
-        </p>
+      <div className="mail-preview-window">
+        <dl className="mail-preview-headers">
+          <div>
+            <dt>{copy.previewFrom}</dt>
+            <dd>
+              <span>{name}</span>
+              <span className="mail-preview-meta">{company}</span>
+              <span className="mail-preview-meta">{email}</span>
+            </dd>
+          </div>
+          <div>
+            <dt>{copy.previewTo}</dt>
+            <dd>{copy.previewRecipient}</dd>
+          </div>
+          <div>
+            <dt>{copy.previewSubjectLabel}</dt>
+            <dd>{copy.previewSubject}</dd>
+          </div>
+        </dl>
+        <div className="mail-preview-body">
+          <p>
+            {copy.fields.name}: {name}
+          </p>
+          <p>
+            {copy.fields.company}: {company}
+          </p>
+          <p>
+            {copy.fields.email}: {email}
+          </p>
+          <p>
+            {copy.fields.phone}: {phone}
+          </p>
+          <p>
+            {copy.fields.material}: {material}
+          </p>
+          <p>
+            {copy.fields.quantity}: {quantity}
+          </p>
+          <p>
+            {copy.fields.notes}: {notes}
+          </p>
+          <p>
+            {copy.fields.file}: {file}
+          </p>
+        </div>
       </div>
     </aside>
   )

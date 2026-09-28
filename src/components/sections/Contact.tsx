@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Reveal } from '@/components/ui/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
+import { FinaleSwitch } from '@/components/visuals/SignalRail'
 import { EMAIL, LINKEDIN_URL, SECTION_IDS, SECTION_NUMBERS } from '@/lib/constants'
 
 export function Contact() {
@@ -28,9 +29,18 @@ export function Contact() {
         label={content.nav.contact}
       />
       <Reveal>
-        <p className="mb-8 max-w-2xl text-muted leading-relaxed">{content.contact.text}</p>
+        <p className="mb-6 max-w-2xl text-muted leading-relaxed">{content.contact.text}</p>
       </Reveal>
-      <div className="crop-marks max-w-xl divide-y divide-line/20 rounded-[6px] border border-line/25 bg-surface">
+      <FinaleSwitch>
+        <Button data-cta="assess" href={`mailto:${EMAIL}`}>
+          {content.services.cta.title}
+        </Button>
+        <p className="text-sm text-foreground">
+          <span className="font-mono text-xs text-line">{content.common.emailLabel}</span>{' '}
+          <span className="break-all">{EMAIL}</span>
+        </p>
+      </FinaleSwitch>
+      <div className="crop-marks mt-8 max-w-xl divide-y divide-line/20 rounded-[6px] border border-line/25 bg-surface">
         <div className="grid gap-2 px-5 py-4 sm:grid-cols-[7rem_1fr] sm:items-start">
           <p className="font-mono text-xs uppercase tracking-wider text-line">
             {content.common.emailLabel}
