@@ -67,7 +67,8 @@ export interface QuoteFormCopy {
   required: string
   optional: string
   fileHint: string
-  fileChosen: string
+  fileChoose: string
+  fileNone: string
   fields: {
     name: string
     company: string
@@ -169,7 +170,6 @@ export interface SiteContent {
     text: string
   }
   common: {
-    sectionLabel: string
     emailLabel: string
     locationLabel: string
     linkedInLabel: string

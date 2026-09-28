@@ -9,7 +9,7 @@ export function Experience() {
 
   return (
     <SectionWrapper id={SECTION_IDS.experience}>
-      <SectionHeading title={content.experience.title} />
+      <SectionHeading title={content.experience.title} label={content.nav.experience} />
       <div className="relative mx-auto max-w-3xl overflow-x-hidden">
         <div
           aria-hidden="true"

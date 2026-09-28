@@ -277,9 +277,9 @@ export const contentHu: SiteContent = {
         featured: true,
         title: 'Webes ajánlatkérő / rendelőlap',
         summary:
-          'Egy űrlap a cég meglévő honlapjába. A mai Excel-, PDF- vagy e-mailes folyamat helyett az ügyfél a honlapon adja le a kérést. Az űrlapot kóddal készítem, nem sablonból, ezért a cég saját folyamatához igazítható.',
+          'Egy űrlap a cég meglévő honlapjára. A mai Excel-, PDF- vagy e-mailes folyamat helyett az ügyfél a honlapon adja le a kérést. Az űrlapot kóddal készítem, nem sablonból, ezért a cég saját folyamatához igazítható.',
         includes: [
-          'Egy űrlap a meglévő honlapba ágyazva',
+          'Egy űrlap a meglévő honlapra építve',
           'Legfeljebb 10 mező és fájlfeltöltés (Excel, PDF, DXF)',
           'Megerősítő e-mail az ügyfélnek',
           'A beküldés egy e-mailben a cégnek',
@@ -296,9 +296,9 @@ export const contentHu: SiteContent = {
         featured: false,
         title: 'Bemutatkozó oldal',
         summary:
-          'Rövid, kóddal készülő honlap a cég bemutatására. Nem sablon-oldalépítő. A domain a megrendelőé marad.',
+          'Rövid, kóddal készülő honlap a cég bemutatására. Nem sablonos oldalépítővel készül. A domain a megrendelőé marad.',
         includes: [
-          'Kóddal készül, nem sablon-oldalépítővel',
+          'Kóddal készül, nem oldalépítővel',
           'Legfeljebb 6 tartalmi rész',
           '6–10 jogtiszta fotó',
           'Kapcsolati űrlap',
@@ -327,7 +327,7 @@ export const contentHu: SiteContent = {
     ],
     form: {
       title: 'Ajánlatkérő minta',
-      intro: 'Próbálja ki. Így látná az ügyfele egy gyártó vagy szabászati cég honlapján.',
+      intro: 'Próbálja ki. Így látnák az ügyfelei egy gyártó vagy szabászati cég honlapján.',
       demoBanner: 'Ez minta. A küldés nincs bekapcsolva, ezért semmi nem megy el.',
       liveBanner: 'Ez minta. A kitöltött kérés e-mailben eljut hozzám.',
       submit: 'Ajánlat kérése',
@@ -340,7 +340,8 @@ export const contentHu: SiteContent = {
       required: 'kötelező',
       optional: 'nem kötelező',
       fileHint: 'Excel, PDF vagy DXF. Legfeljebb 5 MB.',
-      fileChosen: 'Kiválasztott fájl',
+      fileChoose: 'Fájl kiválasztása',
+      fileNone: 'Nincs kiválasztott fájl',
       fields: {
         name: 'Név',
         company: 'Cég',
@@ -375,13 +376,13 @@ export const contentHu: SiteContent = {
     },
     cta: {
       title: 'Kérjen felmérést',
-      text: 'Ha felmérést kér, küldjön e-mailt, vagy nyissa meg a Kapcsolat részt. Rövid egyeztetés után megmondom, melyik csomag illik, és mit tartalmaz a munka.',
+      text: 'Felmérést e-mailben kérhet, további elérhetőségeimet a Kapcsolat részben találja. Rövid egyeztetés után megmondom, melyik csomag illik Önhöz, és mit tartalmaz a munka.',
       button: 'Kapcsolat',
     },
   },
   contact: {
     title: 'Kapcsolat',
-    text: 'Nyitott vagyok szoftverfejlesztői, műszaki projektmérnöki, ipari/energetikai rendszerekkel és K+F-fel kapcsolatos lehetőségekre.',
+    text: 'Ha webes ajánlatkérő űrlapra, bemutatkozó oldalra vagy egyedi webes megoldásra van szüksége, írjon nekem e-mailt. Röviden egyeztetünk, utána megírom, mit javaslok, és mit tartalmaz a munka. Ipari és energetikai szakmai megkeresésekre is szívesen válaszolok.',
     email: 'bendzsiott1998@gmail.com',
     location: 'Budapest, Hungary',
     linkedIn: 'linkedin.com/in/benjaminottee',
@@ -390,7 +391,6 @@ export const contentHu: SiteContent = {
     text: '© 2026 Ott Benjámin. Electrical Engineering × Software Development.',
   },
   common: {
-    sectionLabel: 'szekció',
     emailLabel: 'E-mail',
     locationLabel: 'Helyszín',
     linkedInLabel: 'LinkedIn',

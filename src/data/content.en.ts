@@ -277,9 +277,9 @@ export const contentEn: SiteContent = {
         featured: true,
         title: 'Web quote / order form',
         summary:
-          'One form embedded in the company’s existing site. Instead of today’s Excel, PDF or email process, the customer submits the request on the site. I build the form in code, not from a template, so it can follow the company’s own process.',
+          'One form on the company’s existing site. Instead of today’s Excel, PDF or email process, the customer submits the request on the site. I build the form in code, not from a template, so it can follow the company’s own process.',
         includes: [
-          'One form embedded in the existing site',
+          'One form built onto the existing site',
           'Up to 10 fields plus file upload (Excel, PDF, DXF)',
           'Confirmation email to the customer',
           'The submission delivered in one email to the company',
@@ -296,9 +296,9 @@ export const contentEn: SiteContent = {
         featured: false,
         title: 'Introduction site',
         summary:
-          'A short, hand-coded site to present the company. Not a template page builder. The domain stays with the client.',
+          'A short, hand-coded site to present the company. It is not made with a templated page builder. The domain stays with the client.',
         includes: [
-          'Built in code, not with a template page builder',
+          'Built in code, not with a page builder',
           'Up to 6 content sections',
           '6–10 legally cleared photos',
           'A contact form',
@@ -327,7 +327,7 @@ export const contentEn: SiteContent = {
     ],
     form: {
       title: 'Sample quote request',
-      intro: 'Try it. This is how a customer would see it on a manufacturing or cutting-shop site.',
+      intro: 'Try it. This is how your customers would see it on a manufacturing or cutting-shop site.',
       demoBanner:
         'This is a sample. Sending is not turned on, so nothing is sent.',
       liveBanner: 'Sample form. The submitted request will reach me by email.',
@@ -341,7 +341,8 @@ export const contentEn: SiteContent = {
       required: 'required',
       optional: 'optional',
       fileHint: 'Excel, PDF or DXF. Up to 5 MB.',
-      fileChosen: 'Selected file',
+      fileChoose: 'Choose file',
+      fileNone: 'No file chosen',
       fields: {
         name: 'Name',
         company: 'Company',
@@ -376,13 +377,13 @@ export const contentEn: SiteContent = {
     },
     cta: {
       title: 'Ask for an assessment',
-      text: 'If you would like an assessment, send an email, or open the Contact section. After a short conversation I will say which package fits, and what the work includes.',
+      text: 'You can ask for an assessment by email; you will find my other contact details in the Contact section. After a short conversation I will say which package fits you, and what the work includes.',
       button: 'Contact',
     },
   },
   contact: {
     title: 'Contact',
-    text: 'I am open to opportunities in software development, technical project engineering, industrial/energy systems and R&D.',
+    text: 'If you need a web quote form, an introduction site or a custom web solution, write me an email. We will talk briefly, then I will write what I recommend, and what the work includes. I am also glad to reply to industrial and energy-related professional enquiries.',
     email: 'bendzsiott1998@gmail.com',
     location: 'Budapest, Hungary',
     linkedIn: 'linkedin.com/in/benjaminottee',
@@ -391,7 +392,6 @@ export const contentEn: SiteContent = {
     text: '© 2026 Ott Benjámin. Electrical Engineering × Software Development.',
   },
   common: {
-    sectionLabel: 'section',
     emailLabel: 'Email',
     locationLabel: 'Location',
     linkedInLabel: 'LinkedIn',
