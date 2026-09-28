@@ -388,9 +388,12 @@ function MailPreview({
     copy.materials.find((item) => item.value === values.material)?.label ||
     copy.materials.find((item) => item.value === 'fa')?.label ||
     '—'
-  const quantity = values.quantity.trim() || copy.sampleQuantity
+  const quantityValue = values.quantity.trim() || copy.sampleQuantity
+  const quantity = quantityValue.endsWith(copy.previewQuantityUnit.trim())
+    ? quantityValue
+    : `${quantityValue}${copy.previewQuantityUnit}`
   const notes = values.notes.trim() || copy.sampleNotes
-  const file = values.file?.name || copy.fileNone
+  const file = values.file?.name || copy.previewFileNone
 
   return (
     <aside className="mail-preview" aria-live="polite">

@@ -357,6 +357,8 @@ export const contentHu: SiteContent = {
       fileHint: 'Excel, PDF vagy DXF. Legfeljebb 5 MB.',
       fileChoose: 'Fájl kiválasztása',
       fileNone: 'Nincs kiválasztott fájl',
+      previewFileNone: 'Nincs csatolva',
+      previewQuantityUnit: ' db',
       previewTitle: 'A cég ezt az összefoglalót kapná',
       previewFrom: 'Feladó',
       previewTo: 'Címzett',
@@ -368,7 +370,7 @@ export const contentHu: SiteContent = {
       sampleEmail: 'minta@example.hu',
       samplePhone: '06 1 000 0000',
       sampleQuantity: '12',
-      sampleNotes: 'Minta megjegyzés: 1200 × 800 mm.',
+      sampleNotes: '1200 × 800 mm',
       fields: {
         name: 'Név',
         company: 'Cég',

@@ -28,7 +28,7 @@ export function SheetFrame() {
 
 export function FinaleSwitch({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
-  const inView = useInViewOnce(ref, { threshold: 0.45 })
+  const inView = useInViewOnce(ref, { threshold: 0.4 })
   const reduced = usePrefersReducedMotion()
   const lit = reduced || inView
 
@@ -38,10 +38,21 @@ export function FinaleSwitch({ children }: { children: ReactNode }) {
       className={`signal-finale ${lit ? 'is-lit' : ''}`}
       data-testid="finale"
     >
-      <svg className="finale-lamp" viewBox="0 0 48 24" width="48" height="24" aria-hidden="true">
-        <path className="finale-lamp-stem" d="M1 12 H20" />
-        <path className="finale-lamp-arm" d="M20 12 L28 6" />
-        <circle className="finale-lamp-pad" cx="36" cy="12" r="5.5" />
+      <svg
+        className="finale-lamp"
+        viewBox="0 0 160 56"
+        width="148"
+        height="52"
+        aria-hidden="true"
+      >
+        <path className="finale-ink" d="M4 28 H52" />
+        <path className="finale-lever finale-lever-open" d="M52 28 L70 10" />
+        <path className="finale-lever finale-lever-closed" d="M52 28 H80" />
+        <circle className="finale-ink-fill" cx="52" cy="28" r="2.2" />
+        <path className="finale-ink" d="M80 28 H106" />
+        <circle className="finale-lamp-glass" cx="128" cy="28" r="16" />
+        <path className="finale-ink" d="M117 17 L139 39 M139 17 L117 39" />
+        <circle className="finale-lamp-pad" cx="128" cy="28" r="5" />
       </svg>
       <div className="finale-copy">{children}</div>
     </div>

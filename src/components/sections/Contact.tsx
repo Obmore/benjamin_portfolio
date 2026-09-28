@@ -57,9 +57,6 @@ export function Contact() {
               {EMAIL}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button href={`mailto:${EMAIL}`} variant="outline" className="max-w-full break-all">
-                {EMAIL}
-              </Button>
               <Button
                 type="button"
                 variant="outline"

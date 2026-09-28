@@ -358,6 +358,8 @@ export const contentEn: SiteContent = {
       fileHint: 'Excel, PDF or DXF. Up to 5 MB.',
       fileChoose: 'Choose file',
       fileNone: 'No file chosen',
+      previewFileNone: 'Not attached',
+      previewQuantityUnit: ' pcs',
       previewTitle: 'This is the summary the company would receive',
       previewFrom: 'From',
       previewTo: 'To',
@@ -369,7 +371,7 @@ export const contentEn: SiteContent = {
       sampleEmail: 'minta@example.hu',
       samplePhone: '06 1 000 0000',
       sampleQuantity: '12',
-      sampleNotes: 'Sample note: 1200 × 800 mm.',
+      sampleNotes: '1200 × 800 mm',
       fields: {
         name: 'Name',
         company: 'Company',

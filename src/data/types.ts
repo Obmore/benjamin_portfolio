@@ -73,6 +73,8 @@ export interface QuoteFormCopy {
   fileHint: string
   fileChoose: string
   fileNone: string
+  previewFileNone: string
+  previewQuantityUnit: string
   previewTitle: string
   previewFrom: string
   previewTo: string
