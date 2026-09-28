@@ -2,9 +2,9 @@ import type { SiteContent } from './types'
 
 export const contentEn: SiteContent = {
   meta: {
-    title: 'Ott Benjámin: Electrical Engineer & Software Developer',
+    title: 'Ott Benjámin, electrical engineer and software developer',
     description:
-      'Electrical engineer and software developer connecting engineering systems with modern software solutions. Python, full-stack development, industrial systems, energy and telecommunications R&D.',
+      'Ott Benjámin, electrical engineer and software developer. Python, full-stack development, industrial systems, energy and telecommunications R&D.',
   },
   nav: {
     about: 'About',
@@ -16,8 +16,7 @@ export const contentEn: SiteContent = {
     contact: 'Contact',
   },
   hero: {
-    headline:
-      'Electrical engineer and software developer connecting engineering systems with modern software solutions.',
+    headline: 'electrical engineer and software developer',
     subheadline:
       'Python, full-stack development, industrial communication, energy systems, telecommunications R&D and technical project management in one profile.',
     ctaContact: 'Get in touch',
@@ -64,7 +63,7 @@ export const contentEn: SiteContent = {
       {
         title: 'Electronics Development Engineer',
         company: 'HM Elektronikai, Logisztikai és Vagyonkezelő Zrt.',
-        period: '2026-present',
+        period: 'Since 2026',
         bullets: [
           'Supporting electronics development and system-level engineering tasks.',
           'Applying electrical engineering mindset in a development environment.',
@@ -74,7 +73,7 @@ export const contentEn: SiteContent = {
       {
         title: 'Electrical Engineer & Project Manager',
         company: 'Voltrack',
-        period: '2025-present',
+        period: 'Since 2025',
         bullets: [
           'Coordination of technical projects related to energy and industrial systems.',
           'Support for industrial communication, data acquisition and remote monitoring tasks.',
@@ -85,7 +84,7 @@ export const contentEn: SiteContent = {
       {
         title: 'Software Developer',
         company: 'Rollin',
-        period: '2023-2025',
+        period: '2023 to 2025',
         bullets: [
           'Frontend and backend development of web applications.',
           'React, Vite, Tailwind CSS and Ant Design on the frontend.',
@@ -96,7 +95,7 @@ export const contentEn: SiteContent = {
       {
         title: 'Researcher',
         company: 'Ericsson',
-        period: '2023-2025',
+        period: '2023 to 2025',
         bullets: [
           'R&D tasks related to quantum communication and QKD systems.',
           'Python-based development and support for measurement/experimental work.',
@@ -107,7 +106,7 @@ export const contentEn: SiteContent = {
       {
         title: 'Independent Developer / Sole Proprietor',
         company: '',
-        period: '2024-present',
+        period: 'Since 2024',
         bullets: [
           'Development of web and technical solutions based on business needs.',
           'Frontend, backend and automation-oriented tasks.',
@@ -260,18 +259,18 @@ export const contentEn: SiteContent = {
   },
   cv: {
     title: 'Resume',
-    text: 'Download my current professional resume or connect with me on LinkedIn.',
+    text: 'Download my professional resume, or find me on LinkedIn.',
     downloadHu: 'Download Hungarian CV',
     downloadEn: 'Download English CV',
     linkedIn: 'LinkedIn',
   },
   services: {
-    title: 'A web quote form instead of an Excel order sheet',
-    lead: 'I am an electrical engineer and software developer. I turn a downloadable Excel or PDF order sheet, and email-based quoting, into a simple web form on the company’s own site.',
+    title: 'A web quote form instead of a downloadable Excel order sheet',
+    lead: 'If your customers currently request a quote on a downloadable Excel or PDF order sheet, or by email, I replace that with a simple web form on your site.',
     problem:
-      'Manual quoting is slow. The customer downloads, fills in and attaches. The company then retypes what arrived. With a web form the data arrives in one piece, complete.',
+      'Manual quoting takes a lot of time. The customer downloads the spreadsheet, fills it in and attaches it, and the company then retypes what arrived. With a web form every piece of data arrives together and complete.',
     craft:
-      'I build the form in code, not from a template, so it can follow the company’s own process.',
+      'I build every piece of work in code, not with a template or a page builder, so the solution follows how your company actually works.',
     emptyPrice: 'Fixed entry price: coming soon',
     priceSetSuffix: 'one-time',
     featuredBadge: 'Main offer',
@@ -280,18 +279,18 @@ export const contentEn: SiteContent = {
       {
         id: 'quote-form',
         featured: true,
-        title: 'Web quote / order form',
+        title: 'Web quote form or order form',
         summary:
-          'One form on the company’s existing site. Instead of today’s Excel, PDF or email process, the customer submits the request on the site. I build the form in code, not from a template, so it can follow the company’s own process.',
+          'The customer submits the request directly on the site, so there is no downloading, filling in and sending back of spreadsheets.',
         includes: [
-          'One form built onto the existing site',
+          'One form built onto your existing site',
           'Up to 10 fields plus file upload (Excel, PDF, DXF)',
-          'Confirmation email to the customer',
-          'The submission delivered in one email to the company',
+          'A confirmation email to the customer',
+          'You receive every request in one summary email',
           'One revision round',
         ],
         excludesTitle: 'Not included',
-        excludes: ['Price calculation', 'A database', 'Integration with existing systems'],
+        excludes: ['Price calculation', 'A database', 'Linking to existing systems'],
         excludesNote: 'Those are custom work, priced after an assessment.',
         priceFromConfig: true,
         price: '',
@@ -301,15 +300,14 @@ export const contentEn: SiteContent = {
         featured: false,
         title: 'Introduction site',
         summary:
-          'A short, hand-coded site to present the company. It is not made with a templated page builder. The domain stays with the client.',
+          'A short, clear site that presents the company and makes it easy for people to get in touch with you.',
         includes: [
-          'Built in code, not with a page builder',
           'Up to 6 content sections',
           'At least 6, at most 10 licensed photos',
           'Contact option',
-          'One revision round',
-          'The domain is charged separately, and stays with the client',
           'Works well on a phone',
+          'One revision round',
+          'The domain is yours, and its fee is not included in the price',
         ],
         priceFromConfig: false,
         price: '59\u00A0000\u00A0Ft one-time',
@@ -320,11 +318,10 @@ export const contentEn: SiteContent = {
         featured: false,
         title: 'Custom solution',
         summary:
-          'If you need an instant price calculator, a database, or a link to an existing system, that belongs here.',
+          'A price calculator, a database, or a link to the company’s existing systems, when a form is no longer enough.',
         includes: [
-          'A short assessment of the task',
-          'A price only after that assessment',
-          'A hand-coded solution, not a template',
+          'A short conversation about the task and its limits',
+          'A written proposal of what the work includes',
         ],
         priceFromConfig: false,
         price: 'Price after a short assessment',
@@ -382,7 +379,7 @@ export const contentEn: SiteContent = {
     },
     cta: {
       title: 'Ask for an assessment',
-      text: 'You can ask for an assessment by email; you will find my other contact details in the Contact section. After a short conversation I will say which package fits you, and what the work includes.',
+      text: 'Write a short note about how your customers ask for a quote today. In my reply I will say which solution I recommend, and what it costs. You will find my other contact details in the Contact section.',
       button: 'Contact',
     },
   },
@@ -394,7 +391,7 @@ export const contentEn: SiteContent = {
     linkedIn: 'linkedin.com/in/benjaminottee',
   },
   footer: {
-    text: '© 2026 Ott Benjámin. Electrical Engineering × Software Development.',
+    text: '© 2026 Ott Benjámin, electrical engineer and software developer',
   },
   common: {
     emailLabel: 'Email',

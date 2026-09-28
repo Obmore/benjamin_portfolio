@@ -2,9 +2,9 @@ import type { SiteContent } from './types'
 
 export const contentHu: SiteContent = {
   meta: {
-    title: 'Ott Benjámin: Villamosmérnök és szoftverfejlesztő',
+    title: 'Ott Benjámin, villamosmérnök és szoftverfejlesztő',
     description:
-      'Villamosmérnök és szoftverfejlesztő, aki mérnöki rendszereket köt össze modern szoftveres megoldásokkal. Python, full-stack fejlesztés, ipari rendszerek, energetika és telekommunikációs K+F.',
+      'Ott Benjámin, villamosmérnök és szoftverfejlesztő. Python, full-stack fejlesztés, ipari rendszerek, energetika és telekommunikációs K+F.',
   },
   nav: {
     about: 'Rólam',
@@ -16,8 +16,7 @@ export const contentHu: SiteContent = {
     contact: 'Kapcsolat',
   },
   hero: {
-    headline:
-      'Villamosmérnök és szoftverfejlesztő, aki mérnöki rendszereket köt össze modern szoftveres megoldásokkal.',
+    headline: 'villamosmérnök és szoftverfejlesztő',
     subheadline:
       'Python, full-stack fejlesztés, ipari kommunikáció, energetikai rendszerek, telekommunikációs K+F és műszaki projektmenedzsment egy kézben.',
     ctaContact: 'Kapcsolatfelvétel',
@@ -64,7 +63,7 @@ export const contentHu: SiteContent = {
       {
         title: 'Elektronikai fejlesztőmérnök',
         company: 'HM Elektronikai, Logisztikai és Vagyonkezelő Zrt.',
-        period: '2026-jelenleg',
+        period: '2026 óta',
         bullets: [
           'Elektronikai fejlesztési és rendszerszintű mérnöki feladatok támogatása.',
           'Villamosmérnöki szemlélet alkalmazása fejlesztési környezetben.',
@@ -74,7 +73,7 @@ export const contentHu: SiteContent = {
       {
         title: 'Villamosmérnök és projektmenedzser',
         company: 'Voltrack',
-        period: '2025-jelenleg',
+        period: '2025 óta',
         bullets: [
           'Energetikai és ipari rendszerekhez kapcsolódó műszaki projektek koordinációja.',
           'Ipari kommunikációs, adatgyűjtési és távfelügyeleti feladatok támogatása.',
@@ -85,7 +84,7 @@ export const contentHu: SiteContent = {
       {
         title: 'Szoftverfejlesztő',
         company: 'Rollin',
-        period: '2023-2025',
+        period: '2023 és 2025 között',
         bullets: [
           'Webalkalmazások frontend és backend fejlesztése.',
           'React, Vite, Tailwind CSS és Ant Design használata frontend oldalon.',
@@ -96,7 +95,7 @@ export const contentHu: SiteContent = {
       {
         title: 'Kutató',
         company: 'Ericsson',
-        period: '2023-2025',
+        period: '2023 és 2025 között',
         bullets: [
           'Kvantumkommunikációhoz és QKD rendszerekhez kapcsolódó K+F feladatok.',
           'Python-alapú fejlesztések és mérési/kísérleti munkák támogatása.',
@@ -107,7 +106,7 @@ export const contentHu: SiteContent = {
       {
         title: 'Önálló fejlesztő / Egyéni vállalkozó',
         company: '',
-        period: '2024-jelenleg',
+        period: '2024 óta',
         bullets: [
           'Webes és technikai megoldások fejlesztése üzleti igények alapján.',
           'Frontend, backend és automatizációs jellegű feladatok.',
@@ -260,18 +259,18 @@ export const contentHu: SiteContent = {
   },
   cv: {
     title: 'Önéletrajz',
-    text: 'Töltsd le az aktuális szakmai önéletrajzomat, vagy vedd fel velem a kapcsolatot LinkedInen.',
+    text: 'Töltse le a szakmai önéletrajzomat, vagy keressen meg LinkedInen.',
     downloadHu: 'Magyar CV letöltése',
     downloadEn: 'Angol CV letöltése',
     linkedIn: 'LinkedIn',
   },
   services: {
-    title: 'Webes ajánlatkérő Excel-rendelőlap helyett',
-    lead: 'Villamosmérnök és szoftverfejlesztő vagyok. A letölthető Excel- vagy PDF-rendelőlapot és az e-mailes ajánlatkérést egyszerű webes űrlappá alakítom a cég saját honlapján.',
+    title: 'Webes ajánlatkérő a letölthető Excel-rendelőlap helyett',
+    lead: 'Ha az ügyfelei ma letölthető Excel- vagy PDF-rendelőlapon, esetleg e-mailben kérnek ajánlatot, ezt egyszerű webes űrlapra cserélem az Ön honlapján.',
     problem:
-      'A kézi ajánlatkérés lassú. Az ügyfél letölt, kitölt és csatol. A cég a beérkezett adatot kézzel viszi tovább. Webes űrlappal az adat egyben, hiánytalanul érkezik.',
+      'A kézi ajánlatkérés sok időt visz el. Az ügyfél letölti a táblázatot, kitölti és csatolja, a cég pedig kézzel viszi tovább, amit kapott. Webes űrlappal minden adat egyszerre és hiánytalanul érkezik meg.',
     craft:
-      'Az űrlapot kóddal készítem, nem sablonból, ezért a cég saját folyamatához igazítható.',
+      'Minden munkát kóddal készítek, nem sablonnal vagy oldalépítővel, ezért a megoldás az Ön cégének működéséhez igazodik.',
     emptyPrice: 'Fix belépő ár: hamarosan',
     priceSetSuffix: 'egyszeri',
     featuredBadge: 'Fő ajánlat',
@@ -280,18 +279,18 @@ export const contentHu: SiteContent = {
       {
         id: 'quote-form',
         featured: true,
-        title: 'Webes ajánlatkérő / rendelőlap',
+        title: 'Webes ajánlatkérő vagy rendelőlap',
         summary:
-          'Egy űrlap a cég meglévő honlapjára. A mai Excel-, PDF- vagy e-mailes folyamat helyett az ügyfél a honlapon adja le a kérést. Az űrlapot kóddal készítem, nem sablonból, ezért a cég saját folyamatához igazítható.',
+          'Az ügyfél közvetlenül a honlapon adja le a kérést, így elmarad a táblázatok letöltése, kitöltése és visszaküldése.',
         includes: [
-          'Egy űrlap a meglévő honlapra építve',
+          'Egy űrlap a meglévő honlapjára építve',
           'Legfeljebb 10 mező és fájlfeltöltés (Excel, PDF, DXF)',
-          'Megerősítő e-mail az ügyfélnek',
-          'A beküldés egy e-mailben a cégnek',
+          'Visszaigazoló e-mail az ügyfélnek',
+          'Minden kérést egy összefoglaló e-mailben kap meg',
           'Egy javítási kör',
         ],
         excludesTitle: 'Nem tartozik a csomagba',
-        excludes: ['Árszámítás', 'Adatbázis', 'Meglévő rendszerekhez kapcsolás'],
+        excludes: ['Árkalkuláció', 'Adatbázis', 'Összekötés meglévő rendszerekkel'],
         excludesNote: 'Ezeket egyedi munkaként, felmérés után árazom.',
         priceFromConfig: true,
         price: '',
@@ -301,15 +300,14 @@ export const contentHu: SiteContent = {
         featured: false,
         title: 'Bemutatkozó oldal',
         summary:
-          'Rövid, kóddal készülő honlap a cég bemutatására. Nem sablonos oldalépítővel készül. A domain a megrendelőé marad.',
+          'Rövid, áttekinthető honlap, amely bemutatja a céget, és megkönnyíti, hogy az érdeklődők felvegyék Önnel a kapcsolatot.',
         includes: [
-          'Kóddal készül, nem oldalépítővel',
           'Legfeljebb 6 tartalmi rész',
           'Legalább 6, legfeljebb 10 jogtiszta fotó',
           'Kapcsolatfelvétel',
-          'Egy javítási kör',
-          'A domain külön díjas, és a megrendelőé marad',
           'Mobilon is jól használható',
+          'Egy javítási kör',
+          'A domain az Öné, a díja nincs benne az árban',
         ],
         priceFromConfig: false,
         price: '59\u00A0000\u00A0Ft egyszeri',
@@ -320,14 +318,13 @@ export const contentHu: SiteContent = {
         featured: false,
         title: 'Egyedi megoldás',
         summary:
-          'Ha azonnali árkalkulátor, adatbázis vagy meglévő rendszerhez kapcsolás kell, azt ide sorolom.',
+          'Árkalkulátor, adatbázis vagy összekötés a cég meglévő rendszereivel, ha egy űrlap már nem elég.',
         includes: [
-          'Rövid felmérés a feladat határairól',
-          'Árajánlat csak a felmérés után',
-          'Kóddal készülő megoldás, nem sablon',
+          'Rövid egyeztetés a feladatról és a határairól',
+          'Írásos javaslat arról, mit tartalmaz a munka',
         ],
         priceFromConfig: false,
-        price: 'Ár csak rövid felmérés után',
+        price: 'Ár rövid felmérés után',
       },
     ],
     form: {
@@ -381,7 +378,7 @@ export const contentHu: SiteContent = {
     },
     cta: {
       title: 'Kérjen felmérést',
-      text: 'Felmérést e-mailben kérhet, további elérhetőségeimet a Kapcsolat részben találja. Rövid egyeztetés után megmondom, melyik csomag illik Önhöz, és mit tartalmaz a munka.',
+      text: 'Írja meg röviden, hogyan kérnek ma ajánlatot az ügyfelei. Válaszomban leírom, melyik megoldást javaslom, és mennyibe kerül. További elérhetőségeimet a Kapcsolat részben találja.',
       button: 'Kapcsolat',
     },
   },
@@ -393,7 +390,7 @@ export const contentHu: SiteContent = {
     linkedIn: 'linkedin.com/in/benjaminottee',
   },
   footer: {
-    text: '© 2026 Ott Benjámin. Electrical Engineering × Software Development.',
+    text: '© 2026 Ott Benjámin, villamosmérnök és szoftverfejlesztő',
   },
   common: {
     emailLabel: 'E-mail',
