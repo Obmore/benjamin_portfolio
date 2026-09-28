@@ -220,14 +220,14 @@ export const contentEn: SiteContent = {
         alt: 'Életrendező introduction site landing screen with contact buttons',
       },
       {
-        id: 'rollin',
-        title: 'Rollin',
-        subtitle: 'As an employee, 2023 to 2025',
+        id: 'hotel-rental',
+        title: 'Hotel vehicle rental system',
+        subtitle: 'Automated rental of electric scooters and bikes for hotels',
         tag: 'Team project',
         paragraphs: [
-          'As a software developer at Rollin, I worked on the user interface and server side of a production web application.',
+          'I worked on the hotel rental web interface, the server-side system, remote control of the e-bikes and the charging station software.',
         ],
-        tech: 'Technology: React, Vite, Tailwind CSS, Ant Design, C#, Microsoft SQL, Quartz, Azure DevOps.',
+        tech: 'Technology: React, TypeScript, .NET, Azure, Raspberry Pi, Python.',
       },
       {
         id: 'lelek-es-nyelv',
