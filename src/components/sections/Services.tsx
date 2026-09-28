@@ -24,7 +24,7 @@ export function Services() {
         label={content.nav.services}
       />
 
-      <div className="grid gap-4 lg:grid-cols-3 lg:gap-5">
+      <div className="grid gap-3 lg:grid-cols-3 lg:gap-5">
         {services.packages.map((pkg) => (
           <PriceCard
             key={pkg.id}
@@ -37,7 +37,7 @@ export function Services() {
         ))}
       </div>
 
-      <Panel className="mt-8">
+      <Panel className="mt-5">
         <h3 className="text-xl font-semibold tracking-tight text-foreground">
           {services.cta.title}
         </h3>
@@ -90,7 +90,7 @@ function PriceCard({
 
   return (
     <article
-      className={`price-card relative flex h-full flex-col rounded-[6px] border bg-surface p-4 ${
+      className={`price-card relative flex h-full flex-col rounded-[6px] border bg-surface p-3.5 ${
         pkg.featured ? 'border-line/60' : 'border-line/25'
       }`}
     >
@@ -117,9 +117,9 @@ function PriceCard({
       </p>
       {note ? <p className="mt-1 text-base text-muted">{note}</p> : null}
       {pkg.extra ? <p className="mt-1 text-base text-muted">{pkg.extra}</p> : null}
-      <p className="mt-3 text-sm leading-relaxed text-muted">{pkg.summary}</p>
-      <p className="mt-4 font-mono text-xs uppercase tracking-wider text-line">{includesTitle}</p>
-      <ul className="mt-2 space-y-1.5">
+      <p className="mt-2 text-sm leading-snug text-muted">{pkg.summary}</p>
+      <p className="mt-3 font-mono text-xs uppercase tracking-wider text-line">{includesTitle}</p>
+      <ul className="mt-2 space-y-1">
         {pkg.includes.map((item) => (
           <li key={item} className="flex gap-2 text-sm leading-relaxed text-muted">
             <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full border border-line" />
@@ -128,11 +128,11 @@ function PriceCard({
         ))}
       </ul>
       {pkg.excludes && pkg.excludes.length > 0 ? (
-        <div className="mt-4">
+        <div className="mt-3">
           {pkg.excludesTitle ? (
             <p className="font-mono text-xs uppercase tracking-wider text-muted">{pkg.excludesTitle}</p>
           ) : null}
-          <ul className="mt-2 space-y-1.5">
+          <ul className="mt-2 space-y-1">
             {pkg.excludes.map((item) => (
               <li key={item} className="flex gap-2 text-sm leading-relaxed text-muted">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-border" />

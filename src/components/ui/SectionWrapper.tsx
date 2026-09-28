@@ -10,7 +10,7 @@ export function SectionWrapper({ id, children, className = '' }: SectionWrapperP
   return (
     <section
       id={id}
-      className={`section-crosses scroll-mt-16 py-10 md:py-16 ${className}`}
+      className={`section-crosses scroll-mt-16 py-8 md:py-14 ${className}`}
     >
       <div className="mx-auto max-w-6xl px-5 md:px-8">{children}</div>
     </section>

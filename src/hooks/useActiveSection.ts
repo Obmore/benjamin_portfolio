@@ -36,5 +36,6 @@ export function useActiveSection(sectionIds: string[]) {
 export function scrollToSection(id: string) {
   const element = document.getElementById(id)
   if (!element) return
-  element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  element.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
 }

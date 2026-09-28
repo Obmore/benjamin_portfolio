@@ -3,7 +3,7 @@
   container-name: morph;
   position: relative;
   aspect-ratio: 16 / 11;
-  max-height: 210px;
+  max-height: 188px;
   width: 100%;
   overflow: hidden;
   border-radius: 6px;
@@ -226,7 +226,7 @@
   color: var(--color-line);
 }
 
-@container morph (max-width: 359px) {
+@container morph (max-width: 420px) {
   .morph-optional {
     display: none;
   }
@@ -285,11 +285,20 @@
 
 .morph-stage.is-done .morph-form,
 .morph-stage.is-playing.is-done .morph-form {
-  opacity: 1;
+  opacity: 1 !important;
+  transform: none;
+  animation: none !important;
 }
 
 .morph-stage.is-done .morph-sheet {
-  opacity: 0;
+  opacity: 0 !important;
+  animation: none !important;
+}
+
+.morph-stage.is-done .morph-grid-line,
+.morph-stage.is-done .morph-scan {
+  opacity: 0 !important;
+  animation: none !important;
 }
 
 @keyframes morph-draw {
@@ -357,6 +366,21 @@
   }
   to {
     stroke-dashoffset: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .morph-optional {
+    display: none;
+  }
+
+  .morph-note,
+  .morph-dim {
+    display: none;
+  }
+
+  .morph-form-grid {
+    gap: 0.3rem 0.45rem;
   }
 }
 

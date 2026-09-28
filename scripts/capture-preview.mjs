@@ -40,11 +40,15 @@ async function shot(page, width, height, fullPage, reduced, destName) {
   }
   await page.goto(BASE, { waitUntil: 'networkidle' })
   await page.waitForSelector('h1')
+  await page.evaluate(() => document.fonts.ready)
+  if (!reduced) {
+    await page.waitForSelector('.morph-stage.is-done', { timeout: 6000 }).catch(() => page.waitForTimeout(3500))
+  }
   await page.evaluate(() => window.scrollTo(0, 0))
   mkdirSync(DOCS, { recursive: true })
   mkdirSync(ARTIFACTS, { recursive: true })
   const docsPath = join(DOCS, destName)
-  await page.screenshot({ path: docsPath, fullPage, animations: 'disabled' })
+  await page.screenshot({ path: docsPath, fullPage, animations: reduced ? 'disabled' : 'allow' })
   copyFileSync(docsPath, join(ARTIFACTS, destName))
   console.log(`wrote ${docsPath}`)
 }

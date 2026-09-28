@@ -9,7 +9,7 @@ export function Hero() {
 
   return (
     <section id="hero" className="relative scroll-mt-16 pt-16 md:pt-20">
-      <div className="mx-auto grid w-full max-w-6xl gap-6 px-5 py-5 md:px-8 md:py-8 lg:grid-cols-12 lg:items-start lg:gap-10">
+      <div className="mx-auto grid w-full max-w-6xl gap-5 px-5 py-4 md:px-8 md:py-8 lg:grid-cols-12 lg:items-start lg:gap-10">
         <div className="lg:col-span-5">
           <p className="font-mono text-xs tracking-wide text-line">Ott Benjámin</p>
           <p className="mt-1 text-sm text-muted">{content.hero.headline}</p>

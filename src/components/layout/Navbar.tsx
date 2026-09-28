@@ -34,11 +34,16 @@ export function Navbar() {
   useEffect(() => {
     const onHash = () => {
       const id = window.location.hash.replace(/^#/, '')
-      if (id) scrollToSection(id)
+      if (id) {
+        window.requestAnimationFrame(() => scrollToSection(id))
+      }
     }
-    onHash()
+    const timer = window.setTimeout(onHash, 50)
     window.addEventListener('hashchange', onHash)
-    return () => window.removeEventListener('hashchange', onHash)
+    return () => {
+      window.clearTimeout(timer)
+      window.removeEventListener('hashchange', onHash)
+    }
   }, [])
 
   useEffect(() => {

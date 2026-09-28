@@ -18,7 +18,7 @@ export function SectionHeading({
   titleId,
 }: SectionHeadingProps) {
   return (
-    <div className="mb-8 max-w-2xl md:mb-10">
+    <div className="mb-6 max-w-2xl md:mb-10">
       <div className="mb-3 flex items-center gap-3">
         <span className="font-mono text-xs tracking-[0.18em] text-line">{number}</span>
         <span className="font-mono text-xs uppercase tracking-[0.18em] text-line">

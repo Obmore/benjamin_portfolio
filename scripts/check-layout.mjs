@@ -177,14 +177,19 @@ async function run() {
     }
 
     await withPage(browser, { width: 390, height: 844 }, false, async (page) => {
-      await ready(page)
       for (const id of ANCHORS) {
-        await page.evaluate((sectionId) => {
-          window.location.hash = sectionId
-        }, id)
-        await page.waitForTimeout(350)
-        const top = await page.locator(`#${id}`).evaluate((el) => el.getBoundingClientRect().top)
-        assert(Math.abs(top) < 220, `hash #${id} did not scroll into view (top ${top})`)
+        await page.goto(`${BASE}#${id}`, { waitUntil: 'networkidle' })
+        await page.waitForSelector(`#${id}`)
+        await page.waitForFunction(
+          (sectionId) => {
+            const el = document.getElementById(sectionId)
+            if (!el) return false
+            const top = el.getBoundingClientRect().top
+            return top >= -8 && top < 220
+          },
+          id,
+          { timeout: 5000 },
+        )
       }
     })
 

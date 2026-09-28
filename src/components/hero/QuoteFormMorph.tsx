@@ -102,15 +102,21 @@ function AnimatedMorph({
 }) {
   return (
     <div className="morph-frame" aria-hidden="true">
-      <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 400 300">
-        <rect className="morph-border" x="8" y="8" width="384" height="284" />
-        <path className="morph-grid-line" d="M8 70 H392 M8 130 H392 M8 190 H392" />
-        <path className="morph-grid-line" d="M80 8 V292 M160 8 V292 M240 8 V292 M320 8 V292" />
+      <svg
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        viewBox="0 0 400 300"
+        preserveAspectRatio="none"
+      >
+        <rect className="morph-border" x="2" y="2" width="396" height="296" />
       </svg>
       <span className="morph-tab">{filename}</span>
       <div className="morph-scan" />
 
       <div className="morph-sheet">
+        <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 400 300">
+          <path className="morph-grid-line" d="M8 70 H392 M8 130 H392 M8 190 H392" />
+          <path className="morph-grid-line" d="M80 8 V292 M160 8 V292 M240 8 V292 M320 8 V292" />
+        </svg>
         <div className="morph-sheet-grid">
           <div className="morph-cell axis" />
           {MORPH_COLS.map((col, index) => (
@@ -139,7 +145,6 @@ function AnimatedMorph({
             </div>
           ))}
           <div className="morph-file">
-            <span className="morph-field-label">{fileHint}</span>
             <span className="morph-file-box">{fileHint}</span>
           </div>
           <div className="morph-actions">
