@@ -11,7 +11,7 @@ export const contentEn: SiteContent = {
     services: 'Services',
     experience: 'Experience',
     skills: 'Skills',
-    projects: 'Projects',
+    projects: 'My work',
     cv: 'Resume',
     contact: 'Contact',
   },
@@ -172,27 +172,84 @@ export const contentEn: SiteContent = {
     ],
   },
   projects: {
-    title: 'Key professional areas',
+    title: 'My work',
     items: [
       {
-        title: 'Industrial systems & remote monitoring',
-        description:
-          'Support for communication, data acquisition and integration tasks in industrial and energy systems.',
+        id: 'anettesvendi',
+        title: 'Anett & Vendi – wedding invitation and RSVP site',
+        site: { label: 'anettesvendi.hu', href: 'https://anettesvendi.hu' },
+        paragraphs: [
+          'A Hungarian and English site made for a couple’s guests. The guest signs in with the code on their invitation. They can RSVP, give the headcount, meal and accommodation needs, and request a song. Incoming replies collect on an organiser view, where the guest list, seating plan and budget can also be managed. The data can be downloaded as a spreadsheet, so meal needs can go to the caterer and song requests to the DJ.',
+          'The same approach also works for a company’s quote or order form. Data from completed forms collect in one place and can be downloaded in summary.',
+        ],
+        tech: 'Technology: Vite, TypeScript, custom API, Cloudflare. Design and development: Ott Benjámin.',
+        image: 'work/anettesvendi.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Anett & Vendi wedding site: beach landing screen with invitation-code entry',
       },
       {
-        title: 'Python-based engineering development',
-        description:
-          'Python solutions supporting measurement, data processing and experimental tasks.',
+        id: 'lelkiter',
+        title: 'Életrendező – introduction site',
+        site: { label: 'lelkiter.hu', href: 'https://lelkiter.hu' },
+        paragraphs: [
+          'An introduction site for a Budapest helper who works with family constellation, drawing analysis, dream interpretation, massage and homeopathy. It can be read in Hungarian and English, and it presents the practitioner, the services and the blog posts on separate pages. It works well on a phone, and the visitor can get in touch directly by email or phone.',
+        ],
+        tech: 'Technology: React, Vite, Cloudflare. Design and development: Ott Benjámin.',
+        image: 'work/lelkiter.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Életrendező introduction site landing screen with contact buttons',
       },
       {
-        title: 'Full-stack web development',
-        description:
-          'Frontend and backend development experience with modern web technologies.',
+        id: 'piktor',
+        title: 'Piktor 94 – product-data sample for a webshop',
+        site: {
+          label: 'obmore.github.io/piktor-content-pilot',
+          href: 'https://obmore.github.io/piktor-content-pilot',
+        },
+        paragraphs: [
+          'A working sample for a webshop. It matches products by manufacturer part number, builds a Hungarian product description from source-backed data, and flags any missing field. It hands over the result in a review table and in a form that can be uploaded to the webshop.',
+        ],
+        tech: 'Technology: JavaScript, Python, automated tests.',
+        image: 'work/piktor.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Piktor 94 product-data sample: product descriptions and missing-data review',
       },
       {
-        title: 'Telecommunications R&D',
-        description:
-          'Research and development engineering experience related to quantum communication and QKD systems.',
+        id: 'ottbenjamin',
+        title: 'ottbenjamin.hu – own professional site',
+        paragraphs: [
+          'A Hungarian and English site, readable in light and dark mode. Its code is public: github.com/Obmore/benjamin_portfolio',
+        ],
+        tech: 'Technology: React 19, TypeScript, Vite, Tailwind CSS, Framer Motion.',
+        image: 'work/ottbenjamin.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'ottbenjamin.hu professional site landing screen',
+        links: [
+          {
+            label: 'github.com/Obmore/benjamin_portfolio',
+            href: 'https://github.com/Obmore/benjamin_portfolio',
+          },
+        ],
+      },
+      {
+        id: 'lelek-es-nyelv',
+        title: 'Lélek & Nyelv – sample introduction site',
+        site: {
+          label: 'obmore.github.io/lelek-es-nyelv-portfolio',
+          href: 'https://obmore.github.io/lelek-es-nyelv-portfolio',
+        },
+        paragraphs: [
+          'A sample site for a mental-health helper and English teacher, with the services, how the work together goes, and frequent questions. It was made as a demonstration, not client work.',
+        ],
+        tech: 'Technology: Next.js, React, Tailwind CSS.',
+        image: 'work/lelek-es-nyelv.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Lélek & Nyelv sample site landing screen: a sure space, a braver voice',
       },
     ],
   },
@@ -319,8 +376,8 @@ export const contentEn: SiteContent = {
     },
     cta: {
       title: 'Ask for an assessment',
-      text: 'If you would like an assessment, send an email. After a short conversation I will say which package fits, and what the work includes.',
-      button: 'Go to contact',
+      text: 'If you would like an assessment, send an email, or open the Contact section. After a short conversation I will say which package fits, and what the work includes.',
+      button: 'Contact',
     },
   },
   contact: {
@@ -329,18 +386,6 @@ export const contentEn: SiteContent = {
     email: 'bendzsiott1998@gmail.com',
     location: 'Budapest, Hungary',
     linkedIn: 'linkedin.com/in/benjaminottee',
-    form: {
-      name: 'Name',
-      email: 'Email',
-      message: 'Message',
-      submit: 'Send message',
-      success: 'Thank you for your message! I will get back to you soon.',
-      errors: {
-        name: 'Please enter your name.',
-        email: 'Please enter a valid email address.',
-        message: 'Please write your message.',
-      },
-    },
   },
   footer: {
     text: '© 2026 Ott Benjámin. Electrical Engineering × Software Development.',

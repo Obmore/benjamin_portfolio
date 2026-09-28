@@ -11,7 +11,7 @@ export const contentHu: SiteContent = {
     services: 'Szolgáltatások',
     experience: 'Tapasztalat',
     skills: 'Kompetenciák',
-    projects: 'Projektek',
+    projects: 'Munkáim',
     cv: 'Önéletrajz',
     contact: 'Kapcsolat',
   },
@@ -172,27 +172,84 @@ export const contentHu: SiteContent = {
     ],
   },
   projects: {
-    title: 'Kiemelt szakmai irányok',
+    title: 'Munkáim',
     items: [
       {
-        title: 'Ipari rendszerek és távfelügyelet',
-        description:
-          'Ipari és energetikai rendszerek kommunikációs, adatgyűjtési és integrációs feladatainak támogatása.',
+        id: 'anettesvendi',
+        title: 'Anett & Vendi – esküvői meghívó és visszajelző oldal',
+        site: { label: 'anettesvendi.hu', href: 'https://anettesvendi.hu' },
+        paragraphs: [
+          'Egy pár vendégeinek készült, magyar és angol nyelvű weboldal. A vendég a meghívóján lévő kóddal lép be. Visszajelezhet a részvételről, megadhatja a létszámot, az étkezési és a szállásigényét, és zenét is kérhet. A beérkező válaszok egy szervezői felületen gyűlnek, ahol a vendéglista, az ültetési rend és a költségvetés is kezelhető. Az adatok táblázatként letölthetők, így például az étkezési igények mehetnek a vendéglátónak, a zenekérések pedig a DJ-nek.',
+          'Ugyanez a megoldás egy cég ajánlatkérő vagy rendelési űrlapjánál is működik. A kitöltött űrlapok adatai egy helyen gyűlnek, és összesítve letölthetők.',
+        ],
+        tech: 'Technológia: Vite, TypeScript, saját API, Cloudflare. Tervezés és fejlesztés: Ott Benjámin.',
+        image: 'work/anettesvendi.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Anett & Vendi esküvői oldal: tengerparti kezdőképernyő meghívókódos belépéssel',
       },
       {
-        title: 'Python-alapú mérnöki fejlesztések',
-        description:
-          'Mérési, adatfeldolgozási és kísérleti feladatokat támogató Python-alapú megoldások.',
+        id: 'lelkiter',
+        title: 'Életrendező – bemutatkozó oldal',
+        site: { label: 'lelkiter.hu', href: 'https://lelkiter.hu' },
+        paragraphs: [
+          'Bemutatkozó oldal egy budapesti segítő szakembernek, aki családállítással, rajzvizsgálattal, álomfejtéssel, masszázzsal és homeopátiával foglalkozik. Magyarul és angolul olvasható, és külön oldalakon mutatja be a szakembert, a szolgáltatásokat és a blogbejegyzéseket. Mobilon is jól kezelhető, a látogató pedig e-mailben vagy telefonon közvetlenül felveheti a kapcsolatot.',
+        ],
+        tech: 'Technológia: React, Vite, Cloudflare. Tervezés és fejlesztés: Ott Benjámin.',
+        image: 'work/lelkiter.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Életrendező bemutatkozó oldal kezdőképernyője kapcsolatfelvétel gombokkal',
       },
       {
-        title: 'Full-stack webfejlesztés',
-        description:
-          'Frontend és backend fejlesztési tapasztalat modern webes technológiákkal.',
+        id: 'piktor',
+        title: 'Piktor 94 – termékadat-minta webáruháznak',
+        site: {
+          label: 'obmore.github.io/piktor-content-pilot',
+          href: 'https://obmore.github.io/piktor-content-pilot',
+        },
+        paragraphs: [
+          'Működő minta egy webáruház számára. A gyártói cikkszám alapján párosítja a termékeket, a forrásokkal igazolt adatokból magyar termékleírást állít össze, és jelzi, ha valamelyik adat hiányzik. Az eredményt egy ellenőrző táblázatban és a webáruházba feltölthető formában adja át.',
+        ],
+        tech: 'Technológia: JavaScript, Python, automatikus tesztek.',
+        image: 'work/piktor.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Piktor 94 termékadat-minta: termékleírások és hiányzó adatok ellenőrző nézete',
       },
       {
-        title: 'Telekommunikációs K+F',
-        description:
-          'Kvantumkommunikációs és QKD rendszerekhez kapcsolódó kutatás-fejlesztési mérnöki tapasztalat.',
+        id: 'ottbenjamin',
+        title: 'ottbenjamin.hu – saját szakmai oldal',
+        paragraphs: [
+          'Magyar és angol nyelvű oldal, világos és sötét módban is olvasható. A kódja nyilvános: github.com/Obmore/benjamin_portfolio',
+        ],
+        tech: 'Technológia: React 19, TypeScript, Vite, Tailwind CSS, Framer Motion.',
+        image: 'work/ottbenjamin.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'ottbenjamin.hu saját szakmai oldal kezdőképernyője',
+        links: [
+          {
+            label: 'github.com/Obmore/benjamin_portfolio',
+            href: 'https://github.com/Obmore/benjamin_portfolio',
+          },
+        ],
+      },
+      {
+        id: 'lelek-es-nyelv',
+        title: 'Lélek & Nyelv – bemutatkozó oldal minta',
+        site: {
+          label: 'obmore.github.io/lelek-es-nyelv-portfolio',
+          href: 'https://obmore.github.io/lelek-es-nyelv-portfolio',
+        },
+        paragraphs: [
+          'Mintaoldal egy mentálhigiénés segítő és angoltanár számára, a szolgáltatásokkal, a közös munka menetével és a gyakori kérdésekkel. Bemutató céllal készült, nem ügyfélmunka.',
+        ],
+        tech: 'Technológia: Next.js, React, Tailwind CSS.',
+        image: 'work/lelek-es-nyelv.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Lélek & Nyelv mintaoldal kezdőképernyője: Biztos tér, bátrabb hang',
       },
     ],
   },
@@ -318,8 +375,8 @@ export const contentHu: SiteContent = {
     },
     cta: {
       title: 'Kérjen felmérést',
-      text: 'Ha felmérést kér, küldjön e-mailt. Rövid egyeztetés után megmondom, melyik csomag illik, és mit tartalmaz a munka.',
-      button: 'Ugrás a kapcsolathoz',
+      text: 'Ha felmérést kér, küldjön e-mailt, vagy nyissa meg a Kapcsolat részt. Rövid egyeztetés után megmondom, melyik csomag illik, és mit tartalmaz a munka.',
+      button: 'Kapcsolat',
     },
   },
   contact: {
@@ -328,18 +385,6 @@ export const contentHu: SiteContent = {
     email: 'bendzsiott1998@gmail.com',
     location: 'Budapest, Hungary',
     linkedIn: 'linkedin.com/in/benjaminottee',
-    form: {
-      name: 'Név',
-      email: 'E-mail',
-      message: 'Üzenet',
-      submit: 'Üzenet küldése',
-      success: 'Köszönöm az üzenetet! Hamarosan válaszolok.',
-      errors: {
-        name: 'Kérlek, add meg a neved.',
-        email: 'Kérlek, adj meg egy érvényes e-mail címet.',
-        message: 'Kérlek, írd meg az üzeneted.',
-      },
-    },
   },
   footer: {
     text: '© 2026 Ott Benjámin. Electrical Engineering × Software Development.',

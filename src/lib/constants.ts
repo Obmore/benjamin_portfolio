@@ -31,7 +31,7 @@ export const SECTION_IDS = {
   services: 'szolgaltatasok',
   experience: 'tapasztalat',
   skills: 'kompetenciak',
-  projects: 'projektek',
+  projects: 'munkaim',
   cv: 'oneletrajz',
   contact: 'kapcsolat',
 } as const

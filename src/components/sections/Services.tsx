@@ -10,6 +10,7 @@ import {
   SECTION_IDS,
   quoteFormPackagePriceLabel,
 } from '@/lib/constants'
+import { scrollToSection } from '@/hooks/useActiveSection'
 import type { ServicePackage } from '@/data/types'
 
 export function Services() {
@@ -52,9 +53,16 @@ export function Services() {
       <Card className="mt-10">
         <h3 className="text-xl font-semibold tracking-tight text-foreground">{services.cta.title}</h3>
         <p className="mt-3 max-w-2xl text-muted leading-relaxed">{services.cta.text}</p>
-        <div className="mt-6">
+        <div className="mt-6 flex flex-wrap gap-3">
           <Button href={`mailto:${EMAIL}`} className="max-w-full break-all">
             {EMAIL}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => scrollToSection(SECTION_IDS.contact)}
+          >
+            {services.cta.button}
           </Button>
         </div>
       </Card>

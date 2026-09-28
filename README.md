@@ -42,7 +42,7 @@ src/
 ├── context/      Theme + i18n providers
 ├── data/         Hungarian and English content
 ├── hooks/
-└── lib/          Constants, contact form stub, quote-form submit
+└── lib/          Constants, quote-form submit
 ```
 
 ## CV files
@@ -59,8 +59,9 @@ Place PDFs in `public/cv/`:
 - Smooth anchor navigation
 - Scroll animations
 - SEO meta tags and JSON-LD
-- Contact form (frontend-only, ready for EmailJS / Resend / API)
+- Contact section with a mailto link (no contact form)
 - Services section with three packages and a sample quote-request form
+- Munkáim / My work section with live and sample sites
 
 ## Quote form sending (demo vs live)
 
