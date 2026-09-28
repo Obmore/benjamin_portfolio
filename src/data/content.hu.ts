@@ -88,7 +88,7 @@ export const contentHu: SiteContent = {
         bullets: [
           'Webalkalmazások frontend és backend fejlesztése.',
           'React, Vite, Tailwind CSS és Ant Design használata frontend oldalon.',
-          'Backend/API-közeli fejlesztési feladatok C#, Microsoft SQL és Quartz környezetben.',
+          'Backend- és API-fejlesztési feladatok C#, Microsoft SQL és Quartz környezetben.',
           'Azure DevOps, Git és CI/CD szemléletű fejlesztési folyamatok használata.',
         ],
       },
@@ -98,13 +98,13 @@ export const contentHu: SiteContent = {
         period: '2023 és 2025 között',
         bullets: [
           'Kvantumkommunikációhoz és QKD rendszerekhez kapcsolódó K+F feladatok.',
-          'Python-alapú fejlesztések és mérési/kísérleti munkák támogatása.',
+          'Python-alapú fejlesztések és mérési és kísérleti munkák támogatása.',
           'Szoftveres és hardveres problémák elemzése telekommunikációs kutatási környezetben.',
           'Git-alapú verziókezelés és mérnöki dokumentáció.',
         ],
       },
       {
-        title: 'Önálló fejlesztő / Egyéni vállalkozó',
+        title: 'Önálló fejlesztő, egyéni vállalkozó',
         company: '',
         period: '2024 óta',
         bullets: [

@@ -88,7 +88,7 @@ export const contentEn: SiteContent = {
         bullets: [
           'Frontend and backend development of web applications.',
           'React, Vite, Tailwind CSS and Ant Design on the frontend.',
-          'Backend/API-focused development with C#, Microsoft SQL and Quartz.',
+          'Backend and API development with C#, Microsoft SQL and Quartz.',
           'Development workflows using Azure DevOps, Git and CI/CD practices.',
         ],
       },
@@ -98,13 +98,13 @@ export const contentEn: SiteContent = {
         period: '2023 to 2025',
         bullets: [
           'R&D tasks related to quantum communication and QKD systems.',
-          'Python-based development and support for measurement/experimental work.',
+          'Python-based development and support for measurement and experimental work.',
           'Analysis of software and hardware issues in a telecommunications research environment.',
           'Git-based version control and engineering documentation.',
         ],
       },
       {
-        title: 'Independent Developer / Sole Proprietor',
+        title: 'Independent developer, sole proprietor',
         company: '',
         period: 'Since 2024',
         bullets: [
