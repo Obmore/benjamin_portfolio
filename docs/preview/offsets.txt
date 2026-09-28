@@ -1,5 +1,5 @@
 Mért függőleges pozíciók (px, dokumentum teteje), redesign/blueprint, világos téma, HU
-390x844: "149 000 Ft" 714px, #munkaim 2130px, hero CTA alja 296px, Árak 296px, e-mail 327px, teljes 11543px
+390x844: "149 000 Ft" 714px, #munkaim 2130px, hero CTA alja 296px, Árak 296px, e-mail 327px, teljes 11514px
 1440x900: "149 000 Ft" 875px, #munkaim 1762px, teljes 8245px
 Hero H1 2,00 sor, alcím 2,00 sor 390px szélességen.
 Hero CTA, Árak ugrás és e-mail a 390x844 első nézetben görgetés nélkül látszik.
