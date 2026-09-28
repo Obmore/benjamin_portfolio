@@ -35,6 +35,7 @@ export function Services() {
             featuredBadge={services.featuredBadge}
             includesTitle={services.includesTitle}
             emptyPrice={services.emptyPrice}
+            priceSetSuffix={services.priceSetSuffix}
           />
         ))}
       </div>
@@ -71,10 +72,20 @@ interface PackageCardProps {
   featuredBadge: string
   includesTitle: string
   emptyPrice: string
+  priceSetSuffix: string
 }
 
-function PackageCard({ pkg, delay, featuredBadge, includesTitle, emptyPrice }: PackageCardProps) {
-  const price = pkg.priceFromConfig ? quoteFormPackagePriceLabel(emptyPrice) : pkg.price
+function PackageCard({
+  pkg,
+  delay,
+  featuredBadge,
+  includesTitle,
+  emptyPrice,
+  priceSetSuffix,
+}: PackageCardProps) {
+  const price = pkg.priceFromConfig
+    ? quoteFormPackagePriceLabel(emptyPrice, priceSetSuffix)
+    : pkg.price
   const pricePending = pkg.priceFromConfig && QUOTE_FORM_PACKAGE_PRICE.trim() === ''
 
   return (

@@ -136,6 +136,7 @@ export interface SiteContent {
     problem: string
     craft: string
     emptyPrice: string
+    priceSetSuffix: string
     featuredBadge: string
     includesTitle: string
     packages: ServicePackage[]

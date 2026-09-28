@@ -211,6 +211,7 @@ export const contentHu: SiteContent = {
     craft:
       'A honlapot és az űrlapot kóddal készítem, nem sablon-oldalépítővel. Ezért szinte bármilyen egyedi igény beilleszthető.',
     emptyPrice: 'Fix belépő ár – hamarosan',
+    priceSetSuffix: 'egyszeri (alanyi adómentes)',
     featuredBadge: 'Fő ajánlat',
     includesTitle: 'A díjban benne van',
     packages: [
@@ -219,7 +220,7 @@ export const contentHu: SiteContent = {
         featured: true,
         title: 'Webes ajánlatkérő / rendelőlap',
         summary:
-          'Egy űrlap a cég meglévő honlapjába. A mai Excel-, PDF- vagy e-mailes folyamat helyett az ügyfél a honlapon adja le a kérést.',
+          'Egy űrlap a cég meglévő honlapjába. A mai Excel-, PDF- vagy e-mailes folyamat helyett az ügyfél a honlapon adja le a kérést. Az űrlapot kóddal készítem, nem sablonból, ezért a cég saját folyamatához igazítható.',
         includes: [
           'Egy űrlap a meglévő honlapba ágyazva',
           'Legfeljebb 10 mező és fájlfeltöltés (Excel, PDF, DXF)',
@@ -236,24 +237,26 @@ export const contentHu: SiteContent = {
       {
         id: 'intro-site',
         featured: false,
-        title: 'Egyszerű bemutatkozó oldal',
-        summary: 'Rövid, kézzel kódolt honlap a cég bemutatására. A domain a megrendelőé marad.',
+        title: 'Bemutatkozó oldal',
+        summary:
+          'Rövid, kóddal készülő honlap a cég bemutatására. Nem sablon-oldalépítő. A domain a megrendelőé marad.',
         includes: [
-          'Legfeljebb 6 tartalmi rész',
+          'Kóddal készül, nem sablon-oldalépítővel',
+          'Legfeljebb 6 tartalmi rész a cég saját szövegével',
           '6–10 jogdíjmentes vagy megrendelői fotó',
           'Kapcsolati űrlap',
           'Egy javítási kör',
           'A domain külön tétel, és a megrendelőé marad',
+          'Mobilon is jól használható',
         ],
         priceFromConfig: false,
-        price: '59 000 Ft egyszeri',
-        priceNote: 'alanyi adómentesen',
-        extra: 'Opcionális üzemeltetés: 4 900 Ft havonta.',
+        price: '59\u00A0000\u00A0Ft egyszeri (alanyi adómentes)',
+        extra: 'Opcionális üzemeltetés: 4\u00A0900\u00A0Ft/hó',
       },
       {
         id: 'custom-app',
         featured: false,
-        title: 'Egyedi webapp / automatizálás',
+        title: 'Egyedi megoldás',
         summary:
           'Ha azonnali árkalkulátor, adatbázis vagy meglévő rendszerhez kapcsolás kell, azt ide sorolom.',
         includes: [
@@ -269,10 +272,10 @@ export const contentHu: SiteContent = {
       title: 'Ajánlatkérő minta',
       intro: 'Próbálja ki. Így látná az ügyfele egy gyártó vagy szabászati cég honlapján.',
       demoBanner:
-        'Mintaűrlap, bemutató mód. A küldési végpont nincs beállítva, ezért semmi nem megy el.',
-      liveBanner: 'Mintaűrlap. A kitöltött kérés e-mailben eljut hozzám.',
+        'Ez minta. A küldési végpont nincs beállítva, ezért semmi nem megy el.',
+      liveBanner: 'Ez minta. A kitöltött kérés e-mailben eljut hozzám.',
       submit: 'Ajánlat kérése',
-      submitting: 'Küldés…',
+      submitting: 'Küldés folyamatban',
       tryAgain: 'Új minta kitöltése',
       demoSuccess:
         'Köszönöm. Ez minta volt, semmi nem került elküldésre. Igazi űrlapnál itt a megerősítés jelenne meg.',

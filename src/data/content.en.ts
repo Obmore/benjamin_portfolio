@@ -211,6 +211,7 @@ export const contentEn: SiteContent = {
     craft:
       'I build the site and the form in code, not with a template page builder. That is why almost any custom need can fit.',
     emptyPrice: 'Fixed entry price — coming soon',
+    priceSetSuffix: 'one-time (alanyi adómentes)',
     featuredBadge: 'Main offer',
     includesTitle: 'Included',
     packages: [
@@ -219,7 +220,7 @@ export const contentEn: SiteContent = {
         featured: true,
         title: 'Web quote / order form',
         summary:
-          'One form embedded in the company’s existing site. Instead of today’s Excel, PDF or email process, the customer submits the request on the site.',
+          'One form embedded in the company’s existing site. Instead of today’s Excel, PDF or email process, the customer submits the request on the site. I build the form in code, not from a template, so it can follow the company’s own process.',
         includes: [
           'One form embedded in the existing site',
           'Up to 10 fields plus file upload (Excel, PDF, DXF)',
@@ -236,25 +237,26 @@ export const contentEn: SiteContent = {
       {
         id: 'intro-site',
         featured: false,
-        title: 'Simple introduction site',
+        title: 'Introduction site',
         summary:
-          'A short, hand-coded site to present the company. The domain stays with the client.',
+          'A short, hand-coded site to present the company. Not a template page builder. The domain stays with the client.',
         includes: [
-          'Up to 6 content sections',
+          'Built in code, not with a template page builder',
+          'Up to 6 content sections with the company’s own copy',
           '6–10 royalty-free or client-supplied photos',
           'A contact form',
           'One revision round',
           'The domain is a separate item, and stays with the client',
+          'Works well on a phone',
         ],
         priceFromConfig: false,
-        price: '59 000 HUF, one-time',
-        priceNote: 'VAT-exempt (alanyi adómentes)',
-        extra: 'Optional operations: 4 900 HUF per month.',
+        price: '59\u00A0000\u00A0Ft one-time (alanyi adómentes)',
+        extra: 'Optional operations: 4\u00A0900\u00A0Ft/hó',
       },
       {
         id: 'custom-app',
         featured: false,
-        title: 'Custom web app / automation',
+        title: 'Custom solution',
         summary:
           'If you need an instant price calculator, a database, or a link to an existing system, that belongs here.',
         includes: [
