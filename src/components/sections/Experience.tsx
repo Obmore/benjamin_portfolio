@@ -10,10 +10,10 @@ export function Experience() {
   return (
     <SectionWrapper id={SECTION_IDS.experience}>
       <SectionHeading title={content.experience.title} label={content.nav.experience} />
-      <div className="relative mx-auto max-w-3xl overflow-x-hidden">
+      <div className="relative mx-auto max-w-3xl">
         <div
           aria-hidden="true"
-          className="absolute left-4 top-0 h-full w-px bg-gradient-to-b from-accent/50 via-cyan/30 to-transparent md:left-1/2 md:-translate-x-1/2"
+          className="absolute left-4 top-0 h-full w-px bg-gradient-to-b from-accent/50 via-cyan/30 to-transparent md:left-1/2 md:w-[2px] md:-translate-x-1/2"
         />
 
         <div className="space-y-10">
