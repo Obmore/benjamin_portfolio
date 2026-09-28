@@ -19,6 +19,10 @@ export const contentEn: SiteContent = {
     headline: 'electrical engineer and software developer',
     subheadline:
       'Python, full-stack development, industrial communication, energy systems, telecommunications R&D and technical project management in one profile.',
+    offerHeadline: 'Your customer fills it in. You receive it in one place.',
+    offerLead: 'A web quote and order form. Every field arrives together.',
+    pricesJump: 'Prices',
+    sheetLabel: 'Sheet 1',
     ctaContact: 'Get in touch',
     ctaCv: 'Download resume',
     ctaLinkedIn: 'LinkedIn profile',

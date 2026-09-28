@@ -19,6 +19,10 @@ export const contentHu: SiteContent = {
     headline: 'villamosmérnök és szoftverfejlesztő',
     subheadline:
       'Python, teljes körű webfejlesztés, ipari kommunikáció, energetikai rendszerek, telekommunikációs K+F és műszaki projektmenedzsment egy kézben.',
+    offerHeadline: 'Az ügyfele kitölti, Ön egyben megkapja.',
+    offerLead: 'Webes ajánlatkérő és rendelőlap, minden adat egy helyre érkezik.',
+    pricesJump: 'Árak',
+    sheetLabel: '1. lap',
     ctaContact: 'Kapcsolatfelvétel',
     ctaCv: 'Önéletrajz letöltése',
     ctaLinkedIn: 'LinkedIn profil',

@@ -246,7 +246,7 @@
   }
 
   .morph-stage.is-playing .morph-scan {
-    animation: morph-scan var(--motion-short) var(--motion-medium) linear both;
+    animation: morph-scan var(--motion-short) var(--motion-medium) var(--motion-ease) both;
   }
 
   .morph-stage.is-playing .morph-sheet {
@@ -254,7 +254,7 @@
   }
 
   .morph-stage.is-playing .morph-form {
-    animation: morph-form-in var(--motion-medium) 800ms var(--motion-ease) both;
+    animation: morph-form-in var(--motion-medium) calc(var(--motion-medium) * 2) var(--motion-ease) both;
   }
 
   .morph-stage.is-playing .morph-field-box,
@@ -263,15 +263,15 @@
   }
 
   .morph-stage.is-playing .morph-check {
-    animation: morph-fade var(--motion-short) 2100ms var(--motion-ease) both;
+    animation: morph-fade var(--motion-short) calc(var(--motion-hero) - var(--motion-medium)) var(--motion-ease) both;
   }
 
   .morph-stage.is-playing .morph-check path {
-    animation: morph-check var(--motion-short) 2100ms var(--motion-ease) both;
+    animation: morph-check var(--motion-short) calc(var(--motion-hero) - var(--motion-medium)) var(--motion-ease) both;
   }
 
   .morph-stage.is-playing .morph-dim {
-    animation: morph-fade var(--motion-short) 1980ms var(--motion-ease) both;
+    animation: morph-fade var(--motion-short) calc(var(--motion-hero) - var(--motion-medium) - var(--motion-short)) var(--motion-ease) both;
   }
 }
 

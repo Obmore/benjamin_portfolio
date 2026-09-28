@@ -331,13 +331,13 @@
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
     .browser-frame:hover .browser-shot {
       transform: translateY(calc(-100% + var(--vp-h)));
-      transition: transform 12s var(--motion-ease);
+      transition: transform calc(var(--motion-long) * 10) var(--motion-ease);
     }
   }
 
   @media (hover: none) and (prefers-reduced-motion: no-preference) {
     .browser-frame.is-auto-scroll .browser-shot {
-      animation: shot-scroll 10s ease-out forwards;
+      animation: shot-scroll calc(var(--motion-long) * 8) var(--motion-ease) forwards;
     }
   }
 
@@ -858,5 +858,139 @@
   .compare-stage:has(.compare-range:focus-visible) .compare-divider {
     outline: 2px solid var(--motion-ink);
     outline-offset: 3px;
+  }
+
+  .hero-offer-title,
+  .hero-offer-lead {
+    text-wrap: pretty;
+    overflow-wrap: break-word;
+  }
+
+  .sheet-frame {
+    pointer-events: none;
+    position: fixed;
+    inset: 6px;
+    z-index: 40;
+    border: var(--motion-stroke) solid color-mix(in srgb, var(--motion-ink) 28%, transparent);
+  }
+
+  .signal-seg {
+    pointer-events: none;
+    position: absolute;
+    left: 4px;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+    width: 12px;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .signal-vert,
+  .signal-tick {
+    fill: none;
+    stroke: var(--motion-ink);
+    stroke-width: var(--motion-stroke);
+    stroke-linecap: square;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.55;
+  }
+
+  .signal-seg.is-static .signal-vert {
+    transform: scaleY(1);
+    animation: none;
+  }
+
+  .signal-seg.is-static .signal-tick {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+
+  .signal-measure {
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 2;
+    width: 16px;
+  }
+
+  .signal-dot {
+    position: absolute;
+    left: 4px;
+    bottom: 1.5rem;
+    width: 8px;
+    height: 8px;
+    border: var(--motion-stroke) solid var(--motion-ink);
+    border-radius: 999px;
+    background: var(--color-background);
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .signal-vert {
+        transform: scaleY(0);
+        animation: signal-vert linear forwards;
+        animation-timeline: view();
+        animation-range: entry 0% cover 55%;
+      }
+
+      .signal-tick {
+        stroke-dasharray: 1;
+        stroke-dashoffset: 1;
+        animation: signal-tick linear forwards;
+        animation-timeline: view();
+        animation-range: entry 0% cover 40%;
+      }
+
+      .signal-seg.is-static .signal-vert {
+        transform: scaleY(1);
+        animation: none;
+      }
+
+      .signal-seg.is-static .signal-tick {
+        stroke-dashoffset: 0;
+        animation: none;
+      }
+    }
+  }
+
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .signal-dot {
+        bottom: auto;
+        top: 0;
+        animation: signal-dot linear;
+        animation-timeline: scroll();
+      }
+    }
+  }
+
+  @keyframes signal-vert {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes signal-tick {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes signal-dot {
+    from {
+      top: 0;
+    }
+    to {
+      top: calc(100% - 10px);
+    }
   }
 }

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { SignalSegment } from '@/components/visuals/SignalRail'
 
 interface SectionWrapperProps {
   id: string
@@ -13,6 +14,7 @@ export function SectionWrapper({ id, children, className = '' }: SectionWrapperP
       id={id}
       className={`section-crosses scroll-mt-16 ${hasPadding ? '' : 'py-6 md:py-14'} ${className}`}
     >
+      <SignalSegment />
       <div className="mx-auto max-w-6xl px-5 md:px-8">{children}</div>
     </section>
   )

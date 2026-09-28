@@ -106,11 +106,22 @@ async function measure(page) {
       if (!el) return null
       return Math.round(el.getBoundingClientRect().top + window.scrollY)
     }
+    const h1 = document.querySelector('h1')
+    const lead = document.querySelector('.hero-offer-lead')
+    const linesOf = (el) => {
+      if (!el) return null
+      const styles = getComputedStyle(el)
+      const fontSize = parseFloat(styles.fontSize)
+      const lhRaw = styles.lineHeight
+      const lh = lhRaw === 'normal' || Number.isNaN(parseFloat(lhRaw)) ? fontSize * 1.22 : parseFloat(lhRaw)
+      return el.getBoundingClientRect().height / lh
+    }
     const price = document.querySelector('[data-testid="price-quote-form"]')
     const munkaim = document.getElementById('munkaim')
     const primary = document.querySelector('[data-hero-cta="primary"]')
     const secondary = document.querySelector('[data-hero-cta="secondary"]')
     const email = document.querySelector('[data-hero-email]')
+    const process = document.querySelector('.process-diagram')
     const vh = window.innerHeight
     const box = (el) => (el ? el.getBoundingClientRect() : null)
     const opacities = [
@@ -118,6 +129,11 @@ async function measure(page) {
         '[data-testid="price-quote-form"], [data-hero-cta="primary"], [data-cta="assess"], [data-contact-email], [data-hero-email]',
       ),
     ].map((el) => getComputedStyle(el).opacity)
+    const processAfterPrice =
+      price && process
+        ? process.getBoundingClientRect().top + window.scrollY >
+          price.getBoundingClientRect().top + window.scrollY
+        : false
 
     return {
       priceTop: topOf(price),
@@ -128,10 +144,35 @@ async function measure(page) {
       primaryBottom: box(primary)?.bottom ?? null,
       secondaryBottom: box(secondary)?.bottom ?? null,
       emailBottom: box(email)?.bottom ?? null,
+      h1Lines: linesOf(h1),
+      leadLines: linesOf(lead),
+      processAfterPrice,
       opacities,
       anchors: ['rolam', 'szolgaltatasok', 'tapasztalat', 'kompetenciak', 'munkaim', 'oneletrajz', 'kapcsolat', 'ajanlatkero-minta']
         .map((id) => ({ id, exists: Boolean(document.getElementById(id)) })),
     }
+  })
+}
+
+async function measureCls(page) {
+  return page.evaluate(async () => {
+    let cls = 0
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (entry.hadRecentInput) continue
+        cls += entry.value
+      }
+    })
+    observer.observe({ type: 'layout-shift', buffered: true })
+    const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+    window.scrollTo(0, Math.min(1400, maxY))
+    await new Promise((r) => setTimeout(r, 350))
+    window.scrollTo(0, Math.min(2800, maxY))
+    await new Promise((r) => setTimeout(r, 350))
+    window.scrollTo(0, 0)
+    await new Promise((r) => setTimeout(r, 200))
+    observer.disconnect()
+    return Math.round(cls * 1000) / 1000
   })
 }
 
@@ -161,6 +202,7 @@ async function run() {
       notes.push(
         `390x844 hero CTA bottom ${m.primaryBottom}, secondary ${m.secondaryBottom}, email ${m.emailBottom}, vh 844`,
       )
+      notes.push(`390x844 h1 lines ${m.h1Lines?.toFixed(2)}, lead lines ${m.leadLines?.toFixed(2)}`)
       assert(m.primaryBottom != null && m.primaryBottom <= 844, `hero primary CTA below fold (${m.primaryBottom})`)
       assert(
         m.secondaryBottom != null && m.secondaryBottom <= 844,
@@ -170,6 +212,9 @@ async function run() {
       assert(m.priceTop != null && m.priceTop <= 1100, `first price top ${m.priceTop} > 1100`)
       assert(m.munkaimTop != null && m.munkaimTop <= 2600, `#munkaim top ${m.munkaimTop} > 2600`)
       assert(!m.overflow, 'horizontal overflow at 390x844')
+      assert(m.h1Lines != null && m.h1Lines <= 2.2, `hero h1 wraps to ${m.h1Lines} lines`)
+      assert(m.leadLines != null && m.leadLines <= 2.2, `hero lead wraps to ${m.leadLines} lines`)
+      assert(m.processAfterPrice, 'process diagram is not after the price cards')
       assert(
         m.opacities.every((o) => o === '1'),
         `opacity not 1: ${m.opacities.join(',')}`,
@@ -227,6 +272,13 @@ async function run() {
           { timeout: 5000 },
         )
       }
+    })
+
+    await withPage(browser, { width: 390, height: 844 }, false, async (page) => {
+      await ready(page)
+      const cls = await measureCls(page)
+      notes.push(`390x844 CLS ${cls}`)
+      assert(cls <= 0.02, `CLS ${cls} > 0.02`)
     })
 
     await withPage(browser, { width: 390, height: 844 }, true, async (page) => {

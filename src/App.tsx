@@ -3,6 +3,7 @@ import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { SeoHead } from '@/components/SeoHead'
 import { BlueprintBackground } from '@/components/visuals/BlueprintBackground'
+import { SheetFrame, SignalMeasure } from '@/components/visuals/SignalRail'
 import { Hero } from '@/components/sections/Hero'
 import { About } from '@/components/sections/About'
 import { Services } from '@/components/sections/Services'
@@ -22,8 +23,10 @@ function App() {
         <I18nProvider>
           <SeoHead />
           <BlueprintBackground />
+          <SheetFrame />
           <Navbar />
-          <main id="main" tabIndex={-1}>
+          <main id="main" className="relative" tabIndex={-1}>
+            <SignalMeasure />
             <Hero />
             <Services />
             <Projects />

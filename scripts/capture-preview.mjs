@@ -54,7 +54,7 @@ async function waitForServer(url) {
   throw new Error(`Preview did not start at ${url}`)
 }
 
-async function shot(page, width, height, fullPage, reduced, destName) {
+async function shot(page, width, height, fullPage, reduced, destName, scrollTo = 0) {
   await page.setViewportSize({ width, height })
   if (reduced) {
     await page.emulateMedia({ reducedMotion: 'reduce' })
@@ -72,7 +72,18 @@ async function shot(page, width, height, fullPage, reduced, destName) {
   } else {
     await page.waitForSelector('.morph-stage.is-done', { timeout: 6000 }).catch(() => page.waitForTimeout(3500))
   }
-  await page.evaluate(() => window.scrollTo(0, 0))
+  let y = 0
+  if (typeof scrollTo === 'string') {
+    y = await page.evaluate((sel) => {
+      const el = document.querySelector(sel)
+      if (!el) return 0
+      return Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - 72))
+    }, scrollTo)
+  } else {
+    y = scrollTo
+  }
+  await page.evaluate((nextY) => window.scrollTo(0, nextY), y)
+  if (y) await page.waitForTimeout(180)
   mkdirSync(DOCS, { recursive: true })
   mkdirSync(ARTIFACTS, { recursive: true })
   const docsPath = join(DOCS, destName)
@@ -83,9 +94,9 @@ async function shot(page, width, height, fullPage, reduced, destName) {
 
 async function run() {
   const killer = setTimeout(() => {
-    console.error('capture timed out after 90s')
+    console.error('capture timed out after 120s')
     process.exit(1)
-  }, 90000)
+  }, 120000)
 
   if (!existsSync('dist') && !process.env.BASE_URL) {
     console.error('dist/ missing. Run npm run build first.')
@@ -110,6 +121,11 @@ async function run() {
     await shot(page, 390, 844, true, false, 'full_390.png')
     await shot(page, 390, 844, false, false, 'first_390x844.png')
     await shot(page, 390, 844, true, true, 'full_390_reduced_motion.png')
+    await shot(page, 1440, 900, true, true, 'full_1440_reduced_motion.png')
+    await shot(page, 390, 844, false, false, 'mid_390_process.png', '.process-diagram')
+    await shot(page, 390, 844, false, false, 'mid_390_skills.png', '#kompetenciak')
+    await shot(page, 1440, 900, false, false, 'mid_1440_process.png', '.process-diagram')
+    await shot(page, 1440, 900, false, false, 'mid_1440_skills.png', '#kompetenciak')
     await browser.close()
   } finally {
     stopPreview(preview)

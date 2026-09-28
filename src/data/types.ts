@@ -117,6 +117,10 @@ export interface SiteContent {
   hero: {
     headline: string
     subheadline: string
+    offerHeadline: string
+    offerLead: string
+    pricesJump: string
+    sheetLabel: string
     ctaContact: string
     ctaCv: string
     ctaLinkedIn: string

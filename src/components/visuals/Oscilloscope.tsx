@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { useInViewOnce } from '@/hooks/useInViewOnce'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
+import { MOTION } from '@/lib/motion'
 
 export function Oscilloscope() {
   const ref = useRef<HTMLDivElement>(null)
@@ -20,7 +21,7 @@ export function Oscilloscope() {
           d="M0 12 H400 M0 28 H400 M0 44 H400 M80 4 V52 M160 4 V52 M240 4 V52 M320 4 V52"
           stroke="currentColor"
           className="text-line/15"
-          strokeWidth={1.5}
+          strokeWidth={MOTION.strokeWidth}
           fill="none"
         />
         <path
@@ -28,7 +29,7 @@ export function Oscilloscope() {
           fill="none"
           stroke="currentColor"
           className="text-line"
-          strokeWidth={1.5}
+          strokeWidth={MOTION.strokeWidth}
           vectorEffect="non-scaling-stroke"
         />
         <rect

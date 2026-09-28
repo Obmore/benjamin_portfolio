@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { SECTION_IDS } from '@/lib/constants'
-import { scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
+import { bindInPageAnchors, scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
 import { LangToggle } from '@/components/ui/LangToggle'
 
 const navItems = [
@@ -40,9 +40,11 @@ export function Navbar() {
     }
     const timer = window.setTimeout(onHash, 50)
     window.addEventListener('hashchange', onHash)
+    const unbindAnchors = bindInPageAnchors()
     return () => {
       window.clearTimeout(timer)
       window.removeEventListener('hashchange', onHash)
+      unbindAnchors()
     }
   }, [])
 
