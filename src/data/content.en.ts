@@ -222,9 +222,10 @@ export const contentEn: SiteContent = {
       {
         id: 'rollin',
         title: 'Rollin',
-        subtitle: 'Web application, 2023 to 2025',
+        subtitle: 'As an employee, 2023 to 2025',
+        tag: 'Team project',
         paragraphs: [
-          'As a software developer at Rollin, I worked on the frontend and backend of a production web application.',
+          'As a software developer at Rollin, I worked on the user interface and server side of a production web application.',
         ],
         tech: 'Technology: React, Vite, Tailwind CSS, Ant Design, C#, Microsoft SQL, Quartz, Azure DevOps.',
       },

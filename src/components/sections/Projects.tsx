@@ -67,8 +67,11 @@ function WorkCard({
   const src = hasImage ? `${import.meta.env.BASE_URL}${project.image}` : ''
   const imageHref = project.site?.href ?? project.links?.[0]?.href
   const domain = project.site?.label ?? ''
-  const badge = project.sample ? sampleBadge : project.tag
+  const titleBadge = project.sample ? sampleBadge : undefined
+  const workTag = project.sample ? undefined : project.tag
   const explode = Boolean(explodeLabels) && project.id === 'anettesvendi' && hasImage
+  const chipClass =
+    'rounded-[6px] border border-line/40 px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider text-line'
 
   const image = hasImage ? (
     <img
@@ -116,11 +119,7 @@ function WorkCard({
       <div className={`min-w-0 ${layout === 'sample' && hasImage ? 'md:py-2' : 'p-4 md:p-5'}`}>
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-xl font-medium tracking-tight text-foreground">{project.title}</h3>
-          {badge ? (
-            <span className="rounded-[6px] border border-line/40 px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider text-line">
-              {badge}
-            </span>
-          ) : null}
+          {titleBadge ? <span className={chipClass}>{titleBadge}</span> : null}
         </div>
         {project.subtitle ? (
           <p className="mt-1 text-base leading-snug text-muted">{project.subtitle}</p>
@@ -145,7 +144,12 @@ function WorkCard({
             {linkify(paragraph, project)}
           </p>
         ))}
-        <p className="mt-3 text-sm leading-relaxed text-muted">{project.tech}</p>
+        {workTag ? (
+          <p className="mt-3">
+            <span className={chipClass}>{workTag}</span>
+          </p>
+        ) : null}
+        <p className={`${workTag ? 'mt-2' : 'mt-3'} text-sm leading-relaxed text-muted`}>{project.tech}</p>
       </div>
     </article>
   )

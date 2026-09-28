@@ -220,9 +220,10 @@ export const contentHu: SiteContent = {
       {
         id: 'rollin',
         title: 'Rollin',
-        subtitle: 'Webalkalmazás, 2023 és 2025 között',
+        subtitle: 'Alkalmazottként, 2023 és 2025 között',
+        tag: 'Csapatmunka',
         paragraphs: [
-          'A Rollin szoftverfejlesztőjeként egy éles webalkalmazás frontend és backend részén dolgoztam.',
+          'A Rollinnál szoftverfejlesztőként egy működő webalkalmazás felhasználói felületén és szerveroldali részén dolgoztam.',
         ],
         tech: 'Technológia: React, Vite, Tailwind CSS, Ant Design, C#, Microsoft SQL, Quartz, Azure DevOps.',
       },
