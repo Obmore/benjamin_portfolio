@@ -19,7 +19,7 @@ export function Services() {
 
   return (
     <SectionWrapper id={SECTION_IDS.services}>
-      <SectionHeading title={services.title} label={content.nav.services} />
+      <SectionHeading title={services.title} label="services" />
       <div className="mb-12 max-w-2xl space-y-4 text-muted leading-relaxed">
         <p>{services.lead}</p>
         <p>{services.problem}</p>

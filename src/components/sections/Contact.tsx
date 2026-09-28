@@ -9,7 +9,7 @@ export function Contact() {
 
   return (
     <SectionWrapper id={SECTION_IDS.contact}>
-      <SectionHeading title={content.contact.title} label={content.nav.contact} />
+      <SectionHeading title={content.contact.title} label="contact" />
       <p className="mb-10 max-w-2xl text-muted leading-relaxed">{content.contact.text}</p>
       <div className="max-w-xl space-y-6 rounded-2xl border border-border/70 bg-surface/50 p-6 backdrop-blur-md md:p-8">
         <div>

@@ -10,7 +10,7 @@ export function Projects() {
 
   return (
     <SectionWrapper id={SECTION_IDS.projects}>
-      <SectionHeading title={content.projects.title} label={content.nav.projects} />
+      <SectionHeading title={content.projects.title} label="projects" />
       <div className="space-y-10">
         {content.projects.items.map((project, index) => (
           <WorkCard key={project.id} project={project} delay={index * 0.06} />

@@ -10,7 +10,7 @@ export function CvDownload() {
 
   return (
     <SectionWrapper id={SECTION_IDS.cv}>
-      <SectionHeading title={content.cv.title} label={content.nav.cv} />
+      <SectionHeading title={content.cv.title} label="cv" />
       <Card className="text-center md:text-left">
         <p className="max-w-2xl text-muted leading-relaxed">{content.cv.text}</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
