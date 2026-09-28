@@ -395,10 +395,10 @@ function MailPreview({
       <p className="mail-preview-title">{copy.previewTitle}</p>
       <div className="mail-preview-body">
         <p>
-          {copy.previewTo}: {company}
+          {copy.previewTo}: {copy.previewRecipient}
         </p>
         <p>
-          {copy.previewSubject}: {copy.submit}
+          {copy.previewSubjectLabel}: {copy.previewSubject}
         </p>
         <p>
           {copy.fields.name}: {name}

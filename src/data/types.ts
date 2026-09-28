@@ -75,6 +75,8 @@ export interface QuoteFormCopy {
   fileNone: string
   previewTitle: string
   previewTo: string
+  previewRecipient: string
+  previewSubjectLabel: string
   previewSubject: string
   sampleName: string
   sampleCompany: string
@@ -134,7 +136,6 @@ export interface SiteContent {
     chips: string[]
     morphAria: string
     morphFile: string
-    morphDim: string
     compareBefore: string
     compareAfter: string
     compareAria: string

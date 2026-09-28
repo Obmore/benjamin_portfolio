@@ -42,7 +42,6 @@ export const contentEn: SiteContent = {
     morphAria:
       'Illustration: the columns of an Excel order sheet become the fields of a web quote form.',
     morphFile: 'order-sheet.xlsx',
-    morphDim: 'up to 10 fields',
     compareBefore: 'Before',
     compareAfter: 'After',
     compareAria: 'Comparison of an Excel order sheet and a web quote form',
@@ -361,9 +360,11 @@ export const contentEn: SiteContent = {
       fileNone: 'No file chosen',
       previewTitle: 'This is the summary the company would receive',
       previewTo: 'To',
+      previewRecipient: 'Minta Asztalos Bt.',
+      previewSubjectLabel: 'Subject',
       previewSubject: 'Quote request',
       sampleName: 'Minta Péter',
-      sampleCompany: 'Minta Asztalos Bt.',
+      sampleCompany: 'Minta Kft.',
       sampleEmail: 'minta@example.hu',
       samplePhone: '06 1 555 0100',
       fields: {

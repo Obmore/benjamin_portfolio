@@ -166,13 +166,6 @@
   color: #fff;
 }
 
-.morph-dim {
-  margin-top: 0.2rem;
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  color: var(--color-line);
-}
-
 .morph-note {
   font-size: 0.5rem;
   line-height: 1.25;
@@ -270,9 +263,6 @@
     animation: morph-check var(--motion-short) calc(var(--motion-hero) - var(--motion-medium)) var(--motion-ease) both;
   }
 
-  .morph-stage.is-playing .morph-dim {
-    animation: morph-fade var(--motion-short) calc(var(--motion-hero) - var(--motion-medium) - var(--motion-short)) var(--motion-ease) both;
-  }
 }
 
 .morph-stage.is-playing {
@@ -374,8 +364,7 @@
     display: none;
   }
 
-  .morph-note,
-  .morph-dim {
+  .morph-note {
     display: none;
   }
 

@@ -304,7 +304,7 @@ async function run() {
         window.scrollTo(0, 0)
       })
       await page.fill('#quote-name', 'Minta Péter')
-      await page.fill('#quote-company', 'Minta Asztalos Bt.')
+      await page.fill('#quote-company', 'Minta Kft.')
       const realErrors = failed.filter((item) => !item.includes("reading 'classList'"))
       const formPosts = requests.filter((url) => /form|web3|formspree|quote/i.test(url))
       notes.push(`390 extra pass: console ${realErrors.length}, xhr ${requests.length}`)

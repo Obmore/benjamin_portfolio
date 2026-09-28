@@ -72,7 +72,6 @@ export function QuoteFormMorph() {
       <AnimatedMorph
         labels={labels}
         filename={content.hero.morphFile}
-        dim={content.hero.morphDim}
         fileHint={content.services.form.fileHint}
         submit={content.services.form.submit}
         envelope={envelope}
@@ -84,14 +83,12 @@ export function QuoteFormMorph() {
 function AnimatedMorph({
   labels,
   filename,
-  dim,
   fileHint,
   submit,
   envelope,
 }: {
   labels: { key: string; text: string }[]
   filename: string
-  dim: string
   fileHint: string
   submit: string
   envelope: string
@@ -150,7 +147,6 @@ function AnimatedMorph({
                 <path d="M3 8.5 L6.5 12 L13 4.5" />
               </svg>
             </span>
-            <p className="morph-dim">{dim}</p>
             {envelope ? <p className="morph-note">{envelope}</p> : null}
           </div>
         </div>

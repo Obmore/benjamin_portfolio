@@ -42,7 +42,6 @@ export const contentHu: SiteContent = {
     morphAria:
       'Ábra: egy Excel-rendelőlap oszlopaiból webes ajánlatkérő űrlap mezői lesznek.',
     morphFile: 'rendelolap.xlsx',
-    morphDim: 'legfeljebb 10 mező',
     compareBefore: 'Előtte',
     compareAfter: 'Utána',
     compareAria: 'Excel rendelőlap és webes ajánlatkérő összehasonlítása',
@@ -360,9 +359,11 @@ export const contentHu: SiteContent = {
       fileNone: 'Nincs kiválasztott fájl',
       previewTitle: 'A cég ezt az összefoglalót kapná',
       previewTo: 'Címzett',
+      previewRecipient: 'Minta Asztalos Bt.',
+      previewSubjectLabel: 'Tárgy',
       previewSubject: 'Ajánlatkérés',
       sampleName: 'Minta Péter',
-      sampleCompany: 'Minta Asztalos Bt.',
+      sampleCompany: 'Minta Kft.',
       sampleEmail: 'minta@example.hu',
       samplePhone: '06 1 555 0100',
       fields: {
