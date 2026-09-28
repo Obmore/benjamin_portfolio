@@ -9,6 +9,7 @@ import {
   type QuoteFormField,
   type QuoteFormValues,
 } from '@/lib/quoteForm'
+import type { QuoteFormCopy } from '@/data/types'
 
 const FIELD_CLASS =
   'w-full rounded-[6px] border border-line/30 bg-surface px-4 py-2.5 text-foreground outline-none transition-colors focus:border-line disabled:opacity-60'
@@ -110,6 +111,8 @@ export function QuoteRequestForm() {
         {live ? copy.liveBanner : copy.demoBanner}
       </div>
 
+      <div className="quote-live">
+        <div className="space-y-5">
       <div className="grid gap-4 md:grid-cols-2">
         <TextField
           id="quote-name"
@@ -284,6 +287,9 @@ export function QuoteRequestForm() {
           {copy.error}
         </p>
       ) : null}
+        </div>
+        <MailPreview values={values} copy={copy} />
+      </div>
     </form>
   )
 }
@@ -364,5 +370,61 @@ function FieldError({ id, message }: { id: string; message?: string }) {
     <p id={id} className="mt-1 text-xs text-red-500">
       {message}
     </p>
+  )
+}
+
+function MailPreview({
+  values,
+  copy,
+}: {
+  values: QuoteFormValues
+  copy: QuoteFormCopy
+}) {
+  const name = values.name.trim() || copy.sampleName
+  const company = values.company.trim() || copy.sampleCompany
+  const email = values.email.trim() || copy.sampleEmail
+  const phone = values.phone.trim() || copy.samplePhone
+  const material =
+    copy.materials.find((item) => item.value === values.material)?.label || values.material.trim() || '—'
+  const quantity = values.quantity.trim() || '—'
+  const notes = values.notes.trim() || '—'
+  const file = values.file?.name || copy.fileNone
+
+  return (
+    <aside className="mail-preview" aria-live="polite">
+      <p className="mail-preview-title">{copy.previewTitle}</p>
+      <div className="mail-preview-body">
+        <p>
+          {copy.previewTo}: {company}
+        </p>
+        <p>
+          {copy.previewSubject}: {copy.submit}
+        </p>
+        <p>
+          {copy.fields.name}: {name}
+        </p>
+        <p>
+          {copy.fields.company}: {company}
+        </p>
+        <p>
+          {copy.fields.email}: {email}
+        </p>
+        <p>
+          {copy.fields.phone}: {phone}
+        </p>
+        <p>
+          {copy.fields.material}: {material}
+        </p>
+        <p>
+          {copy.fields.quantity}: {quantity}
+        </p>
+        <p>
+          {copy.fields.notes}: {notes}
+        </p>
+        <p>
+          {copy.fields.file}: {file}
+        </p>
+      </div>
+    </aside>
   )
 }

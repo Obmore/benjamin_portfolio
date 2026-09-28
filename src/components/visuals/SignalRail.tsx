@@ -1,3 +1,7 @@
+import { useRef, type ReactNode } from 'react'
+import { useInViewOnce } from '@/hooks/useInViewOnce'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
+
 export function SignalSegment({ staticDraw = false }: { staticDraw?: boolean }) {
   return (
     <svg
@@ -24,4 +28,16 @@ export function SignalMeasure() {
 
 export function SheetFrame() {
   return <div className="sheet-frame" aria-hidden="true" />
+}
+
+export function FinaleSwitch({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInViewOnce(ref, { threshold: 0.6 })
+  const reduced = usePrefersReducedMotion()
+
+  return (
+    <div ref={ref} className={`signal-finale ${inView && !reduced ? 'is-pulse' : ''}`}>
+      {children}
+    </div>
+  )
 }

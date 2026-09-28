@@ -73,6 +73,13 @@ export interface QuoteFormCopy {
   fileHint: string
   fileChoose: string
   fileNone: string
+  previewTitle: string
+  previewTo: string
+  previewSubject: string
+  sampleName: string
+  sampleCompany: string
+  sampleEmail: string
+  samplePhone: string
   fields: {
     name: string
     company: string

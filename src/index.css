@@ -1054,4 +1054,62 @@
       transform: translate(var(--explode-x), var(--explode-y));
     }
   }
+
+  .quote-live {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 1024px) {
+    .quote-live {
+      grid-template-columns: minmax(0, 1fr) 17rem;
+      align-items: start;
+    }
+  }
+
+  .mail-preview {
+    height: 16.5rem;
+    overflow: hidden;
+    border: var(--motion-stroke) solid color-mix(in srgb, var(--motion-ink) 28%, transparent);
+    border-radius: 6px;
+    background: var(--color-background);
+    padding: 0.7rem 0.75rem;
+  }
+
+  .mail-preview-title {
+    margin: 0 0 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    color: var(--motion-ink);
+  }
+
+  .mail-preview-body {
+    height: calc(16.5rem - 2.1rem);
+    overflow: auto;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    line-height: 1.45;
+    color: var(--color-foreground);
+  }
+
+  .mail-preview-body p {
+    margin: 0 0 0.35rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .signal-finale.is-pulse [data-cta='assess'] {
+      animation: finale-pulse var(--motion-medium) var(--motion-ease) 1;
+    }
+  }
+
+  @keyframes finale-pulse {
+    0%,
+    100% {
+      transform: none;
+    }
+    40% {
+      transform: scale(1.03);
+    }
+  }
 }

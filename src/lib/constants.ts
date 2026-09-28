@@ -42,10 +42,10 @@ export const SECTION_IDS = {
 export const SECTION_NUMBERS = {
   services: '01',
   projects: '02',
-  quoteDemo: '03',
-  about: '04',
-  experience: '05',
-  skills: '06',
-  cv: '07',
+  about: '03',
+  experience: '04',
+  skills: '05',
+  cv: '06',
+  quoteDemo: '07',
   contact: '08',
 } as const

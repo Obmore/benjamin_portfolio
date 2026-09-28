@@ -359,6 +359,13 @@ export const contentEn: SiteContent = {
       fileHint: 'Excel, PDF or DXF. Up to 5 MB.',
       fileChoose: 'Choose file',
       fileNone: 'No file chosen',
+      previewTitle: 'This is the summary the company would receive',
+      previewTo: 'To',
+      previewSubject: 'Quote request',
+      sampleName: 'Minta Péter',
+      sampleCompany: 'Minta Asztalos Bt.',
+      sampleEmail: 'minta@example.hu',
+      samplePhone: '06 1 555 0100',
       fields: {
         name: 'Name',
         company: 'Company',

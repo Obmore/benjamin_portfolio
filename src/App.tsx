@@ -30,11 +30,11 @@ function App() {
             <Hero />
             <Services />
             <Projects />
-            <QuoteDemo />
             <About />
             <Experience />
             <Skills />
             <CvDownload />
+            <QuoteDemo />
             <Contact />
           </main>
           <Footer />

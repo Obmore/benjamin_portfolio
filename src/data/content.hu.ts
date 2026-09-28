@@ -358,6 +358,13 @@ export const contentHu: SiteContent = {
       fileHint: 'Excel, PDF vagy DXF. Legfeljebb 5 MB.',
       fileChoose: 'Fájl kiválasztása',
       fileNone: 'Nincs kiválasztott fájl',
+      previewTitle: 'A cég ezt az összefoglalót kapná',
+      previewTo: 'Címzett',
+      previewSubject: 'Ajánlatkérés',
+      sampleName: 'Minta Péter',
+      sampleCompany: 'Minta Asztalos Bt.',
+      sampleEmail: 'minta@example.hu',
+      samplePhone: '06 1 555 0100',
       fields: {
         name: 'Név',
         company: 'Cég',
