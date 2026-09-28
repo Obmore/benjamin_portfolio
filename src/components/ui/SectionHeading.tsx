@@ -8,6 +8,7 @@ interface SectionHeadingProps {
   label: string
   number: string
   titleId?: string
+  compact?: boolean
 }
 
 export function SectionHeading({
@@ -16,10 +17,11 @@ export function SectionHeading({
   label,
   number,
   titleId,
+  compact = false,
 }: SectionHeadingProps) {
   return (
-    <div className="mb-6 max-w-2xl md:mb-10">
-      <div className="mb-3 flex items-center gap-3">
+    <div className={`max-w-2xl ${compact ? 'mb-3 md:mb-8' : 'mb-5 md:mb-10'}`}>
+      <div className={`flex items-center gap-3 ${compact ? 'mb-1.5 md:mb-3' : 'mb-3'}`}>
         <span className="font-mono text-xs tracking-[0.18em] text-line">{number}</span>
         <span className="font-mono text-xs uppercase tracking-[0.18em] text-line">
           {label}
@@ -27,12 +29,14 @@ export function SectionHeading({
       </div>
       <h2
         id={titleId}
-        className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl"
+        className={`font-semibold tracking-tight text-foreground ${
+          compact ? 'text-2xl md:text-4xl' : 'text-3xl md:text-4xl'
+        }`}
       >
         {title}
       </h2>
       {subtitle ? <p className="mt-3 text-muted">{subtitle}</p> : null}
-      <DimensionLine className="mt-4" />
+      <DimensionLine className={compact ? 'mt-2 md:mt-4' : 'mt-4'} />
     </div>
   )
 }

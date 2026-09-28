@@ -155,9 +155,14 @@ export function Navbar() {
 
       <div
         id="mobile-nav"
-        className={`grid overflow-hidden border-b border-line/20 bg-background transition-[grid-template-rows] duration-200 lg:hidden ${
+        className={`grid overflow-hidden border-b border-line/20 bg-background lg:hidden ${
           menuOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
         }`}
+        style={{
+          transitionProperty: 'grid-template-rows',
+          transitionDuration: 'var(--motion-short)',
+          transitionTimingFunction: 'var(--motion-ease)',
+        }}
         aria-label={content.common.mobileMenu}
         aria-hidden={!menuOpen}
         inert={!menuOpen}

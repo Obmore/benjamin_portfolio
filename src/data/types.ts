@@ -122,6 +122,9 @@ export interface SiteContent {
     morphAria: string
     morphFile: string
     morphDim: string
+    compareBefore: string
+    compareAfter: string
+    compareAria: string
   }
   about: {
     title: string
@@ -153,7 +156,10 @@ export interface SiteContent {
     sectionTitle: string
     lead: string
     problem: string
+    problemHighlight: string
     craft: string
+    processTitle: string
+    processSteps: { title: string; description: string }[]
     emptyPrice: string
     priceSetSuffix: string
     featuredBadge: string

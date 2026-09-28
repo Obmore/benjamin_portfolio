@@ -20,7 +20,7 @@ export function Oscilloscope() {
           d="M0 12 H400 M0 28 H400 M0 44 H400 M80 4 V52 M160 4 V52 M240 4 V52 M320 4 V52"
           stroke="currentColor"
           className="text-line/15"
-          strokeWidth="1"
+          strokeWidth={1.5}
           fill="none"
         />
         <path
@@ -28,7 +28,7 @@ export function Oscilloscope() {
           fill="none"
           stroke="currentColor"
           className="text-line"
-          strokeWidth="1.5"
+          strokeWidth={1.5}
           vectorEffect="non-scaling-stroke"
         />
         <rect

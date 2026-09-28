@@ -1,8 +1,9 @@
 import { useI18n } from '@/context/I18nContext'
 import { Button } from '@/components/ui/Button'
-import { Panel } from '@/components/ui/Panel'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
+import { PencilUnderline } from '@/components/visuals/PencilUnderline'
+import { ProcessDiagram } from '@/components/visuals/ProcessDiagram'
 import {
   EMAIL,
   QUOTE_FORM_PACKAGE_PRICE,
@@ -15,16 +16,18 @@ import type { ServicePackage } from '@/data/types'
 export function Services() {
   const { content } = useI18n()
   const services = content.services
+  const [before, highlight, after] = splitHighlighted(services.problem, services.problemHighlight)
 
   return (
-    <SectionWrapper id={SECTION_IDS.services}>
+    <SectionWrapper id={SECTION_IDS.services} className="py-5 md:py-14">
       <SectionHeading
         number={SECTION_NUMBERS.services}
         title={services.sectionTitle}
         label={content.nav.services}
+        compact
       />
 
-      <div className="grid gap-3 lg:grid-cols-3 lg:gap-5">
+      <div className="grid gap-2.5 lg:grid-cols-3 lg:gap-5">
         {services.packages.map((pkg) => (
           <PriceCard
             key={pkg.id}
@@ -37,34 +40,25 @@ export function Services() {
         ))}
       </div>
 
-      <Panel className="mt-5">
-        <h3 className="text-xl font-semibold tracking-tight text-foreground">
+      <p className="mt-3 max-w-3xl text-[13px] leading-snug text-muted md:mt-5 md:text-sm md:leading-relaxed">
+        {before}
+        {highlight ? <PencilUnderline>{highlight}</PencilUnderline> : null}
+        {after}
+      </p>
+
+      <ProcessDiagram />
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 md:mt-5">
+        <Button data-cta="assess" type="button" onClick={() => scrollToSection(SECTION_IDS.contact)}>
           {services.cta.title}
-        </h3>
-        <p className="mt-3 max-w-2xl text-muted leading-relaxed">{services.cta.text}</p>
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <Button
-            data-cta="assess"
-            type="button"
-            onClick={() => scrollToSection(SECTION_IDS.contact)}
-          >
-            {services.cta.title}
-          </Button>
-          <p className="text-sm">
-            <span className="font-mono text-xs text-line">{content.common.emailLabel}</span>{' '}
-            <a href={`mailto:${EMAIL}`} className="break-all text-foreground hover:underline">
-              {EMAIL}
-            </a>
-          </p>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => scrollToSection(SECTION_IDS.contact)}
-          >
-            {services.cta.button}
-          </Button>
-        </div>
-      </Panel>
+        </Button>
+        <p className="text-sm">
+          <span className="font-mono text-xs text-line">{content.common.emailLabel}</span>{' '}
+          <a href={`mailto:${EMAIL}`} className="break-all text-foreground hover:underline">
+            {EMAIL}
+          </a>
+        </p>
+      </div>
     </SectionWrapper>
   )
 }
@@ -90,7 +84,7 @@ function PriceCard({
 
   return (
     <article
-      className={`price-card relative flex h-full flex-col rounded-[6px] border bg-surface p-3.5 ${
+      className={`price-card relative flex h-full flex-col rounded-[6px] border bg-surface p-2.5 md:p-3.5 ${
         pkg.featured ? 'border-line/60' : 'border-line/25'
       }`}
     >
@@ -105,48 +99,62 @@ function PriceCard({
         <path d="M96 96 V80" />
       </svg>
       {pkg.featured ? (
-        <p className="mb-2 font-mono text-xs uppercase tracking-wider text-line">{featuredBadge}</p>
+        <p className="mb-1 font-mono text-[10px] uppercase tracking-wider text-line md:mb-2 md:text-xs">
+          {featuredBadge}
+        </p>
       ) : null}
-      <h3 className="text-lg font-medium text-foreground">{pkg.title}</h3>
+      <h3 className="text-base font-medium text-foreground md:text-lg">{pkg.title}</h3>
       <p
         data-testid={testId}
         data-price={pkg.id === 'quote-form' ? '149000' : undefined}
-        className={`price-figure mt-2 ${pending ? 'text-muted' : ''}`}
+        className={`price-figure mt-1.5 md:mt-2 ${pending ? 'text-muted' : ''}`}
       >
         {amount}
       </p>
-      {note ? <p className="mt-1 text-base text-muted">{note}</p> : null}
-      {pkg.extra ? <p className="mt-1 text-base text-muted">{pkg.extra}</p> : null}
-      <p className="mt-2 text-sm leading-snug text-muted">{pkg.summary}</p>
-      <p className="mt-3 font-mono text-xs uppercase tracking-wider text-line">{includesTitle}</p>
-      <ul className="mt-2 space-y-1">
+      {note ? <p className="mt-0.5 text-sm text-muted md:mt-1 md:text-base">{note}</p> : null}
+      {pkg.extra ? <p className="mt-0.5 text-sm text-muted md:mt-1 md:text-base">{pkg.extra}</p> : null}
+      <p className="mt-1.5 text-[13px] leading-snug text-muted md:mt-2 md:text-sm">{pkg.summary}</p>
+      <p className="mt-2 font-mono text-[10px] uppercase tracking-wider text-line md:mt-3 md:text-xs">
+        {includesTitle}
+      </p>
+      <ul className="mt-1.5 space-y-0.5 md:mt-2 md:space-y-1">
         {pkg.includes.map((item) => (
-          <li key={item} className="flex gap-2 text-sm leading-relaxed text-muted">
+          <li key={item} className="flex gap-2 text-[13px] leading-snug text-muted md:text-sm md:leading-relaxed">
             <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full border border-line" />
             {item}
           </li>
         ))}
       </ul>
       {pkg.excludes && pkg.excludes.length > 0 ? (
-        <div className="mt-3">
+        <div className="mt-2 md:mt-3">
           {pkg.excludesTitle ? (
-            <p className="font-mono text-xs uppercase tracking-wider text-muted">{pkg.excludesTitle}</p>
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted md:text-xs">
+              {pkg.excludesTitle}
+            </p>
           ) : null}
-          <ul className="mt-2 space-y-1">
+          <ul className="mt-1.5 space-y-0.5 md:mt-2 md:space-y-1">
             {pkg.excludes.map((item) => (
-              <li key={item} className="flex gap-2 text-sm leading-relaxed text-muted">
+              <li key={item} className="flex gap-2 text-[13px] leading-snug text-muted md:text-sm md:leading-relaxed">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-border" />
                 {item}
               </li>
             ))}
           </ul>
           {pkg.excludesNote ? (
-            <p className="mt-2 text-sm leading-relaxed text-muted">{pkg.excludesNote}</p>
+            <p className="mt-1.5 text-[13px] leading-snug text-muted md:mt-2 md:text-sm md:leading-relaxed">
+              {pkg.excludesNote}
+            </p>
           ) : null}
         </div>
       ) : null}
     </article>
   )
+}
+
+function splitHighlighted(text: string, highlight: string): [string, string, string] {
+  const index = text.indexOf(highlight)
+  if (index === -1) return [text, '', '']
+  return [text.slice(0, index), highlight, text.slice(index + highlight.length)]
 }
 
 function splitPrice(pkg: ServicePackage, emptyPrice: string, priceSetSuffix: string) {

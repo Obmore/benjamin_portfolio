@@ -10,18 +10,41 @@ const ARTIFACTS = process.env.ARTIFACTS_DIR ?? '/opt/cursor/artifacts'
 
 function startPreview() {
   if (process.env.BASE_URL) return null
-  return spawn(
-    'npx',
-    ['vite', 'preview', '--host', '127.0.0.1', '--port', PORT, '--strictPort'],
-    { stdio: 'pipe' },
+  const child = spawn(
+    process.execPath,
+    [
+      './node_modules/vite/bin/vite.js',
+      'preview',
+      '--host',
+      '127.0.0.1',
+      '--port',
+      PORT,
+      '--strictPort',
+    ],
+    { stdio: 'ignore', detached: true },
   )
+  child.unref()
+  return child
+}
+
+function stopPreview(preview) {
+  if (!preview?.pid) return
+  try {
+    process.kill(-preview.pid, 'SIGKILL')
+  } catch {
+    try {
+      preview.kill('SIGKILL')
+    } catch {
+      // already gone
+    }
+  }
 }
 
 async function waitForServer(url) {
   const start = Date.now()
   while (Date.now() - start < 20000) {
     try {
-      const res = await fetch(url)
+      const res = await fetch(url, { signal: AbortSignal.timeout(1500) })
       if (res.ok) return
     } catch {
       // retry
@@ -38,13 +61,15 @@ async function shot(page, width, height, fullPage, reduced, destName) {
   } else {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
   }
-  await page.goto(BASE, { waitUntil: 'load', timeout: 30000 })
+  await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 30000 })
   await page.waitForSelector('h1')
   await Promise.race([
     page.evaluate(() => document.fonts.ready),
     page.waitForTimeout(3000),
   ])
-  if (!reduced) {
+  if (reduced) {
+    await page.waitForSelector('.compare-stage', { timeout: 4000 }).catch(() => null)
+  } else {
     await page.waitForSelector('.morph-stage.is-done', { timeout: 6000 }).catch(() => page.waitForTimeout(3500))
   }
   await page.evaluate(() => window.scrollTo(0, 0))
@@ -57,6 +82,11 @@ async function shot(page, width, height, fullPage, reduced, destName) {
 }
 
 async function run() {
+  const killer = setTimeout(() => {
+    console.error('capture timed out after 90s')
+    process.exit(1)
+  }, 90000)
+
   if (!existsSync('dist') && !process.env.BASE_URL) {
     console.error('dist/ missing. Run npm run build first.')
     process.exit(1)
@@ -82,8 +112,10 @@ async function run() {
     await shot(page, 390, 844, true, true, 'full_390_reduced_motion.png')
     await browser.close()
   } finally {
-    preview?.kill()
+    stopPreview(preview)
   }
+  clearTimeout(killer)
+  process.exit(0)
 }
 
 run().catch((error) => {

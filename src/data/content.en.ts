@@ -39,6 +39,9 @@ export const contentEn: SiteContent = {
       'Illustration: the columns of an Excel order sheet become the fields of a web quote form.',
     morphFile: 'order-sheet.xlsx',
     morphDim: 'up to 10 fields',
+    compareBefore: 'Before',
+    compareAfter: 'After',
+    compareAria: 'Comparison of an Excel order sheet and a web quote form',
   },
   about: {
     title: 'About',
@@ -257,10 +260,31 @@ export const contentEn: SiteContent = {
     lead: 'If your customers currently request a quote on a downloadable Excel or PDF order sheet, or by email, I replace that with a simple web form on your site.',
     problem:
       'Manual quoting takes a lot of time. The customer downloads the spreadsheet, fills it in and attaches it, and the company then retypes what arrived. With a web form every piece of data arrives together and complete.',
+    problemHighlight: 'together and complete',
     craft:
       'I build every piece of work in code, not with a template or a page builder, so the solution follows how your company actually works.',
     emptyPrice: 'Fixed entry price: coming soon',
     priceSetSuffix: 'one-time',
+    processTitle: 'How I work',
+    processSteps: [
+      {
+        title: 'Assessment',
+        description: 'We discuss what you need, and how orders reach you today.',
+      },
+      {
+        title: 'Price before the work',
+        description:
+          'For a ready-made package the listed price applies. For a custom solution I give a price after the assessment.',
+      },
+      {
+        title: 'Build',
+        description: 'I write it in my own code, tailored to your business.',
+      },
+      {
+        title: 'Handover',
+        description: 'One revision round is included. I can take on hosting if you ask.',
+      },
+    ],
     featuredBadge: 'Main offer',
     includesTitle: 'Included',
     packages: [

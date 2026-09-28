@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { useInViewOnce } from '@/hooks/useInViewOnce'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
+import { MOTION } from '@/lib/motion'
+import { CompareSlider } from '@/components/visuals/CompareSlider'
 import { isCompactField, MORPH_COLS, MORPH_ROWS } from './morphLayout'
 import './quoteFormMorph.css'
 
@@ -29,7 +31,7 @@ export function QuoteFormMorph() {
     const start = () => {
       if (!cancelled) setPlaying(true)
     }
-    const timeoutId = window.setTimeout(start, 400)
+    const timeoutId = window.setTimeout(start, MOTION.durationMs.medium)
 
     return () => {
       cancelled = true
@@ -39,7 +41,7 @@ export function QuoteFormMorph() {
 
   useEffect(() => {
     if (!playing) return
-    const timer = window.setTimeout(() => setDone(true), 2600)
+    const timer = window.setTimeout(() => setDone(true), MOTION.heroTransformMs)
     return () => window.clearTimeout(timer)
   }, [playing])
 
@@ -54,6 +56,10 @@ export function QuoteFormMorph() {
   ]
   const envelope = content.services.packages[0]?.includes[3] ?? ''
 
+  if (reduced) {
+    return <CompareSlider />
+  }
+
   return (
     <div
       ref={stageRef}
@@ -63,24 +69,14 @@ export function QuoteFormMorph() {
         playing ? 'is-playing' : ''
       } ${done ? 'is-done' : ''}`}
     >
-      {reduced ? (
-        <StaticMorph
-          labels={labels}
-          filename={content.hero.morphFile}
-          dim={content.hero.morphDim}
-          fileHint={content.services.form.fileHint}
-          submit={content.services.form.submit}
-        />
-      ) : (
-        <AnimatedMorph
-          labels={labels}
-          filename={content.hero.morphFile}
-          dim={content.hero.morphDim}
-          fileHint={content.services.form.fileHint}
-          submit={content.services.form.submit}
-          envelope={envelope}
-        />
-      )}
+      <AnimatedMorph
+        labels={labels}
+        filename={content.hero.morphFile}
+        dim={content.hero.morphDim}
+        fileHint={content.services.form.fileHint}
+        submit={content.services.form.submit}
+        envelope={envelope}
+      />
     </div>
   )
 }
@@ -182,56 +178,5 @@ function SheetRow({
         </div>
       ))}
     </>
-  )
-}
-
-function StaticMorph({
-  labels,
-  filename,
-  dim,
-  fileHint,
-  submit,
-}: {
-  labels: { key: string; text: string }[]
-  filename: string
-  dim: string
-  fileHint: string
-  submit: string
-}) {
-  const compact = labels.filter((label) => isCompactField(label.key))
-
-  return (
-    <div className="morph-static" aria-hidden="true">
-      <div className="morph-static-pane">
-        <p className="morph-field-label mb-1">{filename}</p>
-        <div className="grid grid-cols-4 gap-px bg-line/20">
-          {compact.map((label) => (
-            <div key={label.key} className="bg-surface p-0.5 font-mono text-[9px] text-line">
-              {label.text}
-            </div>
-          ))}
-          {compact.map((label) => (
-            <div key={`${label.key}-bar`} className="bg-surface p-1">
-              <span className="morph-bar w-full" />
-            </div>
-          ))}
-        </div>
-      </div>
-      <svg className="morph-static-arrow h-6 w-6" viewBox="0 0 24 16" aria-hidden="true">
-        <path d="M2 8 H18" stroke="currentColor" fill="none" />
-        <path d="M18 8 L13 4 M18 8 L13 12" stroke="currentColor" fill="none" />
-      </svg>
-      <div className="morph-static-pane">
-        {compact.slice(0, 2).map((label) => (
-          <div key={label.key} className="mb-1">
-            <p className="morph-field-label">{label.text}</p>
-            <span className="morph-field-box block" />
-          </div>
-        ))}
-        <p className="morph-dim">{dim}</p>
-        <p className="morph-submit mt-1 inline-flex">{submit}</p>
-        <p className="morph-note mt-1">{fileHint}</p>
-      </div>
-    </div>
   )
 }

@@ -9,17 +9,17 @@ export function Hero() {
 
   return (
     <section id="hero" className="relative scroll-mt-16 pt-16 md:pt-20">
-      <div className="mx-auto grid w-full max-w-6xl gap-5 px-5 py-4 md:px-8 md:py-8 lg:grid-cols-12 lg:items-start lg:gap-10">
+      <div className="mx-auto grid w-full max-w-6xl gap-3 px-5 py-3 md:gap-5 md:px-8 md:py-8 lg:grid-cols-12 lg:items-start lg:gap-10">
         <div className="lg:col-span-5">
           <p className="font-mono text-xs tracking-wide text-line">Ott Benjámin</p>
           <p className="mt-1 text-sm text-muted">{content.hero.headline}</p>
-          <h1 className="mt-3 text-[1.75rem] font-semibold leading-tight tracking-tight text-foreground md:text-4xl">
+          <h1 className="mt-2 text-[1.7rem] font-semibold leading-tight tracking-tight text-foreground md:mt-3 md:text-4xl">
             {content.services.title}
           </h1>
-          <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-muted">
+          <p className="mt-2 max-w-xl text-[15px] leading-snug text-muted md:mt-3 md:leading-relaxed">
             {content.services.lead}
           </p>
-          <div className="mt-5 flex flex-col gap-2 md:flex-row">
+          <div className="mt-4 flex flex-col gap-2 md:mt-5 md:flex-row">
             <Button
               data-hero-cta="primary"
               className="w-full md:w-auto"

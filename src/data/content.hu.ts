@@ -39,6 +39,9 @@ export const contentHu: SiteContent = {
       'Ábra: egy Excel-rendelőlap oszlopaiból webes ajánlatkérő űrlap mezői lesznek.',
     morphFile: 'rendelolap.xlsx',
     morphDim: 'legfeljebb 10 mező',
+    compareBefore: 'Előtte',
+    compareAfter: 'Utána',
+    compareAria: 'Excel rendelőlap és webes ajánlatkérő összehasonlítása',
   },
   about: {
     title: 'Rólam',
@@ -255,10 +258,32 @@ export const contentHu: SiteContent = {
     lead: 'Ha az ügyfelei ma letölthető Excel- vagy PDF-rendelőlapon, esetleg e-mailben kérnek ajánlatot, ezt egyszerű webes űrlapra cserélem az Ön honlapján.',
     problem:
       'A kézi ajánlatkérés sok időt visz el. Az ügyfél letölti a táblázatot, kitölti és csatolja, a cég pedig kézzel viszi tovább, amit kapott. Webes űrlappal minden adat egyszerre és hiánytalanul érkezik meg.',
+    problemHighlight: 'egyszerre és hiánytalanul',
     craft:
       'Minden munkát kóddal készítek, nem sablonnal vagy oldalépítővel, ezért a megoldás az Ön cégének működéséhez igazodik.',
     emptyPrice: 'Fix belépő ár: hamarosan',
     priceSetSuffix: 'egyszeri',
+    processTitle: 'Így dolgozom',
+    processSteps: [
+      {
+        title: 'Felmérés',
+        description:
+          'Megbeszéljük, mire van szüksége, és ma hogyan jutnak el Önhöz a megrendelések.',
+      },
+      {
+        title: 'Ár a munka előtt',
+        description:
+          'Kész csomagnál a feltüntetett ár érvényes, egyedi megoldásnál a felmérés után adok árat.',
+      },
+      {
+        title: 'Elkészítés',
+        description: 'Saját kóddal készítem, az Ön vállalkozásához igazítva.',
+      },
+      {
+        title: 'Átadás',
+        description: 'Egy javítási kör benne van, az üzemeltetést kérésre vállalom.',
+      },
+    ],
     featuredBadge: 'Fő ajánlat',
     includesTitle: 'A díjban benne van',
     packages: [

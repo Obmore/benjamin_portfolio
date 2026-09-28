@@ -25,7 +25,12 @@ export function Button({
   type = 'button',
   ...props
 }: ButtonProps) {
-  const classes = `inline-flex min-h-12 items-center justify-center gap-2 rounded-[6px] px-5 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${className}`
+  const classes = `inline-flex min-h-12 items-center justify-center gap-2 rounded-[6px] px-5 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${className}`
+  const motionStyle = {
+    transitionDuration: 'var(--motion-short)',
+    transitionTimingFunction: 'var(--motion-ease)',
+    transitionProperty: 'background-color, border-color, color, opacity',
+  }
 
   if (href) {
     return (
@@ -34,6 +39,7 @@ export function Button({
         target={external ? '_blank' : undefined}
         rel={external ? 'noopener noreferrer' : undefined}
         className={classes}
+        style={motionStyle}
       >
         {children}
       </a>
@@ -41,7 +47,7 @@ export function Button({
   }
 
   return (
-    <button type={type} className={classes} {...props}>
+    <button type={type} className={classes} style={motionStyle} {...props}>
       {children}
     </button>
   )
