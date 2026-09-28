@@ -14,6 +14,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   href?: string
   external?: boolean
   children: ReactNode
+  'data-cta'?: string
 }
 
 export function Button({
@@ -23,6 +24,7 @@ export function Button({
   className = '',
   children,
   type = 'button',
+  'data-cta': dataCta,
   ...props
 }: ButtonProps) {
   const classes = `inline-flex min-h-12 items-center justify-center gap-2 rounded-[6px] px-5 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${className}`
@@ -40,7 +42,7 @@ export function Button({
         rel={external ? 'noopener noreferrer' : undefined}
         className={classes}
         style={motionStyle}
-        {...props}
+        data-cta={dataCta}
       >
         {children}
       </a>
@@ -48,7 +50,7 @@ export function Button({
   }
 
   return (
-    <button type={type} className={classes} style={motionStyle} {...props}>
+    <button type={type} className={classes} style={motionStyle} data-cta={dataCta} {...props}>
       {children}
     </button>
   )
