@@ -44,9 +44,30 @@ export function Navbar() {
     }
   }, [menuOpen])
 
+  useEffect(() => {
+    const id = window.location.hash.replace(/^#/, '')
+    if (!id) return
+    const timer = window.setTimeout(() => scrollToSection(id), 80)
+    return () => window.clearTimeout(timer)
+  }, [])
+
   const handleNavClick = (id: string) => {
-    scrollToSection(id)
-    setMenuOpen(false)
+    const go = () => {
+      const hash = `#${id}`
+      if (window.location.hash !== hash) {
+        history.replaceState(null, '', hash)
+      }
+      scrollToSection(id)
+    }
+
+    if (menuOpen) {
+      document.body.style.overflow = ''
+      setMenuOpen(false)
+      window.setTimeout(go, 50)
+      return
+    }
+
+    go()
   }
 
   return (
