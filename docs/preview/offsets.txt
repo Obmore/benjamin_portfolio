@@ -1,9 +1,9 @@
 Mért függőleges pozíciók (px, dokumentum teteje), redesign/blueprint, világos téma, HU
-390x844: "149 000 Ft" 714px, #munkaim 2130px, hero CTA alja 296px, Árak 296px, e-mail 327px, teljes 11514px
+390x844: "149 000 Ft" 714px, #munkaim 2130px, hero CTA alja 296px, Árak 296px, e-mail 327px, teljes 11568px
 1440x900: "149 000 Ft" 875px, #munkaim 1762px, teljes 8245px
 Hero H1 2,00 sor, alcím 2,00 sor 390px szélességen.
 Hero CTA, Árak ugrás és e-mail a 390x844 első nézetben görgetés nélkül látszik.
 Alapvonal: 390x844 "149 000 Ft" 3749px, #munkaim 9924px
-CLS 390x844: 0,001 (korlát 0,02)
+CLS 390x844: 0 (korlát 0,02)
 Mintaűrlap: 0 xhr/fetch a kitöltéskor (demó mód)
-Bundle: JS gzip 86,2 KB (vite 89,1 KB; alap 122,7 KB); CSS gzip 9,3 KB (vite 9,6 KB; alap 6,5 KB)
+Bundle: JS gzip 86,2 KB (vite 89,2 KB; alap 122,7 KB); CSS gzip 9,6 KB (vite 9,9 KB; alap 6,5 KB)
