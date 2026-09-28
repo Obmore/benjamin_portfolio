@@ -2,7 +2,7 @@ import type { SiteContent } from './types'
 
 export const contentHu: SiteContent = {
   meta: {
-    title: 'Ott Benjámin — Villamosmérnök és szoftverfejlesztő',
+    title: 'Ott Benjámin: Villamosmérnök és szoftverfejlesztő',
     description:
       'Villamosmérnök és szoftverfejlesztő, aki mérnöki rendszereket köt össze modern szoftveres megoldásokkal. Python, full-stack fejlesztés, ipari rendszerek, energetika és telekommunikációs K+F.',
   },
@@ -64,7 +64,7 @@ export const contentHu: SiteContent = {
       {
         title: 'Elektronikai fejlesztőmérnök',
         company: 'HM Elektronikai, Logisztikai és Vagyonkezelő Zrt.',
-        period: '2026 – jelenleg',
+        period: '2026-jelenleg',
         bullets: [
           'Elektronikai fejlesztési és rendszerszintű mérnöki feladatok támogatása.',
           'Villamosmérnöki szemlélet alkalmazása fejlesztési környezetben.',
@@ -74,7 +74,7 @@ export const contentHu: SiteContent = {
       {
         title: 'Villamosmérnök és projektmenedzser',
         company: 'Voltrack',
-        period: '2025 – jelenleg',
+        period: '2025-jelenleg',
         bullets: [
           'Energetikai és ipari rendszerekhez kapcsolódó műszaki projektek koordinációja.',
           'Ipari kommunikációs, adatgyűjtési és távfelügyeleti feladatok támogatása.',
@@ -85,7 +85,7 @@ export const contentHu: SiteContent = {
       {
         title: 'Szoftverfejlesztő',
         company: 'Rollin',
-        period: '2023 – 2025',
+        period: '2023-2025',
         bullets: [
           'Webalkalmazások frontend és backend fejlesztése.',
           'React, Vite, Tailwind CSS és Ant Design használata frontend oldalon.',
@@ -96,7 +96,7 @@ export const contentHu: SiteContent = {
       {
         title: 'Kutató',
         company: 'Ericsson',
-        period: '2023 – 2025',
+        period: '2023-2025',
         bullets: [
           'Kvantumkommunikációhoz és QKD rendszerekhez kapcsolódó K+F feladatok.',
           'Python-alapú fejlesztések és mérési/kísérleti munkák támogatása.',
@@ -107,7 +107,7 @@ export const contentHu: SiteContent = {
       {
         title: 'Önálló fejlesztő / Egyéni vállalkozó',
         company: '',
-        period: '2024 – jelenleg',
+        period: '2024-jelenleg',
         bullets: [
           'Webes és technikai megoldások fejlesztése üzleti igények alapján.',
           'Frontend, backend és automatizációs jellegű feladatok.',
@@ -176,7 +176,8 @@ export const contentHu: SiteContent = {
     items: [
       {
         id: 'anettesvendi',
-        title: 'Anett & Vendi – esküvői meghívó és visszajelző oldal',
+        title: 'Anett & Vendi',
+        subtitle: 'Esküvői meghívó és visszajelző oldal',
         site: { label: 'anettesvendi.hu', href: 'https://anettesvendi.hu' },
         paragraphs: [
           'Egy pár vendégeinek készült, magyar és angol nyelvű weboldal. A vendég a meghívóján lévő kóddal lép be. Visszajelezhet a részvételről, megadhatja a létszámot, az étkezési és a szállásigényét, és zenét is kérhet. A beérkező válaszok egy szervezői felületen gyűlnek, ahol a vendéglista, az ültetési rend és a költségvetés is kezelhető. Az adatok táblázatként letölthetők, így például az étkezési igények mehetnek a vendéglátónak, a zenekérések pedig a DJ-nek.',
@@ -190,7 +191,8 @@ export const contentHu: SiteContent = {
       },
       {
         id: 'lelkiter',
-        title: 'Életrendező – bemutatkozó oldal',
+        title: 'Életrendező',
+        subtitle: 'Bemutatkozó oldal',
         site: { label: 'lelkiter.hu', href: 'https://lelkiter.hu' },
         paragraphs: [
           'Bemutatkozó oldal egy budapesti segítő szakembernek, aki családállítással, rajzvizsgálattal, álomfejtéssel, masszázzsal és homeopátiával foglalkozik. Magyarul és angolul olvasható, és külön oldalakon mutatja be a szakembert, a szolgáltatásokat és a blogbejegyzéseket. Mobilon is jól kezelhető, a látogató pedig e-mailben vagy telefonon közvetlenül felveheti a kapcsolatot.',
@@ -203,7 +205,8 @@ export const contentHu: SiteContent = {
       },
       {
         id: 'piktor',
-        title: 'Piktor 94 – termékadat-minta webáruháznak',
+        title: 'Piktor 94',
+        subtitle: 'Termékadat-minta webáruháznak',
         site: {
           label: 'obmore.github.io/piktor-content-pilot',
           href: 'https://obmore.github.io/piktor-content-pilot',
@@ -219,7 +222,8 @@ export const contentHu: SiteContent = {
       },
       {
         id: 'ottbenjamin',
-        title: 'ottbenjamin.hu – saját szakmai oldal',
+        title: 'ottbenjamin.hu',
+        subtitle: 'Saját szakmai oldal',
         paragraphs: [
           'Magyar és angol nyelvű oldal, világos és sötét módban is olvasható. A kódja nyilvános: github.com/Obmore/benjamin_portfolio',
         ],
@@ -237,7 +241,8 @@ export const contentHu: SiteContent = {
       },
       {
         id: 'lelek-es-nyelv',
-        title: 'Lélek & Nyelv – bemutatkozó oldal minta',
+        title: 'Lélek & Nyelv',
+        subtitle: 'Bemutatkozó oldal minta',
         site: {
           label: 'obmore.github.io/lelek-es-nyelv-portfolio',
           href: 'https://obmore.github.io/lelek-es-nyelv-portfolio',
@@ -267,8 +272,8 @@ export const contentHu: SiteContent = {
       'A kézi ajánlatkérés lassú. Az ügyfél letölt, kitölt és csatol. A cég a beérkezett adatot kézzel viszi tovább. Webes űrlappal az adat egyben, hiánytalanul érkezik.',
     craft:
       'Az űrlapot kóddal készítem, nem sablonból, ezért a cég saját folyamatához igazítható.',
-    emptyPrice: 'Fix belépő ár – hamarosan',
-    priceSetSuffix: 'egyszeri (alanyi adómentes)',
+    emptyPrice: 'Fix belépő ár: hamarosan',
+    priceSetSuffix: 'egyszeri',
     featuredBadge: 'Fő ajánlat',
     includesTitle: 'A díjban benne van',
     packages: [
@@ -300,15 +305,15 @@ export const contentHu: SiteContent = {
         includes: [
           'Kóddal készül, nem oldalépítővel',
           'Legfeljebb 6 tartalmi rész',
-          '6–10 jogtiszta fotó',
-          'Kapcsolati űrlap',
+          'Legalább 6, legfeljebb 10 jogtiszta fotó',
+          'Kapcsolatfelvétel',
           'Egy javítási kör',
           'A domain külön díjas, és a megrendelőé marad',
           'Mobilon is jól használható',
         ],
         priceFromConfig: false,
-        price: '59\u00A0000\u00A0Ft egyszeri (alanyi adómentes)',
-        extra: 'Opcionális üzemeltetés: 4\u00A0900\u00A0Ft/hó',
+        price: '59\u00A0000\u00A0Ft egyszeri',
+        extra: 'Kérhető üzemeltetés: havi 4\u00A0900\u00A0Ft',
       },
       {
         id: 'custom-app',

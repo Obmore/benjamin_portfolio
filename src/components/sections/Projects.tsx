@@ -50,6 +50,9 @@ function WorkCard({ project, delay }: { project: WorkProject; delay: number }) {
         </div>
         <div className="min-w-0 p-6 md:p-8">
           <h3 className="text-xl font-medium tracking-tight text-foreground">{project.title}</h3>
+          {project.subtitle ? (
+            <p className="mt-1 text-base leading-snug text-muted">{project.subtitle}</p>
+          ) : null}
           {project.site ? (
             <p className="mt-2 font-mono text-sm">
               <a

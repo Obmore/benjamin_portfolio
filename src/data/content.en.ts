@@ -2,7 +2,7 @@ import type { SiteContent } from './types'
 
 export const contentEn: SiteContent = {
   meta: {
-    title: 'Ott Benjámin — Electrical Engineer & Software Developer',
+    title: 'Ott Benjámin: Electrical Engineer & Software Developer',
     description:
       'Electrical engineer and software developer connecting engineering systems with modern software solutions. Python, full-stack development, industrial systems, energy and telecommunications R&D.',
   },
@@ -64,7 +64,7 @@ export const contentEn: SiteContent = {
       {
         title: 'Electronics Development Engineer',
         company: 'HM Elektronikai, Logisztikai és Vagyonkezelő Zrt.',
-        period: '2026 – present',
+        period: '2026-present',
         bullets: [
           'Supporting electronics development and system-level engineering tasks.',
           'Applying electrical engineering mindset in a development environment.',
@@ -74,7 +74,7 @@ export const contentEn: SiteContent = {
       {
         title: 'Electrical Engineer & Project Manager',
         company: 'Voltrack',
-        period: '2025 – present',
+        period: '2025-present',
         bullets: [
           'Coordination of technical projects related to energy and industrial systems.',
           'Support for industrial communication, data acquisition and remote monitoring tasks.',
@@ -85,7 +85,7 @@ export const contentEn: SiteContent = {
       {
         title: 'Software Developer',
         company: 'Rollin',
-        period: '2023 – 2025',
+        period: '2023-2025',
         bullets: [
           'Frontend and backend development of web applications.',
           'React, Vite, Tailwind CSS and Ant Design on the frontend.',
@@ -96,7 +96,7 @@ export const contentEn: SiteContent = {
       {
         title: 'Researcher',
         company: 'Ericsson',
-        period: '2023 – 2025',
+        period: '2023-2025',
         bullets: [
           'R&D tasks related to quantum communication and QKD systems.',
           'Python-based development and support for measurement/experimental work.',
@@ -107,7 +107,7 @@ export const contentEn: SiteContent = {
       {
         title: 'Independent Developer / Sole Proprietor',
         company: '',
-        period: '2024 – present',
+        period: '2024-present',
         bullets: [
           'Development of web and technical solutions based on business needs.',
           'Frontend, backend and automation-oriented tasks.',
@@ -176,7 +176,8 @@ export const contentEn: SiteContent = {
     items: [
       {
         id: 'anettesvendi',
-        title: 'Anett & Vendi – wedding invitation and RSVP site',
+        title: 'Anett & Vendi',
+        subtitle: 'Wedding invitation and RSVP site',
         site: { label: 'anettesvendi.hu', href: 'https://anettesvendi.hu' },
         paragraphs: [
           'A Hungarian and English site made for a couple’s guests. The guest signs in with the code on their invitation. They can RSVP, give the headcount, meal and accommodation needs, and request a song. Incoming replies collect on an organiser view, where the guest list, seating plan and budget can also be managed. The data can be downloaded as a spreadsheet, so meal needs can go to the caterer and song requests to the DJ.',
@@ -190,7 +191,8 @@ export const contentEn: SiteContent = {
       },
       {
         id: 'lelkiter',
-        title: 'Életrendező – introduction site',
+        title: 'Életrendező',
+        subtitle: 'Introduction site',
         site: { label: 'lelkiter.hu', href: 'https://lelkiter.hu' },
         paragraphs: [
           'An introduction site for a Budapest helper who works with family constellation, drawing analysis, dream interpretation, massage and homeopathy. It can be read in Hungarian and English, and it presents the practitioner, the services and the blog posts on separate pages. It works well on a phone, and the visitor can get in touch directly by email or phone.',
@@ -203,7 +205,8 @@ export const contentEn: SiteContent = {
       },
       {
         id: 'piktor',
-        title: 'Piktor 94 – product-data sample for a webshop',
+        title: 'Piktor 94',
+        subtitle: 'Product-data sample for a webshop',
         site: {
           label: 'obmore.github.io/piktor-content-pilot',
           href: 'https://obmore.github.io/piktor-content-pilot',
@@ -219,7 +222,8 @@ export const contentEn: SiteContent = {
       },
       {
         id: 'ottbenjamin',
-        title: 'ottbenjamin.hu – own professional site',
+        title: 'ottbenjamin.hu',
+        subtitle: 'Own professional site',
         paragraphs: [
           'A Hungarian and English site, readable in light and dark mode. Its code is public: github.com/Obmore/benjamin_portfolio',
         ],
@@ -237,7 +241,8 @@ export const contentEn: SiteContent = {
       },
       {
         id: 'lelek-es-nyelv',
-        title: 'Lélek & Nyelv – sample introduction site',
+        title: 'Lélek & Nyelv',
+        subtitle: 'Sample introduction site',
         site: {
           label: 'obmore.github.io/lelek-es-nyelv-portfolio',
           href: 'https://obmore.github.io/lelek-es-nyelv-portfolio',
@@ -267,8 +272,8 @@ export const contentEn: SiteContent = {
       'Manual quoting is slow. The customer downloads, fills in and attaches. The company then retypes what arrived. With a web form the data arrives in one piece, complete.',
     craft:
       'I build the form in code, not from a template, so it can follow the company’s own process.',
-    emptyPrice: 'Fixed entry price — coming soon',
-    priceSetSuffix: 'one-time (alanyi adómentes)',
+    emptyPrice: 'Fixed entry price: coming soon',
+    priceSetSuffix: 'one-time',
     featuredBadge: 'Main offer',
     includesTitle: 'Included',
     packages: [
@@ -300,15 +305,15 @@ export const contentEn: SiteContent = {
         includes: [
           'Built in code, not with a page builder',
           'Up to 6 content sections',
-          '6–10 legally cleared photos',
-          'A contact form',
+          'At least 6, at most 10 licensed photos',
+          'Contact option',
           'One revision round',
           'The domain is charged separately, and stays with the client',
           'Works well on a phone',
         ],
         priceFromConfig: false,
-        price: '59\u00A0000\u00A0Ft one-time (alanyi adómentes)',
-        extra: 'Optional operations: 4\u00A0900\u00A0Ft/hó',
+        price: '59\u00A0000\u00A0Ft one-time',
+        extra: 'Optional hosting and maintenance: HUF 4,900 per month',
       },
       {
         id: 'custom-app',

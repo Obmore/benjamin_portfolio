@@ -125,4 +125,4 @@ Unverified here: Resend’s free-plan attachment size/count, and whether a 10 ms
 
 ### Quote-form package price
 
-The main package price lives in one constant, `QUOTE_FORM_PACKAGE_PRICE` in `src/lib/constants.ts` (currently `149 000 Ft`, with a non-breaking space as thousands separator and before `Ft`). The UI shows **149 000 Ft egyszeri (alanyi adómentes)**. If the constant is emptied, the UI falls back to **Fix belépő ár – hamarosan**. The quote-form package has no monthly fee. The only monthly amount on the services section is the optional **4 900 Ft/hó** üzemeltetés on the introduction site.
+The main package price lives in one constant, `QUOTE_FORM_PACKAGE_PRICE` in `src/lib/constants.ts` (currently `149 000 Ft`, with a non-breaking space as thousands separator and before `Ft`). The UI shows **149 000 Ft egyszeri**. If the constant is emptied, the UI falls back to **Fix belépő ár: hamarosan**. The quote-form package has no monthly fee. The introduction site can add **Kérhető üzemeltetés: havi 4 900 Ft**.

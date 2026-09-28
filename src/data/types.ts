@@ -20,6 +20,7 @@ export interface SkillGroup {
 export interface WorkProject {
   id: string
   title: string
+  subtitle?: string
   site?: {
     label: string
     href: string
