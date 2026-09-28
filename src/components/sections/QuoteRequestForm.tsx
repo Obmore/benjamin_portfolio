@@ -233,7 +233,7 @@ export function QuoteRequestForm() {
           />
           <label
             htmlFor="quote-file"
-            className={`inline-flex cursor-pointer items-center justify-center rounded-xl border border-border/70 bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent/50 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent ${
+            className={`inline-flex cursor-pointer items-center justify-center rounded-xl border border-border/70 bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent/50 peer-focus-visible:border-accent peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2 ${
               submitting ? 'pointer-events-none cursor-not-allowed opacity-60' : ''
             }`}
           >
