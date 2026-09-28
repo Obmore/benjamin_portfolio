@@ -68,19 +68,20 @@ function StructureTrace() {
       height="1000"
       aria-hidden="true"
     >
-      <rect x="1320" y="36" width="96" height="40" rx="6" />
-      <rect x="1432" y="36" width="96" height="40" rx="6" />
-      <rect x="430" y="168" width="740" height="36" />
-      <rect x="680" y="228" width="240" height="40" />
-      <rect x="280" y="290" width="1040" height="110" />
-      <rect x="280" y="430" width="180" height="90" />
-      <rect x="540" y="430" width="180" height="90" />
-      <rect x="880" y="430" width="180" height="90" />
-      <rect x="1140" y="430" width="180" height="90" />
-      <rect x="430" y="545" width="740" height="330" rx="18" />
-      <rect x="490" y="620" width="620" height="70" rx="8" />
-      <rect x="490" y="720" width="620" height="80" rx="12" />
-      <rect x="680" y="900" width="240" height="28" />
+      <rect x="20" y="20" width="1560" height="960" />
+      <rect x="1368" y="28" width="88" height="36" rx="6" />
+      <rect x="1472" y="28" width="88" height="36" rx="6" />
+      <rect x="430" y="158" width="740" height="28" />
+      <rect x="700" y="210" width="200" height="32" />
+      <rect x="300" y="268" width="1000" height="100" />
+      <rect x="360" y="412" width="150" height="78" />
+      <rect x="620" y="412" width="150" height="78" />
+      <rect x="860" y="412" width="150" height="78" />
+      <rect x="1100" y="412" width="150" height="78" />
+      <rect x="430" y="530" width="740" height="320" rx="18" />
+      <rect x="490" y="598" width="620" height="64" rx="8" />
+      <rect x="490" y="688" width="620" height="72" rx="12" />
+      <rect x="680" y="868" width="240" height="24" />
     </svg>
   )
 }

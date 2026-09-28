@@ -1048,7 +1048,7 @@
 
   .explode-layer {
     position: absolute;
-    inset: 16px;
+    inset: 14px;
     margin: 0;
     overflow: hidden;
     border: var(--motion-stroke) solid color-mix(in srgb, var(--motion-ink) 35%, transparent);
@@ -1097,17 +1097,19 @@
 
   .explode-layer-0 {
     z-index: 1;
-    transform: translate(-12px, 10px);
+    transform: translate(-8px, 6px);
   }
 
   .explode-layer-1 {
     z-index: 2;
     transform: none;
+    clip-path: polygon(28% 0, 100% 0, 100% 100%, 40% 100%);
   }
 
   .explode-layer-2 {
     z-index: 3;
-    transform: translate(12px, -10px);
+    transform: translate(8px, -6px);
+    clip-path: polygon(56% 0, 100% 0, 100% 100%, 68% 100%);
   }
 
   @supports (animation-timeline: view()) {
@@ -1121,13 +1123,13 @@
       }
 
       .explode-layer-0 {
-        --explode-x: -12px;
-        --explode-y: 10px;
+        --explode-x: -8px;
+        --explode-y: 6px;
       }
 
       .explode-layer-2 {
-        --explode-x: 12px;
-        --explode-y: -10px;
+        --explode-x: 8px;
+        --explode-y: -6px;
       }
     }
   }
