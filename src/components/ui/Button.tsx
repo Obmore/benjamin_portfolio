@@ -40,6 +40,7 @@ export function Button({
         rel={external ? 'noopener noreferrer' : undefined}
         className={classes}
         style={motionStyle}
+        {...props}
       >
         {children}
       </a>

@@ -11,7 +11,6 @@ import {
   SECTION_IDS,
   SECTION_NUMBERS,
 } from '@/lib/constants'
-import { scrollToSection } from '@/hooks/useActiveSection'
 import type { ServicePackage } from '@/data/types'
 
 export function Services() {
@@ -51,7 +50,7 @@ export function Services() {
 
       <FinaleSwitch>
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 md:mt-5">
-          <Button data-cta="assess" type="button" onClick={() => scrollToSection(SECTION_IDS.contact)}>
+          <Button data-cta="assess" href={`#${SECTION_IDS.contact}`}>
             {services.cta.title}
           </Button>
           <p className="text-sm text-foreground">
