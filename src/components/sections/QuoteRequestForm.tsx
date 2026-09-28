@@ -11,7 +11,7 @@ import {
 } from '@/lib/quoteForm'
 
 const FIELD_CLASS =
-  'w-full rounded-xl border border-border/70 bg-surface/70 px-4 py-2.5 text-foreground outline-none transition-colors focus:border-accent disabled:opacity-60'
+  'w-full rounded-[6px] border border-line/30 bg-surface px-4 py-2.5 text-foreground outline-none transition-colors focus:border-line disabled:opacity-60'
 const ERROR_FIELD_CLASS = 'border-red-500/70 focus:border-red-500'
 
 const FIELD_ORDER: QuoteFormField[] = [
@@ -104,7 +104,7 @@ export function QuoteRequestForm() {
       aria-labelledby="quote-form-heading"
     >
       <div
-        className="rounded-xl border border-cyan/40 bg-cyan/5 px-4 py-3 text-sm leading-relaxed text-muted"
+        className="rounded-[6px] border border-line/30 bg-background px-4 py-3 text-sm leading-relaxed text-muted"
         role="status"
       >
         {live ? copy.liveBanner : copy.demoBanner}
@@ -233,7 +233,7 @@ export function QuoteRequestForm() {
           />
           <label
             htmlFor="quote-file"
-            className={`inline-flex cursor-pointer items-center justify-center rounded-xl border border-border/70 bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent/50 peer-focus-visible:border-accent peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2 ${
+            className={`inline-flex cursor-pointer items-center justify-center rounded-[6px] border border-line/30 bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-line peer-focus-visible:border-line peer-focus-visible:ring-2 peer-focus-visible:ring-line peer-focus-visible:ring-offset-2 ${
               submitting ? 'pointer-events-none cursor-not-allowed opacity-60' : ''
             }`}
           >
@@ -270,9 +270,14 @@ export function QuoteRequestForm() {
         <FieldError id="quote-consent-error" message={errors.consent} />
       </div>
 
-      <Button type="submit" disabled={submitting}>
-        {submitting ? copy.submitting : copy.submit}
-      </Button>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <Button type="submit" disabled={submitting}>
+          {submitting ? copy.submitting : copy.submit}
+        </Button>
+        <p className="text-sm leading-relaxed text-muted" aria-hidden="true">
+          {live ? copy.liveBanner : copy.demoBanner}
+        </p>
+      </div>
 
       {submitError ? (
         <p className="text-sm text-red-500" role="alert">

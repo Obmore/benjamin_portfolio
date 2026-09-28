@@ -18,7 +18,7 @@ export const contentHu: SiteContent = {
   hero: {
     headline: 'villamosmérnök és szoftverfejlesztő',
     subheadline:
-      'Python, full-stack fejlesztés, ipari kommunikáció, energetikai rendszerek, telekommunikációs K+F és műszaki projektmenedzsment egy kézben.',
+      'Python, teljes körű webfejlesztés, ipari kommunikáció, energetikai rendszerek, telekommunikációs K+F és műszaki projektmenedzsment egy kézben.',
     ctaContact: 'Kapcsolatfelvétel',
     ctaCv: 'Önéletrajz letöltése',
     ctaLinkedIn: 'LinkedIn profil',
@@ -30,11 +30,15 @@ export const contentHu: SiteContent = {
       'Docker',
       'Linux',
       'TCP/IP',
-      'Industrial Systems',
-      'Energy',
-      'Telecom',
-      'R&D',
+      'Ipari rendszerek',
+      'Energetika',
+      'Távközlés',
+      'Kutatás és fejlesztés',
     ],
+    morphAria:
+      'Ábra: egy Excel-rendelőlap oszlopaiból webes ajánlatkérő űrlap mezői lesznek.',
+    morphFile: 'rendelolap.xlsx',
+    morphDim: 'legfeljebb 10 mező',
   },
   about: {
     title: 'Rólam',
@@ -119,7 +123,7 @@ export const contentHu: SiteContent = {
     title: 'Technológiák és kompetenciák',
     groups: [
       {
-        title: 'Software Development',
+        title: 'Szoftverfejlesztés',
         skills: [
           'Python',
           'JavaScript',
@@ -133,45 +137,44 @@ export const contentHu: SiteContent = {
         ],
       },
       {
-        title: 'Engineering & Systems',
+        title: 'Mérnöki munka és rendszerek',
         skills: [
-          'Electrical Engineering',
-          'Industrial Systems',
-          'Energy Systems',
-          'Telecommunications',
+          'Villamosmérnöki munka',
+          'Ipari rendszerek',
+          'Energetikai rendszerek',
+          'Távközlés',
           'TCP/IP',
           'Modbus',
           'VPN',
-          'System Integration',
+          'Rendszerintegráció',
         ],
       },
       {
-        title: 'DevOps & Tools',
+        title: 'Fejlesztési eszközök és üzemeltetés',
         skills: [
           'Azure DevOps',
           'Git',
           'Docker',
           'Linux',
-          'CI/CD',
-          'Cursor',
-          'AI-assisted development',
+          'Automatikus tesztelés és telepítés',
         ],
       },
       {
-        title: 'Project & Communication',
+        title: 'Projektvezetés és kommunikáció',
         skills: [
-          'Technical Project Management',
-          'Documentation',
-          'Partner Communication',
-          'Testing',
-          'Troubleshooting',
-          'Requirements Analysis',
+          'Műszaki projektvezetés',
+          'Dokumentáció',
+          'Kapcsolattartás a partnerekkel',
+          'Tesztelés',
+          'Hibakeresés és hibaelhárítás',
+          'Igényfelmérés',
         ],
       },
     ],
   },
   projects: {
     title: 'Munkáim',
+    sampleBadge: 'Minta',
     items: [
       {
         id: 'anettesvendi',
@@ -220,28 +223,10 @@ export const contentHu: SiteContent = {
         alt: 'Piktor 94 termékadat-minta: termékleírások és hiányzó adatok ellenőrző nézete',
       },
       {
-        id: 'ottbenjamin',
-        title: 'ottbenjamin.hu',
-        subtitle: 'Saját szakmai oldal',
-        paragraphs: [
-          'Magyar és angol nyelvű oldal, világos és sötét módban is olvasható. A kódja nyilvános: github.com/Obmore/benjamin_portfolio',
-        ],
-        tech: 'Technológia: React 19, TypeScript, Vite, Tailwind CSS, Framer Motion.',
-        image: 'work/ottbenjamin.webp',
-        imageWidth: 1280,
-        imageHeight: 800,
-        alt: 'ottbenjamin.hu saját szakmai oldal kezdőképernyője',
-        links: [
-          {
-            label: 'github.com/Obmore/benjamin_portfolio',
-            href: 'https://github.com/Obmore/benjamin_portfolio',
-          },
-        ],
-      },
-      {
         id: 'lelek-es-nyelv',
         title: 'Lélek & Nyelv',
         subtitle: 'Bemutatkozó oldal minta',
+        sample: true,
         site: {
           label: 'obmore.github.io/lelek-es-nyelv-portfolio',
           href: 'https://obmore.github.io/lelek-es-nyelv-portfolio',
@@ -266,6 +251,7 @@ export const contentHu: SiteContent = {
   },
   services: {
     title: 'Webes ajánlatkérő a letölthető Excel-rendelőlap helyett',
+    sectionTitle: 'Szolgáltatások és árak',
     lead: 'Ha az ügyfelei ma letölthető Excel- vagy PDF-rendelőlapon, esetleg e-mailben kérnek ajánlatot, ezt egyszerű webes űrlapra cserélem az Ön honlapján.',
     problem:
       'A kézi ajánlatkérés sok időt visz el. Az ügyfél letölti a táblázatot, kitölti és csatolja, a cég pedig kézzel viszi tovább, amit kapott. Webes űrlappal minden adat egyszerre és hiánytalanul érkezik meg.',
@@ -330,7 +316,8 @@ export const contentHu: SiteContent = {
     form: {
       title: 'Ajánlatkérő minta',
       intro: 'Próbálja ki. Így látnák az ügyfelei egy gyártó vagy szabászati cég honlapján.',
-      demoBanner: 'Ez minta. A küldés nincs bekapcsolva, ezért semmi nem megy el.',
+      demoBanner:
+        'Ez egy minta, az innen elküldött adatok nem jutnak el hozzám. Ajánlatot a Kapcsolat részben kérhet.',
       liveBanner: 'Ez minta. A kitöltött kérés e-mailben eljut hozzám.',
       submit: 'Ajánlat kérése',
       submitting: 'Küldés folyamatban',
@@ -391,6 +378,7 @@ export const contentHu: SiteContent = {
   },
   footer: {
     text: '© 2026 Ott Benjámin, villamosmérnök és szoftverfejlesztő',
+    sourceLabel: 'A weboldal forráskódja:',
   },
   common: {
     emailLabel: 'E-mail',
@@ -401,5 +389,11 @@ export const contentHu: SiteContent = {
     themeToLight: 'Világos mód',
     langToEn: 'Váltás angolra',
     langToHu: 'Váltás magyarra',
+    mainNav: 'Fő navigáció',
+    mobileMenu: 'Mobil menü',
+    closeMenu: 'Menü bezárása',
+    skipToContent: 'Ugrás a tartalomra',
+    copyEmail: 'E-mail cím másolása',
+    emailCopied: 'A cím a vágólapra került.',
   },
 }

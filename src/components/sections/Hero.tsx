@@ -1,82 +1,55 @@
-import { motion } from 'framer-motion'
 import { useI18n } from '@/context/I18nContext'
 import { Button } from '@/components/ui/Button'
-import { Chip } from '@/components/ui/Chip'
-import { HeroVisual } from '@/components/visuals/HeroVisual'
-import { TechnicalLines } from '@/components/visuals/TechnicalLines'
-import { CV_EN_PATH, CV_HU_PATH, LINKEDIN_URL, SECTION_IDS } from '@/lib/constants'
+import { QuoteFormMorph } from '@/components/hero/QuoteFormMorph'
+import { EMAIL, SECTION_IDS } from '@/lib/constants'
 import { scrollToSection } from '@/hooks/useActiveSection'
 
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.12 },
-  },
-}
-
-const item = {
-  hidden: { opacity: 0, y: 24 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const },
-  },
-}
-
 export function Hero() {
-  const { content, locale } = useI18n()
-  const cvPath = locale === 'hu' ? CV_HU_PATH : CV_EN_PATH
+  const { content } = useI18n()
 
   return (
-    <section
-      id="hero"
-      className="relative flex min-h-screen items-center scroll-mt-24 pt-24"
-    >
-      <TechnicalLines />
-      <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-5 py-16 md:px-8 lg:grid-cols-2 lg:gap-16">
-        <motion.div variants={container} initial="hidden" animate="show">
-          <motion.h1
-            variants={item}
-            className="text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl"
-          >
-            <span className="block">Ott Benjámin</span>
-            <span className="mt-3 block text-2xl font-medium tracking-tight text-muted md:text-3xl">
-              {content.hero.headline}
-            </span>
-          </motion.h1>
-          <motion.p variants={item} className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
-            {content.hero.subheadline}
-          </motion.p>
-          <motion.div variants={item} className="mt-8 flex flex-wrap gap-3">
-            <Button type="button" onClick={() => scrollToSection(SECTION_IDS.contact)}>
-              {content.hero.ctaContact}
+    <section id="hero" className="relative scroll-mt-16 pt-16 md:pt-20">
+      <div className="mx-auto grid w-full max-w-6xl gap-6 px-5 py-5 md:px-8 md:py-8 lg:grid-cols-12 lg:items-start lg:gap-10">
+        <div className="lg:col-span-5">
+          <p className="font-mono text-xs tracking-wide text-line">Ott Benjámin</p>
+          <p className="mt-1 text-sm text-muted">{content.hero.headline}</p>
+          <h1 className="mt-3 text-[1.75rem] font-semibold leading-tight tracking-tight text-foreground md:text-4xl">
+            {content.services.title}
+          </h1>
+          <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-muted">
+            {content.services.lead}
+          </p>
+          <div className="mt-5 flex flex-col gap-2 md:flex-row">
+            <Button
+              data-hero-cta="primary"
+              className="w-full md:w-auto"
+              onClick={() => scrollToSection(SECTION_IDS.contact)}
+            >
+              {content.services.cta.title}
             </Button>
             <Button
+              data-hero-cta="secondary"
               variant="outline"
-              href={cvPath}
-              external
+              className="w-full md:w-auto"
+              onClick={() => scrollToSection(SECTION_IDS.quoteDemo)}
             >
-              {content.hero.ctaCv}
+              {content.services.form.title}
             </Button>
-            <Button variant="ghost" href={LINKEDIN_URL} external>
-              {content.hero.ctaLinkedIn}
-            </Button>
-          </motion.div>
-          <motion.div variants={item} className="mt-10 flex flex-wrap gap-2">
-            {content.hero.chips.map((chip) => (
-              <Chip key={chip} label={chip} />
-            ))}
-          </motion.div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <HeroVisual />
-        </motion.div>
+          </div>
+          <p className="mt-3 text-sm">
+            <span className="font-mono text-xs text-line">{content.common.emailLabel}</span>{' '}
+            <a
+              data-hero-email
+              href={`mailto:${EMAIL}`}
+              className="break-all text-foreground underline-offset-2 hover:underline"
+            >
+              {EMAIL}
+            </a>
+          </p>
+        </div>
+        <div className="lg:col-span-7">
+          <QuoteFormMorph />
+        </div>
       </div>
     </section>
   )

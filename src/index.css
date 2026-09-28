@@ -4,28 +4,23 @@
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  --color-background: #fafbfc;
-  --color-foreground: #0f172a;
-  --color-muted: #64748b;
+  --color-background: #fafaf7;
+  --color-foreground: #0b2545;
+  --color-muted: #4b5563;
   --color-surface: #ffffff;
-  --color-border: #e2e8f0;
-  --color-accent: #1e3a5f;
-  --color-cyan: #06b6d4;
-}
-
-.dark {
-  --color-background: #0a0f1c;
-  --color-foreground: #f1f5f9;
-  --color-muted: #94a3b8;
-  --color-surface: #111827;
-  --color-border: #1e293b;
-  --color-accent: #3b82f6;
-  --color-cyan: #22d3ee;
+  --color-border: #d7e2ef;
+  --color-accent: #1f5fad;
+  --color-line: #1f5fad;
+  --color-cta: #c2410c;
+  --color-price: #0b2545;
+  --color-cyan: #1f5fad;
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
+    color-scheme: light;
+    background-color: #fafaf7;
   }
 
   body {
@@ -33,11 +28,12 @@
   }
 
   ::selection {
-    @apply bg-accent/20 text-foreground;
+    background: color-mix(in srgb, var(--color-line) 22%, transparent);
+    color: var(--color-foreground);
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-accent;
+    @apply outline-2 outline-offset-2 outline-line;
   }
 
   button:focus:not(:focus-visible),
@@ -53,9 +49,359 @@
     *,
     *::before,
     *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
+
+@layer components {
+  .skip-link {
+    position: absolute;
+    left: 1rem;
+    top: 0.75rem;
+    z-index: 80;
+    transform: translateY(-160%);
+    border-radius: 6px;
+    background: var(--color-foreground);
+    color: var(--color-background);
+    padding: 0.5rem 0.9rem;
+    font-size: 0.875rem;
+  }
+
+  .skip-link:focus {
+    transform: none;
+  }
+
+  .blueprint-grid {
+    background-color: var(--color-background);
+    background-image:
+      repeating-linear-gradient(
+        to right,
+        rgb(31 95 173 / 0.05) 0 1px,
+        transparent 1px 8px
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        rgb(31 95 173 / 0.05) 0 1px,
+        transparent 1px 8px
+      ),
+      repeating-linear-gradient(
+        to right,
+        rgb(31 95 173 / 0.08) 0 1px,
+        transparent 1px 40px
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        rgb(31 95 173 / 0.08) 0 1px,
+        transparent 1px 40px
+      );
+  }
+
+  .crop-marks {
+    position: relative;
+  }
+
+  .crop-marks::before,
+  .crop-marks::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-color: var(--color-line);
+    opacity: 0.55;
+  }
+
+  .crop-marks::before {
+    top: -1px;
+    left: -1px;
+    border-top: 1px solid;
+    border-left: 1px solid;
+  }
+
+  .crop-marks::after {
+    right: -1px;
+    bottom: -1px;
+    border-right: 1px solid;
+    border-bottom: 1px solid;
+  }
+
+  .section-crosses {
+    position: relative;
+  }
+
+  .section-crosses::before,
+  .section-crosses::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    opacity: 0.45;
+    background:
+      linear-gradient(var(--color-line), var(--color-line)) center / 10px 1px no-repeat,
+      linear-gradient(var(--color-line), var(--color-line)) center / 1px 10px no-repeat;
+  }
+
+  .section-crosses::before {
+    top: 8px;
+    left: 8px;
+  }
+
+  .section-crosses::after {
+    top: 8px;
+    right: 8px;
+  }
+
+  .price-figure {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--color-price);
+    font-size: 1.875rem;
+  }
+
+  @media (min-width: 768px) {
+    .price-figure {
+      font-size: 2.25rem;
+    }
+  }
+
+  .dimension-line {
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 16rem;
+    height: 1.25rem;
+  }
+
+  .dimension-line svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .dimension-line .dim-stroke {
+    stroke: var(--color-line);
+    stroke-width: 1;
+    fill: none;
+    stroke-dasharray: 240;
+    stroke-dashoffset: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .dimension-line.is-drawn .dim-stroke {
+      animation: dim-draw 0.7s ease both;
+    }
+  }
+
+  @keyframes dim-draw {
+    from {
+      stroke-dashoffset: 240;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal-play {
+      animation: reveal-soft 280ms ease-out both;
+    }
+  }
+
+  @keyframes reveal-soft {
+    from {
+      opacity: 0.92;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .pcb-timeline {
+    --pcb-progress: 1;
+    position: relative;
+  }
+
+  .pcb-rail {
+    position: absolute;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    left: 0.35rem;
+    width: 2px;
+    background: color-mix(in srgb, var(--color-line) 22%, transparent);
+  }
+
+  @media (min-width: 768px) {
+    .pcb-rail {
+      left: calc(10rem + 0.7rem);
+    }
+  }
+
+  .pcb-line {
+    position: absolute;
+    inset: 0;
+    background: var(--color-line);
+    transform: scaleY(var(--pcb-progress, 1));
+    transform-origin: top;
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .pcb-line {
+        transform: scaleY(0);
+        animation: pcb-fill linear forwards;
+        animation-timeline: view();
+        animation-range: entry 0% contain 70%;
+      }
+    }
+  }
+
+  @keyframes pcb-fill {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  .solder-pad {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    border: 2px solid var(--color-line);
+    background: var(--color-background);
+    box-shadow: 0 0 0 3px var(--color-background);
+  }
+
+  .solder-pad.is-lit {
+    background: var(--color-line);
+  }
+
+  .browser-frame {
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-line) 28%, transparent);
+    border-radius: 6px;
+    background: var(--color-surface);
+  }
+
+  .browser-viewport {
+    --vp-h: 168px;
+    position: relative;
+    height: var(--vp-h);
+    overflow: hidden;
+  }
+
+  @media (min-width: 768px) {
+    .browser-viewport {
+      --vp-h: 220px;
+    }
+  }
+
+  .browser-shot {
+    display: block;
+    width: 100%;
+    height: auto;
+    transform: translateY(0);
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .browser-frame:hover .browser-shot {
+      transform: translateY(calc(-100% + var(--vp-h)));
+      transition: transform 12s linear;
+    }
+  }
+
+  @media (hover: none) and (prefers-reduced-motion: no-preference) {
+    .browser-frame.is-auto-scroll .browser-shot {
+      animation: shot-scroll 10s ease-out forwards;
+    }
+  }
+
+  @keyframes shot-scroll {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(calc(-100% + var(--vp-h)));
+    }
+  }
+
+  .spec-hover-lines {
+    pointer-events: none;
+    position: absolute;
+    inset: 8px;
+    opacity: 0;
+  }
+
+  .spec-hover-lines path {
+    stroke: var(--color-line);
+    stroke-width: 1;
+    fill: none;
+    stroke-dasharray: 80;
+    stroke-dashoffset: 80;
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .price-card:hover .spec-hover-lines {
+      opacity: 1;
+    }
+
+    .price-card:hover .spec-hover-lines path {
+      animation: spec-draw 0.55s ease forwards;
+    }
+  }
+
+  @keyframes spec-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  .scope-sweep {
+    transform: translateX(-8px);
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .scope-stage.is-run .scope-sweep {
+      animation: scope-sweep 1.15s ease-out both;
+    }
+  }
+
+  @keyframes scope-sweep {
+    from {
+      transform: translateX(-8px);
+      opacity: 0.9;
+    }
+    to {
+      transform: translateX(392px);
+      opacity: 0;
+    }
+  }
+
+  .check-draw path {
+    stroke-dasharray: 32;
+    stroke-dashoffset: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .check-draw.is-on path {
+      animation: check-draw 0.4s ease forwards;
+    }
+  }
+
+  @keyframes check-draw {
+    from {
+      stroke-dashoffset: 32;
+    }
+    to {
+      stroke-dashoffset: 0;
     }
   }
 }

@@ -1,5 +1,7 @@
 export const LINKEDIN_URL = 'https://www.linkedin.com/in/benjaminottee'
 export const EMAIL = 'bendzsiott1998@gmail.com'
+export const GITHUB_URL = 'https://github.com/Obmore/benjamin_portfolio'
+export const GITHUB_LABEL = 'github.com/Obmore/benjamin_portfolio'
 export const CV_HU_PATH = `${import.meta.env.BASE_URL}cv/Ott_Benjamin_CV_HU.pdf`
 export const CV_EN_PATH = `${import.meta.env.BASE_URL}cv/Ott_Benjamin_CV_EN.pdf`
 
@@ -34,4 +36,16 @@ export const SECTION_IDS = {
   projects: 'munkaim',
   cv: 'oneletrajz',
   contact: 'kapcsolat',
+  quoteDemo: 'ajanlatkero-minta',
+} as const
+
+export const SECTION_NUMBERS = {
+  services: '01',
+  projects: '02',
+  quoteDemo: '03',
+  about: '04',
+  experience: '05',
+  skills: '06',
+  cv: '07',
+  contact: '08',
 } as const

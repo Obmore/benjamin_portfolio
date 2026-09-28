@@ -21,6 +21,7 @@ export interface WorkProject {
   id: string
   title: string
   subtitle?: string
+  sample?: boolean
   site?: {
     label: string
     href: string
@@ -118,6 +119,9 @@ export interface SiteContent {
     ctaCv: string
     ctaLinkedIn: string
     chips: string[]
+    morphAria: string
+    morphFile: string
+    morphDim: string
   }
   about: {
     title: string
@@ -134,6 +138,7 @@ export interface SiteContent {
   }
   projects: {
     title: string
+    sampleBadge: string
     items: WorkProject[]
   }
   cv: {
@@ -145,6 +150,7 @@ export interface SiteContent {
   }
   services: {
     title: string
+    sectionTitle: string
     lead: string
     problem: string
     craft: string
@@ -169,6 +175,7 @@ export interface SiteContent {
   }
   footer: {
     text: string
+    sourceLabel: string
   }
   common: {
     emailLabel: string
@@ -179,5 +186,11 @@ export interface SiteContent {
     themeToLight: string
     langToEn: string
     langToHu: string
+    mainNav: string
+    mobileMenu: string
+    closeMenu: string
+    skipToContent: string
+    copyEmail: string
+    emailCopied: string
   }
 }

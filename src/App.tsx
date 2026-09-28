@@ -2,13 +2,14 @@ import { HelmetProvider } from 'react-helmet-async'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { SeoHead } from '@/components/SeoHead'
-import { GridBackground } from '@/components/visuals/GridBackground'
+import { BlueprintBackground } from '@/components/visuals/BlueprintBackground'
 import { Hero } from '@/components/sections/Hero'
 import { About } from '@/components/sections/About'
 import { Services } from '@/components/sections/Services'
 import { Experience } from '@/components/sections/Experience'
 import { Skills } from '@/components/sections/Skills'
 import { Projects } from '@/components/sections/Projects'
+import { QuoteDemo } from '@/components/sections/QuoteDemo'
 import { CvDownload } from '@/components/sections/CvDownload'
 import { Contact } from '@/components/sections/Contact'
 import { I18nProvider } from '@/context/I18nContext'
@@ -20,15 +21,16 @@ function App() {
       <ThemeProvider>
         <I18nProvider>
           <SeoHead />
-          <GridBackground />
+          <BlueprintBackground />
           <Navbar />
-          <main>
+          <main id="main" tabIndex={-1}>
             <Hero />
-            <About />
             <Services />
+            <Projects />
+            <QuoteDemo />
+            <About />
             <Experience />
             <Skills />
-            <Projects />
             <CvDownload />
             <Contact />
           </main>

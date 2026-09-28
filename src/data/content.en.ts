@@ -35,6 +35,10 @@ export const contentEn: SiteContent = {
       'Telecom',
       'R&D',
     ],
+    morphAria:
+      'Illustration: the columns of an Excel order sheet become the fields of a web quote form.',
+    morphFile: 'order-sheet.xlsx',
+    morphDim: 'up to 10 fields',
   },
   about: {
     title: 'About',
@@ -172,6 +176,7 @@ export const contentEn: SiteContent = {
   },
   projects: {
     title: 'My work',
+    sampleBadge: 'Sample',
     items: [
       {
         id: 'anettesvendi',
@@ -220,28 +225,10 @@ export const contentEn: SiteContent = {
         alt: 'Piktor 94 product-data sample: product descriptions and missing-data review',
       },
       {
-        id: 'ottbenjamin',
-        title: 'ottbenjamin.hu',
-        subtitle: 'Own professional site',
-        paragraphs: [
-          'A Hungarian and English site, readable in light and dark mode. Its code is public: github.com/Obmore/benjamin_portfolio',
-        ],
-        tech: 'Technology: React 19, TypeScript, Vite, Tailwind CSS, Framer Motion.',
-        image: 'work/ottbenjamin.webp',
-        imageWidth: 1280,
-        imageHeight: 800,
-        alt: 'ottbenjamin.hu professional site landing screen',
-        links: [
-          {
-            label: 'github.com/Obmore/benjamin_portfolio',
-            href: 'https://github.com/Obmore/benjamin_portfolio',
-          },
-        ],
-      },
-      {
         id: 'lelek-es-nyelv',
         title: 'Lélek & Nyelv',
         subtitle: 'Sample introduction site',
+        sample: true,
         site: {
           label: 'obmore.github.io/lelek-es-nyelv-portfolio',
           href: 'https://obmore.github.io/lelek-es-nyelv-portfolio',
@@ -266,6 +253,7 @@ export const contentEn: SiteContent = {
   },
   services: {
     title: 'A web quote form instead of a downloadable Excel order sheet',
+    sectionTitle: 'Services and prices',
     lead: 'If your customers currently request a quote on a downloadable Excel or PDF order sheet, or by email, I replace that with a simple web form on your site.',
     problem:
       'Manual quoting takes a lot of time. The customer downloads the spreadsheet, fills it in and attaches it, and the company then retypes what arrived. With a web form every piece of data arrives together and complete.',
@@ -331,7 +319,7 @@ export const contentEn: SiteContent = {
       title: 'Sample quote request',
       intro: 'Try it. This is how your customers would see it on a manufacturing or cutting-shop site.',
       demoBanner:
-        'This is a sample. Sending is not turned on, so nothing is sent.',
+        'This is a sample; data sent from here does not reach me. You can request a quote in the Contact section.',
       liveBanner: 'Sample form. The submitted request will reach me by email.',
       submit: 'Request a quote',
       submitting: 'Sending…',
@@ -392,6 +380,7 @@ export const contentEn: SiteContent = {
   },
   footer: {
     text: '© 2026 Ott Benjámin, electrical engineer and software developer',
+    sourceLabel: 'Source code of this website:',
   },
   common: {
     emailLabel: 'Email',
@@ -402,5 +391,11 @@ export const contentEn: SiteContent = {
     themeToLight: 'Switch to light mode',
     langToEn: 'Switch to English',
     langToHu: 'Switch to Hungarian',
+    mainNav: 'Main navigation',
+    mobileMenu: 'Mobile menu',
+    closeMenu: 'Close menu',
+    skipToContent: 'Skip to content',
+    copyEmail: 'Copy email address',
+    emailCopied: 'The address has been copied.',
   },
 }
