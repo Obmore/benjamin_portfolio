@@ -40,11 +40,33 @@ async function waitForServer(url, timeoutMs = 20000) {
 function startPreview() {
   if (process.env.BASE_URL) return null
   const child = spawn(
-    'npx',
-    ['vite', 'preview', '--host', '127.0.0.1', '--port', PORT, '--strictPort'],
-    { stdio: 'pipe' },
+    process.execPath,
+    [
+      './node_modules/vite/bin/vite.js',
+      'preview',
+      '--host',
+      '127.0.0.1',
+      '--port',
+      PORT,
+      '--strictPort',
+    ],
+    { stdio: 'ignore', detached: true },
   )
+  child.unref()
   return child
+}
+
+function stopPreview(preview) {
+  if (!preview?.pid) return
+  try {
+    process.kill(-preview.pid, 'SIGKILL')
+  } catch {
+    try {
+      preview.kill('SIGKILL')
+    } catch {
+      // already gone
+    }
+  }
 }
 
 async function withPage(browser, viewport, reducedMotion, fn) {
@@ -219,7 +241,7 @@ async function run() {
 
     await browser.close()
   } finally {
-    preview?.kill()
+    stopPreview(preview)
   }
 
   for (const note of notes) console.log(note)
@@ -230,6 +252,7 @@ async function run() {
     process.exit(1)
   }
   console.log('\nLayout check passed.')
+  process.exit(0)
 }
 
 run().catch((error) => {

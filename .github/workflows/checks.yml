@@ -32,5 +32,5 @@ jobs:
         run: node scripts/check-size.mjs
 
       - name: Layout
-        timeout-minutes: 2
+        timeout-minutes: 3
         run: node scripts/check-layout.mjs
