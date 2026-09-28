@@ -66,9 +66,10 @@ async function withPage(browser, viewport, reducedMotion, fn) {
 }
 
 async function ready(page) {
-  await page.goto(BASE, { waitUntil: 'networkidle' })
+  await page.goto(BASE, { waitUntil: 'load', timeout: 30000 })
   await page.waitForSelector('h1')
   await page.waitForSelector('[data-testid="price-quote-form"]')
+  await page.evaluate(() => document.fonts.ready)
 }
 
 async function measure(page) {
@@ -115,7 +116,9 @@ async function run() {
   const preview = startPreview()
   try {
     await waitForServer(BASE)
-    const browser = await chromium.launch()
+    const browser = await chromium.launch({
+      args: ['--no-sandbox', '--disable-dev-shm-usage'],
+    })
 
     await withPage(browser, { width: 390, height: 844 }, false, async (page) => {
       await ready(page)
@@ -178,8 +181,9 @@ async function run() {
 
     await withPage(browser, { width: 390, height: 844 }, false, async (page) => {
       for (const id of ANCHORS) {
-        await page.goto(`${BASE}#${id}`, { waitUntil: 'networkidle' })
+        await page.goto(`${BASE}#${id}`, { waitUntil: 'load', timeout: 30000 })
         await page.waitForSelector(`#${id}`)
+        await page.evaluate(() => document.fonts.ready)
         await page.waitForFunction(
           (sectionId) => {
             const el = document.getElementById(sectionId)

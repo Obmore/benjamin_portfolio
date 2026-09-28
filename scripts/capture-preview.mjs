@@ -38,7 +38,7 @@ async function shot(page, width, height, fullPage, reduced, destName) {
   } else {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
   }
-  await page.goto(BASE, { waitUntil: 'networkidle' })
+  await page.goto(BASE, { waitUntil: 'load', timeout: 30000 })
   await page.waitForSelector('h1')
   await page.evaluate(() => document.fonts.ready)
   if (!reduced) {
@@ -61,7 +61,9 @@ async function run() {
   const preview = startPreview()
   try {
     await waitForServer(BASE)
-    const browser = await chromium.launch()
+    const browser = await chromium.launch({
+      args: ['--no-sandbox', '--disable-dev-shm-usage'],
+    })
     const context = await browser.newContext({
       colorScheme: 'light',
       locale: 'hu-HU',
