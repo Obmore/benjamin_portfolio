@@ -218,14 +218,13 @@ export const contentHu: SiteContent = {
         alt: 'Életrendező bemutatkozó oldal kezdőképernyője kapcsolatfelvétel gombokkal',
       },
       {
-        id: 'hotel-rental',
-        title: 'Szállodai járműbérlő rendszer',
-        subtitle: 'Elektromos rollerek és kerékpárok automatizált bérlése szállodáknak',
-        tag: 'Csapatmunka',
+        id: 'rollin',
+        title: 'Rollin',
+        subtitle: 'Webalkalmazás, 2023 és 2025 között',
         paragraphs: [
-          'A szállodai bérlés webes felületén, a szerveroldali rendszeren, az elektromos kerékpárok távoli vezérlésén és a töltőállomások szoftverén dolgoztam.',
+          'A Rollin szoftverfejlesztőjeként egy éles webalkalmazás frontend és backend részén dolgoztam.',
         ],
-        tech: 'Technológia: React, TypeScript, .NET, Azure, Raspberry Pi, Python.',
+        tech: 'Technológia: React, Vite, Tailwind CSS, Ant Design, C#, Microsoft SQL, Quartz, Azure DevOps.',
       },
       {
         id: 'lelek-es-nyelv',
