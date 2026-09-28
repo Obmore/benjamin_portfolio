@@ -98,7 +98,7 @@ export const contentEn: SiteContent = {
         period: '2023 to 2025',
         bullets: [
           'R&D tasks related to quantum communication and QKD systems.',
-          'Python-based development and support for measurement and experimental work.',
+          'Software development in several programming languages and support for measurement and experimental work.',
           'Analysis of software and hardware issues in a telecommunications research environment.',
           'Git-based version control and engineering documentation.',
         ],
