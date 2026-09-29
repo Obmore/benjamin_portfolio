@@ -11,7 +11,7 @@ export function Experience() {
   const reduced = usePrefersReducedMotion()
   const railRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<Array<HTMLElement | null>>([])
-  const [lit, setLit] = useState<boolean[]>(() => content.experience.items.map(() => reduced))
+  const [lit, setLit] = useState<boolean[]>(() => content.experience.items.map(() => true))
 
   useEffect(() => {
     const rail = railRef.current

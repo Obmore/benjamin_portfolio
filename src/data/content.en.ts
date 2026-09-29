@@ -1,8 +1,5 @@
 import type { SiteContent } from './types'
 
-// EN-REVIEW: new sentences are a faithful draft of the approved HU copy.
-// They are marked in comments so a language reviewer can edit them separately.
-
 export const contentEn: SiteContent = {
   meta: {
     title: 'Ott Benjámin, electrical engineer and software developer',
@@ -17,24 +14,13 @@ export const contentEn: SiteContent = {
     projects: 'My work',
     cv: 'Resume',
     contact: 'Contact',
-    howItWorks: 'How it works', // EN-REVIEW
-    prices: 'Prices', // EN-REVIEW
   },
   hero: {
-    kicker: 'Ott Benjámin, electrical engineer and software developer', // EN-REVIEW
-    headline: 'A good order starts with a form filled in well.', // EN-REVIEW
-    headlineLines: ['A good order starts', 'with a form filled in well.'], // EN-REVIEW
+    headline: 'electrical engineer and software developer',
     subheadline:
-      'I make web quote forms and order forms so your customers give you everything you need the first time.', // EN-REVIEW
-    ctaAssess: 'Ask for an assessment', // EN-REVIEW
-    ctaHow: 'See how it works', // EN-REVIEW
-    scrollHint: 'Scroll on', // EN-REVIEW
-    paperTitle: 'Order form', // EN-REVIEW
-    paperRows: [
-      { label: 'Size', value: '1200 × 800 mm' },
-      { label: 'Quantity', value: '12' },
-      { label: 'Notes', value: 'Oak, lacquered' },
-    ],
+      'Python, full-stack development, industrial communication, energy systems, telecommunications R&D and technical project management in one profile.',
+    offerHeadline: 'Your customer fills it in. You receive it in one place.',
+    offerLead: 'A web quote and order form. Every field arrives together.',
     pricesJump: 'Prices',
     sheetLabel: 'Sheet 1',
     ctaContact: 'Get in touch',
@@ -54,59 +40,15 @@ export const contentEn: SiteContent = {
       'R&D',
     ],
     morphAria:
-      'Illustration: the lines of a handwritten order form become the fields of a web quote form.', // EN-REVIEW
+      'Illustration: the columns of an Excel order sheet become the fields of a web quote form.',
     morphFile: 'order-sheet.xlsx',
     compareBefore: 'Before',
     compareAfter: 'After',
-    compareAria: 'Comparison of a paper order form and a web quote form', // EN-REVIEW
-    inboxLabel: 'This is the summary the company would receive', // EN-REVIEW
+    compareAria: 'Comparison of an Excel order sheet and a web quote form',
   },
-  rail: [
-    { id: 'hero', label: 'Offer' }, // EN-REVIEW
-    { id: 'problema', label: 'Problem' }, // EN-REVIEW
-    { id: 'megoldas', label: 'Solution' }, // EN-REVIEW
-    { id: 'ajanlatkero-minta', label: 'Sample' }, // EN-REVIEW
-    { id: 'folyamat', label: 'Process' }, // EN-REVIEW
-    { id: 'munkaim', label: 'Work' }, // EN-REVIEW
-    { id: 'szolgaltatasok', label: 'Prices' }, // EN-REVIEW
-    { id: 'rolam', label: 'About' }, // EN-REVIEW
-    { id: 'kapcsolat', label: 'Contact' }, // EN-REVIEW
-  ],
-  problem: {
-    title: 'This is how a quote request arrives today', // EN-REVIEW
-    cards: [
-      { text: 'The customer prints it and fills it in by hand.' }, // EN-REVIEW
-      { text: 'If something is missing, you call them back.' }, // EN-REVIEW
-      { text: 'You take down the details one by one.' }, // EN-REVIEW
-      { text: 'It always needs a conversation.' }, // EN-REVIEW
-    ],
-  },
-  solution: {
-    title: 'Your customer fills it in. You receive it in one piece.', // EN-REVIEW
-    text: 'The customer fills in the form on your site, and the important fields cannot stay empty. You receive a single, tidy email, and you write the reply yourself, as you do now. You do not have to learn a new system.', // EN-REVIEW
-  },
-  tryIt: {
-    title: 'Try it', // EN-REVIEW
-    text: 'Fill in the sample and see what email a company would get from it.', // EN-REVIEW
-  },
-  process: {
-    title: 'How I work', // EN-REVIEW
-    lead: 'Four steps from the first talk to handover.', // EN-REVIEW
-  },
-  prices: {
-    title: 'Prices', // EN-REVIEW
-    lead: 'Package prices are known up front. For custom work I give a price after the assessment.', // EN-REVIEW
-  },
-  marquee: [
-    'Web quote form',
-    'Online order form',
-    'Introduction site',
-    'Custom web solution',
-    'Hosting',
-  ],
   about: {
     title: 'About',
-    text: 'I am an electrical engineer and software developer. I work on industrial, energy and telecommunications systems, and I also build web solutions for small businesses.', // EN-REVIEW
+    text: 'I am a software developer and technical project engineer with an electrical engineering background. I am interested in roles where engineering thinking, software development and system-level problem solving come together.\n\nI have worked on web and backend development, Python-based engineering tasks, telecommunications R&D environments, and the technical coordination of industrial and energy projects. My strength is bridging developers, engineers and business stakeholders.',
     highlights: [
       {
         title: 'Engineering systems mindset',
@@ -239,8 +181,7 @@ export const contentEn: SiteContent = {
     ],
   },
   projects: {
-    title: 'My work, layer by layer', // EN-REVIEW
-    lead: 'Scroll and see how a sketch becomes a finished page.', // EN-REVIEW
+    title: 'My work',
     sampleBadge: 'Sample',
     explode: {
       structure: 'Structure',
@@ -316,8 +257,8 @@ export const contentEn: SiteContent = {
   },
   services: {
     title: 'A web quote form instead of a downloadable Excel order sheet',
-    sectionTitle: 'Prices', // EN-REVIEW
-    lead: 'Package prices are known up front. For custom work I give a price after the assessment.', // EN-REVIEW
+    sectionTitle: 'Services and prices',
+    lead: 'If your customers currently request a quote on a downloadable Excel or PDF order sheet, or by email, I replace that with a simple web form on your site.',
     problem:
       'Manual quoting takes a lot of time. The customer downloads the spreadsheet, fills it in and attaches it, and the company then retypes what arrived. With a web form every piece of data arrives together and complete.',
     problemHighlight: 'together and complete',
@@ -400,8 +341,8 @@ export const contentEn: SiteContent = {
       },
     ],
     form: {
-      title: 'Try it', // EN-REVIEW
-      intro: 'Fill in the sample and see what email a company would get from it.', // EN-REVIEW
+      title: 'Sample quote request',
+      intro: 'Try it. This is how your customers would see it on a manufacturing or cutting-shop site.',
       demoBanner:
         'This is a sample; data sent from here does not reach me. You can request a quote in the Contact section.',
       liveBanner: 'Sample form. The submitted request will reach me by email.',
@@ -470,10 +411,8 @@ export const contentEn: SiteContent = {
     },
   },
   contact: {
-    title: 'Let’s talk about what you need.', // EN-REVIEW
-    text: 'Write how quote requests reach you today, and I will suggest the simplest solution.', // EN-REVIEW
-    orWrite: 'Or write here:', // EN-REVIEW
-    finale: 'The quote request has arrived.', // EN-REVIEW
+    title: 'Contact',
+    text: 'If you need a web quote form, an introduction site or a custom web solution, write me an email. We will talk briefly, then I will write what I recommend, and what the work includes. I am also glad to reply to industrial and energy-related professional enquiries.',
     email: 'bendzsiott1998@gmail.com',
     location: 'Budapest, Hungary',
     mailSubject: 'Assessment request',

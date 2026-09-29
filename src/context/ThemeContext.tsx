@@ -4,7 +4,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useState,
   type ReactNode,
 } from 'react'
 
@@ -17,27 +16,19 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-function readTheme(): Theme {
-  return 'light'
-}
-
-function applyTheme(_theme: Theme) {
-  document.documentElement.classList.remove('dark')
-  document.documentElement.style.colorScheme = 'light'
-}
-
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme] = useState<Theme>(readTheme)
-
   useEffect(() => {
-    applyTheme('light')
+    document.documentElement?.classList.remove('dark')
   }, [])
 
   const toggleTheme = useCallback(() => {
-    applyTheme('light')
+    document.documentElement?.classList.remove('dark')
   }, [])
 
-  const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme])
+  const value = useMemo(
+    () => ({ theme: 'light' as const, toggleTheme }),
+    [toggleTheme],
+  )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }

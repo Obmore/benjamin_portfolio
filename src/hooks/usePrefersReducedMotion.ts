@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react'
-import { shouldUseStaticMotion } from '@/lib/motionProfile'
+
+function getPrefersReducedMotion(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
 
 export function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(shouldUseStaticMotion)
+  const [reduced, setReduced] = useState(getPrefersReducedMotion)
 
   useEffect(() => {
-    const update = () => setReduced(shouldUseStaticMotion())
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    media.addEventListener('change', update)
-    return () => media.removeEventListener('change', update)
+    const onChange = () => setReduced(media.matches)
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
   }, [])
 
   return reduced

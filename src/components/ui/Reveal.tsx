@@ -5,11 +5,9 @@ import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 export function Reveal({
   children,
   className = '',
-  variant = 'soft',
 }: {
   children: ReactNode
   className?: string
-  variant?: 'soft' | 'line'
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInViewOnce(ref, { threshold: 0.18 })
@@ -18,7 +16,7 @@ export function Reveal({
   return (
     <div
       ref={ref}
-      className={`${!reduced && inView ? 'reveal-play' : ''} ${variant === 'line' ? 'line-reveal' : ''} ${className}`}
+      className={`${!reduced && inView ? 'reveal-play' : ''} ${className}`}
     >
       {children}
     </div>

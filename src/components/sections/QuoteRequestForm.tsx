@@ -1,11 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useRef, useState, type FormEvent } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { Button } from '@/components/ui/Button'
 import { isQuoteFormLive } from '@/lib/constants'
-import { flyField } from '@/lib/flipFly'
-import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import {
   EMPTY_QUOTE_FORM,
   submitQuoteRequest,
@@ -14,8 +10,6 @@ import {
   type QuoteFormValues,
 } from '@/lib/quoteForm'
 import type { QuoteFormCopy } from '@/data/types'
-
-gsap.registerPlugin(ScrollTrigger)
 
 const FIELD_CLASS =
   'w-full rounded-[6px] border border-line/30 bg-surface px-4 py-2.5 text-foreground outline-none transition-colors focus:border-line disabled:opacity-60'
@@ -33,23 +27,17 @@ const FIELD_ORDER: QuoteFormField[] = [
   'consent',
 ]
 
-export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
+export function QuoteRequestForm() {
   const { content } = useI18n()
   const copy = content.services.form
-  const live = !demoOnly && isQuoteFormLive()
-  const reduced = usePrefersReducedMotion()
+  const live = isQuoteFormLive()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const formRef = useRef<HTMLFormElement>(null)
-  const valuesRef = useRef<QuoteFormValues>(EMPTY_QUOTE_FORM)
-  const prevRef = useRef<QuoteFormValues>(EMPTY_QUOTE_FORM)
-  const flyTimers = useRef<Partial<Record<QuoteFormField, number>>>({})
 
   const [values, setValues] = useState<QuoteFormValues>(EMPTY_QUOTE_FORM)
   const [errors, setErrors] = useState<Partial<Record<QuoteFormField, string>>>({})
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState(false)
   const [result, setResult] = useState<'demo' | 'live' | null>(null)
-  valuesRef.current = values
 
   const setField = <K extends QuoteFormField>(key: K, value: QuoteFormValues[K]) => {
     setValues((current) => ({ ...current, [key]: value }))
@@ -60,77 +48,6 @@ export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
       return next
     })
   }
-
-  useEffect(() => {
-    if (reduced) {
-      prevRef.current = values
-      return
-    }
-    const root = formRef.current
-    if (!root) {
-      prevRef.current = values
-      return
-    }
-
-    const keys: QuoteFormField[] = [
-      'name',
-      'company',
-      'email',
-      'phone',
-      'material',
-      'quantity',
-      'notes',
-      'file',
-    ]
-    const pending: number[] = []
-    for (const key of keys) {
-      const next = previewText(values, copy, key)
-      const prev = previewText(prevRef.current, copy, key)
-      if (!next || next === prev) continue
-      window.clearTimeout(flyTimers.current[key])
-      const timer = window.setTimeout(() => {
-        flyField(root, key, next)
-      }, 220)
-      flyTimers.current[key] = timer
-      pending.push(timer)
-    }
-    prevRef.current = values
-    return () => {
-      pending.forEach((timer) => window.clearTimeout(timer))
-    }
-  }, [copy, reduced, values])
-
-  useLayoutEffect(() => {
-    const form = formRef.current
-    if (!form || !demoOnly || reduced) return
-
-    const playDemo = async () => {
-      const current = valuesRef.current
-      if (current.name.trim() || current.company.trim() || current.email.trim()) return
-      const material = copy.materials.find((item) => item.value === 'fa')?.value || copy.materials[0]?.value || ''
-      setValues({
-        ...EMPTY_QUOTE_FORM,
-        name: copy.sampleName,
-        company: copy.sampleCompany,
-        email: copy.sampleEmail,
-        phone: copy.samplePhone,
-        material,
-        quantity: copy.sampleQuantity,
-        notes: copy.sampleNotes,
-        consent: true,
-      })
-    }
-
-    const trigger = ScrollTrigger.create({
-      trigger: form,
-      start: 'top 72%',
-      once: true,
-      onEnter: () => {
-        void playDemo()
-      },
-    })
-    return () => trigger.kill()
-  }, [copy, demoOnly, reduced])
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -148,13 +65,8 @@ export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
 
     setSubmitting(true)
     try {
-      if (demoOnly || !isQuoteFormLive()) {
-        await wait(400)
-        setResult('demo')
-      } else {
-        const response = await submitQuoteRequest(values)
-        setResult(response.demo ? 'demo' : 'live')
-      }
+      const response = await submitQuoteRequest(values)
+      setResult(response.demo ? 'demo' : 'live')
       setValues(EMPTY_QUOTE_FORM)
       if (fileInputRef.current) fileInputRef.current.value = ''
     } catch {
@@ -187,7 +99,6 @@ export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
 
   return (
     <form
-      ref={formRef}
       onSubmit={handleSubmit}
       className="space-y-5"
       noValidate
@@ -205,7 +116,6 @@ export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <TextField
           id="quote-name"
-          source="name"
           label={copy.fields.name}
           requiredLabel={copy.required}
           value={values.name}
@@ -216,7 +126,6 @@ export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
         />
         <TextField
           id="quote-company"
-          source="company"
           label={copy.fields.company}
           requiredLabel={copy.required}
           value={values.company}
@@ -227,7 +136,6 @@ export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
         />
         <TextField
           id="quote-email"
-          source="email"
           label={copy.fields.email}
           requiredLabel={copy.required}
           type="email"
@@ -239,7 +147,6 @@ export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
         />
         <TextField
           id="quote-phone"
-          source="phone"
           label={copy.fields.phone}
           requiredLabel={copy.required}
           type="tel"
@@ -258,7 +165,6 @@ export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
           />
           <select
             id="quote-material"
-            data-quote-source="material"
             value={values.material}
             disabled={submitting}
             aria-invalid={Boolean(errors.material)}
@@ -277,7 +183,6 @@ export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
         </div>
         <TextField
           id="quote-quantity"
-          source="quantity"
           label={copy.fields.quantity}
           requiredLabel={copy.required}
           value={values.quantity}
@@ -296,7 +201,6 @@ export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
         />
         <textarea
           id="quote-notes"
-          data-quote-source="notes"
           rows={4}
           value={values.notes}
           disabled={submitting}
@@ -338,12 +242,7 @@ export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
           >
             {copy.fileChoose}
           </label>
-          <span
-            id="quote-file-status"
-            data-quote-source="file"
-            className="min-w-0 break-all text-sm text-muted"
-            aria-live="polite"
-          >
+          <span id="quote-file-status" className="min-w-0 break-all text-sm text-muted" aria-live="polite">
             {values.file ? values.file.name : copy.fileNone}
           </span>
         </div>
@@ -397,7 +296,6 @@ export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
 
 interface TextFieldProps {
   id: string
-  source: QuoteFormField
   label: string
   requiredLabel: string
   value: string
@@ -410,7 +308,6 @@ interface TextFieldProps {
 
 function TextField({
   id,
-  source,
   label,
   requiredLabel,
   value,
@@ -426,7 +323,6 @@ function TextField({
       <FieldLabel htmlFor={id} label={label} required requiredLabel={requiredLabel} />
       <input
         id={id}
-        data-quote-source={source}
         type={type}
         value={value}
         disabled={disabled}
@@ -477,21 +373,6 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   )
 }
 
-function previewText(values: QuoteFormValues, copy: QuoteFormCopy, key: QuoteFormField): string {
-  if (key === 'consent') return ''
-  if (key === 'file') return values.file?.name ?? ''
-  if (key === 'material') {
-    return copy.materials.find((item) => item.value === values.material)?.label ?? values.material
-  }
-  return String(values[key] ?? '').trim()
-}
-
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms)
-  })
-}
-
 function MailPreview({
   values,
   copy,
@@ -518,47 +399,47 @@ function MailPreview({
     <aside className="mail-preview" aria-live="polite">
       <p className="mail-preview-title">{copy.previewTitle}</p>
       <div className="mail-preview-window">
-        <div className="mail-preview-headers">
+        <dl className="mail-preview-headers">
           <div>
-            <p>{copy.previewFrom}</p>
-            <p>
+            <dt>{copy.previewFrom}</dt>
+            <dd>
               <span>{name}</span>
               <span className="mail-preview-meta">{company}</span>
               <span className="mail-preview-meta">{email}</span>
-            </p>
+            </dd>
           </div>
           <div>
-            <p>{copy.previewTo}</p>
-            <p>{copy.previewRecipient}</p>
+            <dt>{copy.previewTo}</dt>
+            <dd>{copy.previewRecipient}</dd>
           </div>
           <div>
-            <p>{copy.previewSubjectLabel}</p>
-            <p>{copy.previewSubject}</p>
+            <dt>{copy.previewSubjectLabel}</dt>
+            <dd>{copy.previewSubject}</dd>
           </div>
-        </div>
+        </dl>
         <div className="mail-preview-body">
-          <p data-preview-line="name">
+          <p>
             {copy.fields.name}: {name}
           </p>
-          <p data-preview-line="company">
+          <p>
             {copy.fields.company}: {company}
           </p>
-          <p data-preview-line="email">
+          <p>
             {copy.fields.email}: {email}
           </p>
-          <p data-preview-line="phone">
+          <p>
             {copy.fields.phone}: {phone}
           </p>
-          <p data-preview-line="material">
+          <p>
             {copy.fields.material}: {material}
           </p>
-          <p data-preview-line="quantity">
+          <p>
             {copy.fields.quantity}: {quantity}
           </p>
-          <p data-preview-line="notes">
+          <p>
             {copy.fields.notes}: {notes}
           </p>
-          <p data-preview-line="file">
+          <p>
             {copy.fields.file}: {file}
           </p>
         </div>

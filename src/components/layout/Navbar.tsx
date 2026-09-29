@@ -1,59 +1,35 @@
 import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '@/context/I18nContext'
-import { ASSESS_MAILTO, SECTION_IDS } from '@/lib/constants'
+import { SECTION_IDS } from '@/lib/constants'
 import { bindInPageAnchors, scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
-import { Button } from '@/components/ui/Button'
-import { getLenis } from '@/lib/motionEngine'
+import { LangToggle } from '@/components/ui/LangToggle'
 
-const menuItems = [
-  { id: SECTION_IDS.solution, key: 'howItWorks' as const },
+const navItems = [
+  { id: SECTION_IDS.services, key: 'services' as const },
   { id: SECTION_IDS.projects, key: 'projects' as const },
   { id: SECTION_IDS.about, key: 'about' as const },
+  { id: SECTION_IDS.experience, key: 'experience' as const },
+  { id: SECTION_IDS.skills, key: 'skills' as const },
+  { id: SECTION_IDS.cv, key: 'cv' as const },
   { id: SECTION_IDS.contact, key: 'contact' as const },
 ]
 
-const NAV_IDS = [
-  SECTION_IDS.solution,
-  SECTION_IDS.projects,
-  SECTION_IDS.about,
-  SECTION_IDS.contact,
-  SECTION_IDS.services,
-]
+const NAV_IDS = navItems.map((item) => item.id)
 
 export function Navbar() {
   const { content } = useI18n()
   const [scrolled, setScrolled] = useState(false)
-  const [hidden, setHidden] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const lastY = useRef(0)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const firstItemRef = useRef<HTMLButtonElement>(null)
   const activeId = useActiveSection(NAV_IDS)
 
   useEffect(() => {
-    const onScroll = (y: number) => {
-      setScrolled(y > 20)
-      if (menuOpen) {
-        setHidden(false)
-        lastY.current = y
-        return
-      }
-      if (y > 300 && y > lastY.current + 4) setHidden(true)
-      else if (y < lastY.current - 4) setHidden(false)
-      lastY.current = y
-    }
-
-    const fromWindow = () => onScroll(window.scrollY)
-    fromWindow()
-    window.addEventListener('scroll', fromWindow, { passive: true })
-    const lenis = getLenis()
-    const fromLenis = (instance: { scroll: number }) => onScroll(instance.scroll)
-    lenis?.on('scroll', fromLenis)
-    return () => {
-      window.removeEventListener('scroll', fromWindow)
-      lenis?.off('scroll', fromLenis)
-    }
-  }, [menuOpen])
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   useEffect(() => {
     const onHash = () => {
@@ -117,32 +93,26 @@ export function Navbar() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 ${
-        hidden ? '-translate-y-full' : 'translate-y-0'
-      } ${scrolled ? 'border-b border-line/20 bg-background' : 'bg-background/95'}`}
-      style={{
-        transitionProperty: 'transform',
-        transitionDuration: 'var(--motion-short)',
-        transitionTimingFunction: 'var(--motion-ease)',
-      }}
+        scrolled ? 'border-b border-line/20 bg-background' : 'bg-background/95'
+      }`}
     >
       <a href="#main" className="skip-link">
         {content.common.skipToContent}
       </a>
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-2 md:px-8">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-2.5 md:px-8">
         <button
           type="button"
           onClick={() => scrollToSection('hero')}
-          className="shrink-0 font-mono text-sm font-semibold tracking-wide text-foreground"
+          className="font-mono text-sm font-semibold tracking-wide text-foreground"
         >
           OB<span className="text-line">.</span>
         </button>
 
         <nav className="hidden items-center gap-0.5 lg:flex" aria-label={content.common.mainNav}>
-          {menuItems.map((item) => (
+          {navItems.map((item) => (
             <button
               key={item.id}
               type="button"
-              data-nav-link={item.id}
               onClick={() => handleNavClick(item.id)}
               className={`whitespace-nowrap rounded-[6px] px-2 py-2 text-sm ${
                 activeId === item.id ? 'text-line' : 'text-muted hover:text-foreground'
@@ -153,23 +123,8 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-          <button
-            type="button"
-            data-nav="prices"
-            onClick={() => handleNavClick(SECTION_IDS.prices)}
-            className="whitespace-nowrap rounded-[6px] px-2 py-2 text-sm font-medium text-foreground hover:text-line"
-          >
-            {content.nav.prices}
-          </button>
-          <Button
-            data-nav="assess"
-            data-cta="nav-assess"
-            href={ASSESS_MAILTO}
-            className="min-h-9 px-2.5 py-1.5 text-[11px] sm:min-h-12 sm:px-5 sm:text-sm"
-          >
-            {content.hero.ctaAssess}
-          </Button>
+        <div className="flex items-center gap-2">
+          <LangToggle />
           <button
             ref={menuButtonRef}
             type="button"
@@ -216,7 +171,7 @@ export function Navbar() {
       >
         <div className="min-h-0 overflow-hidden">
           <div className="flex flex-col gap-1 px-5 py-3">
-            {menuItems.map((item, index) => (
+            {navItems.map((item, index) => (
               <button
                 key={item.id}
                 ref={index === 0 ? firstItemRef : undefined}

@@ -3,8 +3,8 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 
 const assetsDir = join(process.cwd(), 'dist', 'assets')
-const JS_LIMIT = 190 * 1024
-const CSS_LIMIT = 14 * 1024
+const JS_LIMIT = 125 * 1024
+const CSS_LIMIT = 10 * 1024
 
 if (!existsSync(assetsDir)) {
   console.error('dist/assets missing. Run npm run build first.')
@@ -30,10 +30,10 @@ for (const row of rows.sort((a, b) => b.gzip - a.gzip)) {
 }
 
 console.log(
-  `\nJS gzip ${(js / 1024).toFixed(1)} KB (limit ${(JS_LIMIT / 1024).toFixed(0)} KB, previous baseline 122.7 KB without GSAP)`,
+  `\nJS gzip ${(js / 1024).toFixed(1)} KB (limit ${(JS_LIMIT / 1024).toFixed(0)} KB, baseline 122.7 KB)`,
 )
 console.log(
-  `CSS gzip ${(css / 1024).toFixed(1)} KB (limit ${(CSS_LIMIT / 1024).toFixed(0)} KB, previous baseline 6.5 KB)`,
+  `CSS gzip ${(css / 1024).toFixed(1)} KB (limit ${(CSS_LIMIT / 1024).toFixed(0)} KB, baseline 6.5 KB)`,
 )
 
 let failed = false

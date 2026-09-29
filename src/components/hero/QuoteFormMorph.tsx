@@ -1,256 +1,178 @@
-import { useLayoutEffect, useRef } from 'react'
-import { gsap } from 'gsap'
+import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '@/context/I18nContext'
+import { useInViewOnce } from '@/hooks/useInViewOnce'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
-import { desktopMotionQuery, mobileMotionQuery } from '@/lib/motionProfile'
+import { MOTION } from '@/lib/motion'
+import { CompareSlider } from '@/components/visuals/CompareSlider'
+import { isCompactField, MORPH_COLS, MORPH_ROWS } from './morphLayout'
 import './quoteFormMorph.css'
 
 export function QuoteFormMorph() {
   const { content } = useI18n()
   const reduced = usePrefersReducedMotion()
   const stageRef = useRef<HTMLDivElement>(null)
-  const form = content.services.form
+  const inView = useInViewOnce(stageRef, { threshold: 0.5 })
+  const [loaded, setLoaded] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  const [done, setDone] = useState(false)
 
-  useLayoutEffect(() => {
-    const stage = stageRef.current
-    if (!stage || reduced) return
+  useEffect(() => {
+    const mark = () => setLoaded(true)
+    if (document.readyState === 'complete') mark()
+    else window.addEventListener('load', mark)
+    return () => window.removeEventListener('load', mark)
+  }, [])
 
-    const pin = document.querySelector<HTMLElement>('[data-hero-pin]')
-    const sheet = stage.querySelector<HTMLElement>('[data-paper]')
-    const inbox = stage.querySelector<HTMLElement>('[data-inbox]')
-    const rows = stage.querySelectorAll<HTMLElement>('[data-paper-row]')
-    const values = stage.querySelectorAll<HTMLElement>('[data-paper-value]')
-    const submit = stage.querySelector<HTMLElement>('[data-paper-submit]')
-    const caret = stage.querySelector<HTMLElement>('[data-paper-caret]')
-    if (!sheet || !rows.length) return
+  useEffect(() => {
+    if (reduced || !loaded || !inView || playing) return
+    if (document.visibilityState !== 'visible') return
 
-    const ctx = gsap.context(() => {
-      gsap.from(rows, {
-        y: 18,
-        rotate: -3,
-        duration: 0.7,
-        stagger: 0.08,
-        ease: 'expo.out',
-        delay: 0.12,
-      })
+    let cancelled = false
+    const start = () => {
+      if (!cancelled) setPlaying(true)
+    }
+    const timeoutId = window.setTimeout(start, MOTION.durationMs.medium)
 
-      const mm = gsap.matchMedia()
-      mm.add(desktopMotionQuery(), () => {
-        if (!pin) return
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: pin,
-            start: 'top top',
-            end: () => `+=${Math.round(window.innerHeight * 1.05)}`,
-            pin: true,
-            scrub: 0.65,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-          },
-        })
-        buildStory(tl, { sheet, inbox, rows, values, submit, caret, full: true })
-        return () => tl.kill()
-      })
+    return () => {
+      cancelled = true
+      window.clearTimeout(timeoutId)
+    }
+  }, [reduced, loaded, inView, playing])
 
-      mm.add(mobileMotionQuery(), () => {
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: stage,
-            start: 'top 78%',
-            end: 'bottom 18%',
-            scrub: 0.4,
-            invalidateOnRefresh: true,
-          },
-        })
-        buildStory(tl, { sheet, inbox, rows, values, submit, caret, full: false })
-        return () => tl.kill()
-      })
-    }, stage)
+  useEffect(() => {
+    if (!playing) return
+    const timer = window.setTimeout(() => setDone(true), MOTION.heroTransformMs)
+    return () => window.clearTimeout(timer)
+  }, [playing])
 
-    return () => ctx.revert()
-  }, [reduced, content.hero.paperRows])
+  const fields = content.services.form.fields
+  const labels = [
+    { key: 'name', text: fields.name },
+    { key: 'company', text: fields.company },
+    { key: 'email', text: fields.email },
+    { key: 'phone', text: fields.phone },
+    { key: 'material', text: fields.material },
+    { key: 'quantity', text: fields.quantity },
+  ]
+  const envelope = content.services.packages[0]?.includes[3] ?? ''
+
+  if (reduced) {
+    return <CompareSlider />
+  }
 
   return (
     <div
       ref={stageRef}
       role="img"
       aria-label={content.hero.morphAria}
-      className="paper-stage"
+      className={`morph-stage crop-marks border border-line/25 ${
+        playing ? 'is-playing' : ''
+      } ${done ? 'is-done' : ''}`}
     >
-      <div className="paper-sheet" data-paper>
-        <p className="paper-head">{content.hero.paperTitle}</p>
-        {content.hero.paperRows.map((row) => (
-          <div key={row.label} className="paper-row" data-paper-row>
-            <span className="paper-label">{row.label}</span>
-            <span className="paper-value" data-paper-value>
-              {row.value}
-            </span>
-          </div>
-        ))}
-        <span className="paper-submit" data-paper-submit>
-          {form.submit}
-        </span>
-        <span className="paper-caret" data-paper-caret aria-hidden="true" />
-      </div>
-      <aside className="inbox-card" data-inbox>
-        <p className="inbox-kicker">{content.hero.inboxLabel}</p>
-        <div>
-          <div className="inbox-row">
-            <p>{form.previewFrom}</p>
-            <p>
-              {form.sampleName}
-              <span className="block text-muted">{form.sampleCompany}</span>
-            </p>
-          </div>
-          <div className="inbox-row">
-            <p>{form.previewTo}</p>
-            <p>{form.previewRecipient}</p>
-          </div>
-          <div className="inbox-row">
-            <p>{form.previewSubjectLabel}</p>
-            <p>{form.previewSubject}</p>
-          </div>
-          {content.hero.paperRows.map((row) => (
-            <div key={`inbox-${row.label}`} className="inbox-row">
-              <p>{row.label}</p>
-              <p>{row.value}</p>
-            </div>
-          ))}
-        </div>
-      </aside>
+      <AnimatedMorph
+        labels={labels}
+        filename={content.hero.morphFile}
+        fileHint={content.services.form.fileHint}
+        submit={content.services.form.submit}
+        envelope={envelope}
+      />
     </div>
   )
 }
 
-function buildStory(
-  tl: gsap.core.Timeline,
-  parts: {
-    sheet: HTMLElement
-    inbox: HTMLElement | null
-    rows: NodeListOf<HTMLElement>
-    values: NodeListOf<HTMLElement>
-    submit: HTMLElement | null
-    caret: HTMLElement | null
-    full: boolean
-  },
-) {
-  const { sheet, inbox, rows, values, submit, caret, full } = parts
-  const caretTop = (row: HTMLElement) => row.offsetTop + 16
+function AnimatedMorph({
+  labels,
+  filename,
+  fileHint,
+  submit,
+  envelope,
+}: {
+  labels: { key: string; text: string }[]
+  filename: string
+  fileHint: string
+  submit: string
+  envelope: string
+}) {
+  return (
+    <div className="morph-frame" aria-hidden="true">
+      <svg
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        viewBox="0 0 400 300"
+        preserveAspectRatio="none"
+      >
+        <rect className="morph-border" x="2" y="2" width="396" height="296" />
+      </svg>
+      <span className="morph-tab">{filename}</span>
+      <div className="morph-scan" />
 
-  tl.to(
-    sheet,
-    {
-      rotate: -8,
-      rotateX: 16,
-      y: 6,
-      boxShadow: '0 28px 54px rgb(11 37 69 / 0.2)',
-      duration: 0.16,
-      ease: 'power2.out',
-    },
-    0,
-  )
-  tl.to(
-    rows,
-    {
-      y: -12,
-      rotateX: 16,
-      rotate: 0,
-      z: 14,
-      stagger: 0.045,
-      duration: 0.18,
-      ease: 'power2.out',
-    },
-    0.06,
-  )
-  tl.to(
-    sheet,
-    {
-      rotate: 0,
-      rotateX: 0,
-      y: 0,
-      boxShadow: '0 12px 28px rgb(11 37 69 / 0.1)',
-      duration: 0.2,
-    },
-    0.28,
-  )
-  tl.to(rows, { y: 0, rotateX: 0, z: 0, duration: 0.16 }, 0.3)
-  tl.to(
-    sheet,
-    {
-      duration: 0.01,
-      onStart: () => {
-        rows.forEach((row) => row.classList.add('is-field'))
-        values.forEach((value) => {
-          value.classList.add('is-typed')
-          gsap.set(value, { clipPath: 'inset(0 100% 0 0)' })
-        })
-      },
-      onReverseComplete: () => {
-        rows.forEach((row) => row.classList.remove('is-field', 'is-focus'))
-        values.forEach((value) => {
-          value.classList.remove('is-typed')
-          gsap.set(value, { clipPath: 'none' })
-        })
-      },
-    },
-    0.4,
-  )
+      <div className="morph-sheet">
+        <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 400 300">
+          <path className="morph-grid-line" d="M8 70 H392 M8 130 H392 M8 190 H392" />
+          <path className="morph-grid-line" d="M80 8 V292 M160 8 V292 M240 8 V292 M320 8 V292" />
+        </svg>
+        <div className="morph-sheet-grid">
+          <div className="morph-cell axis" />
+          {MORPH_COLS.map((col, index) => (
+            <div
+              key={col}
+              className={`morph-cell axis ${index >= 4 ? 'morph-optional' : ''}`}
+            >
+              {col}
+            </div>
+          ))}
+          {MORPH_ROWS.map((row) => (
+            <SheetRow key={row} row={row} labels={labels} />
+          ))}
+        </div>
+      </div>
 
-  rows.forEach((row, index) => {
-    const at = 0.44 + index * 0.1
-    const value = values[index]
-    tl.to(
-      row,
-      {
-        duration: 0.01,
-        onStart: () => {
-          rows.forEach((item) => item.classList.toggle('is-focus', item === row))
-        },
-      },
-      at,
-    )
-    if (value) {
-      tl.to(value, { clipPath: 'inset(0 0% 0 0)', duration: 0.09, ease: 'none' }, at)
-    }
-    if (caret) {
-      tl.to(caret, { opacity: 1, duration: 0.03 }, at)
-      tl.to(caret, { top: () => caretTop(row), duration: 0.08, ease: 'power2.out' }, at)
-    }
-  })
-
-  tl.to(submit, { y: 0, scale: 1, duration: 0.1 }, 0.7)
-  tl.to(
-    sheet,
-    {
-      duration: 0.01,
-      onStart: () => {
-        rows.forEach((row) => row.classList.remove('is-focus'))
-        if (caret) gsap.set(caret, { opacity: 0 })
-      },
-    },
-    0.72,
+      <div className="morph-form">
+        <div className="morph-form-grid">
+          {labels.map((label) => (
+            <div
+              key={label.key}
+              className={`morph-field ${isCompactField(label.key) ? '' : 'morph-optional'}`}
+            >
+              <span className="morph-field-label">{label.text}</span>
+              <span className="morph-field-box" />
+            </div>
+          ))}
+          <div className="morph-file">
+            <span className="morph-file-box">{fileHint}</span>
+          </div>
+          <div className="morph-actions">
+            <span className="morph-submit">
+              {submit}
+              <svg className="morph-check ml-1" viewBox="0 0 16 16">
+                <path d="M3 8.5 L6.5 12 L13 4.5" />
+              </svg>
+            </span>
+            {envelope ? <p className="morph-note">{envelope}</p> : null}
+          </div>
+        </div>
+      </div>
+    </div>
   )
+}
 
-  if (full && inbox) {
-    tl.to(
-      sheet,
-      {
-        rotateX: 72,
-        y: -80,
-        scale: 0.7,
-        opacity: 0.08,
-        duration: 0.18,
-        ease: 'power2.in',
-      },
-      0.76,
-    )
-    tl.fromTo(
-      inbox,
-      { autoAlpha: 0, y: 42, rotateX: -8, scale: 0.94 },
-      { autoAlpha: 1, y: 0, rotateX: 0, scale: 1, duration: 0.2, ease: 'power2.out' },
-      0.8,
-    )
-  } else if (inbox) {
-    tl.to(inbox, { autoAlpha: 1, y: 0, duration: 0.16 }, 0.78)
-  }
+function SheetRow({
+  row,
+  labels,
+}: {
+  row: string
+  labels: { key: string; text: string }[]
+}) {
+  return (
+    <>
+      <div className="morph-cell axis">{row}</div>
+      {labels.map((label, index) => (
+        <div
+          key={`${row}-${label.key}`}
+            className={`morph-cell ${row === '1' ? 'head' : ''} ${index >= 4 ? 'morph-optional' : ''}`}
+        >
+          {row === '1' ? label.text : <span className="morph-bar" />}
+        </div>
+      ))}
+    </>
+  )
 }

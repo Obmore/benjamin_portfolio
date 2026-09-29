@@ -7,7 +7,7 @@ Premium minimal portfolio website for Ott Benjámin — Electrical Engineer & So
 - React 19 + TypeScript
 - Vite
 - Tailwind CSS v4
-- GSAP 3 + ScrollTrigger + Lenis
+- Framer Motion
 - react-helmet-async (SEO)
 
 ## Development
