@@ -330,15 +330,10 @@ async function run() {
         assert(rail === expected, `rail at ${expected} is ${rail}`)
       }
 
-      await page.click('[data-nav="prices"]')
-      await page.waitForFunction(() => {
-        const el = document.getElementById('arak') || document.getElementById('szolgaltatasok')
-        if (!el) return false
-        const top = el.getBoundingClientRect().top
-        return top >= -20 && top < 280
-      }, null, { timeout: 8000 })
-      for (const id of ['megoldas', 'munkaim', 'rolam', 'kapcsolat']) {
-        await page.click(`[data-nav-link="${id}"]`)
+      const clickNav = async (selector, id) => {
+        const y = await page.evaluate(() => window.scrollY)
+        await jumpTo(page, Math.max(0, y - 120))
+        await page.locator(selector).click({ force: true })
         await page.waitForFunction(
           (sectionId) => {
             const el = document.getElementById(sectionId)
@@ -349,6 +344,10 @@ async function run() {
           id,
           { timeout: 8000 },
         )
+      }
+      await clickNav('[data-nav="prices"]', 'arak')
+      for (const id of ['megoldas', 'munkaim', 'rolam', 'kapcsolat']) {
+        await clickNav(`[data-nav-link="${id}"]`, id)
       }
     })
 

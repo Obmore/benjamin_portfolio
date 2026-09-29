@@ -48,6 +48,7 @@
     scroll-behavior: smooth;
     color-scheme: light;
     background-color: #fafaf7;
+    overflow-x: clip;
   }
 
   html.dark {
@@ -66,6 +67,7 @@
 
   body {
     @apply bg-background font-sans text-foreground antialiased;
+    overflow-x: clip;
   }
 
   ::selection {
@@ -1854,6 +1856,7 @@
   .problem-desk {
     display: grid;
     gap: 1.15rem;
+    overflow-x: clip;
   }
 
   .problem-card {
@@ -1898,10 +1901,11 @@
       column-gap: 3.5rem;
       row-gap: 2.8rem;
       align-items: start;
+      padding-inline: 0.35rem;
     }
 
     .problem-card {
-      width: min(100%, 24rem);
+      width: min(100%, 22.5rem);
     }
 
     .problem-card:nth-child(1) {

@@ -108,21 +108,17 @@ export function QuoteRequestForm({ demoOnly = false }: { demoOnly?: boolean }) {
       const current = valuesRef.current
       if (current.name.trim() || current.company.trim() || current.email.trim()) return
       const material = copy.materials.find((item) => item.value === 'fa')?.value || copy.materials[0]?.value || ''
-      const steps: Array<[QuoteFormField, QuoteFormValues[QuoteFormField]]> = [
-        ['name', copy.sampleName],
-        ['company', copy.sampleCompany],
-        ['email', copy.sampleEmail],
-        ['phone', copy.samplePhone],
-        ['material', material],
-        ['quantity', copy.sampleQuantity],
-        ['notes', copy.sampleNotes],
-      ]
-      for (const [key, value] of steps) {
-        if (valuesRef.current[key]) continue
-        setField(key, value)
-        await wait(260)
-      }
-      if (!valuesRef.current.consent) setField('consent', true)
+      setValues({
+        ...EMPTY_QUOTE_FORM,
+        name: copy.sampleName,
+        company: copy.sampleCompany,
+        email: copy.sampleEmail,
+        phone: copy.samplePhone,
+        material,
+        quantity: copy.sampleQuantity,
+        notes: copy.sampleNotes,
+        consent: true,
+      })
     }
 
     const trigger = ScrollTrigger.create({
