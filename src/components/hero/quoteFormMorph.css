@@ -1,381 +1,120 @@
-.morph-stage {
+.paper-stage {
   container-type: inline-size;
-  container-name: morph;
   position: relative;
-  aspect-ratio: 16 / 11;
-  max-height: 188px;
   width: 100%;
-  overflow: hidden;
-  border-radius: 6px;
-  background: var(--color-surface);
+  aspect-ratio: 4 / 3;
+  max-height: 220px;
 }
 
 @media (min-width: 768px) {
-  .morph-stage {
-    aspect-ratio: 4 / 3;
+  .paper-stage {
     max-height: none;
+    min-height: 320px;
   }
 }
 
-.morph-frame {
+.paper-sheet {
   position: absolute;
-  inset: 0;
+  inset: 8%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1rem 1.05rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--color-line) 28%, transparent);
+  background: var(--color-surface);
+  box-shadow: 6px 10px 0 color-mix(in srgb, var(--color-line) 10%, transparent);
+  transform: rotate(-3.2deg);
+  transform-origin: 50% 60%;
 }
 
-.morph-border {
-  position: absolute;
-  inset: 6px;
-  fill: none;
-  stroke: var(--motion-ink);
-  stroke-width: var(--motion-stroke);
-  vector-effect: non-scaling-stroke;
-  stroke-dasharray: 720;
-  stroke-dashoffset: 0;
-}
-
-.morph-grid-line {
-  stroke: var(--motion-ink);
-  stroke-opacity: 0.28;
-  stroke-width: var(--motion-stroke);
-  vector-effect: non-scaling-stroke;
-  stroke-dasharray: 200;
-  stroke-dashoffset: 0;
-}
-
-.morph-tab {
-  position: absolute;
-  top: 8px;
-  left: 12px;
-  border: 1px solid color-mix(in srgb, var(--color-line) 40%, transparent);
-  border-bottom: none;
-  border-radius: 4px 4px 0 0;
-  background: var(--color-background);
-  padding: 0.15rem 0.45rem;
+.paper-head {
+  margin: 0 0 0.15rem;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--color-line);
 }
 
-.morph-sheet,
-.morph-form {
-  position: absolute;
-  inset: 28px 10px 10px;
-}
-
-.morph-sheet {
-  opacity: 1;
-}
-
-.morph-form {
-  opacity: 0;
-}
-
-.morph-sheet-grid {
+.paper-row {
   display: grid;
-  height: 100%;
-  grid-template-columns: 1.1rem repeat(6, minmax(0, 1fr));
-  grid-template-rows: 1.1rem repeat(4, minmax(0, 1fr));
-  border: 1px solid color-mix(in srgb, var(--color-line) 30%, transparent);
+  grid-template-columns: 6.2rem minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: end;
+  min-height: 2rem;
+  padding: 0.2rem 0.15rem 0.25rem;
+  border-bottom: 1px dashed color-mix(in srgb, var(--color-line) 35%, transparent);
 }
 
-.morph-cell {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  border-right: 1px solid color-mix(in srgb, var(--color-line) 18%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-line) 18%, transparent);
-  padding: 0 0.2rem;
-  font-size: 0.58rem;
-  line-height: 1.15;
+.paper-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--color-line);
+}
+
+.paper-value {
+  font-family: "Caveat", ui-serif, cursive;
+  font-size: 1.25rem;
+  line-height: 1;
   color: var(--color-foreground);
 }
 
-.morph-cell.head {
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
-  color: var(--color-line);
-}
-
-.morph-cell.axis {
-  justify-content: center;
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  color: var(--color-muted);
-  background: var(--color-background);
-}
-
-.morph-bar {
-  display: block;
-  height: 0.35rem;
-  width: 78%;
-  border-radius: 1px;
-  background: color-mix(in srgb, var(--color-line) 18%, transparent);
-}
-
-.morph-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.45rem 0.6rem;
-  height: 100%;
-}
-
-.morph-field {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.morph-field-label {
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
-  color: var(--color-line);
-}
-
-.morph-field-box {
-  height: 1.15rem;
-  border: 1px solid color-mix(in srgb, var(--color-line) 45%, transparent);
-  border-radius: 3px;
-}
-
-.morph-file,
-.morph-actions {
-  grid-column: 1 / -1;
-}
-
-.morph-file-box {
-  display: flex;
-  min-height: 1.4rem;
-  align-items: center;
-  border: 1px dashed color-mix(in srgb, var(--color-line) 45%, transparent);
-  border-radius: 3px;
-  padding: 0.15rem 0.35rem;
-  font-size: 0.5rem;
-  color: var(--color-muted);
-}
-
-.morph-submit {
+.paper-submit {
   display: inline-flex;
-  min-height: 1.4rem;
+  align-self: flex-start;
+  min-height: 2rem;
   align-items: center;
-  justify-content: center;
+  margin-top: 0.35rem;
   border-radius: 4px;
   background: var(--motion-cta);
-  padding: 0 0.6rem;
-  font-size: 0.58rem;
+  padding: 0 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
   color: #fff;
 }
 
-.morph-note {
-  font-size: 0.5rem;
-  line-height: 1.25;
-  color: var(--color-muted);
-}
-
-.morph-scan {
-  pointer-events: none;
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  top: 28px;
-  height: 2px;
-  background: var(--color-line);
-  opacity: 0;
-  transform: translateY(0);
-}
-
-.morph-check {
-  width: 0.85rem;
-  height: 0.85rem;
-  opacity: 0;
-}
-
-.morph-check path {
-  fill: none;
-  stroke: #fff;
-  stroke-width: 2;
-  stroke-dasharray: 24;
-  stroke-dashoffset: 24;
-}
-
-.morph-static {
-  display: grid;
-  height: 100%;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 0.4rem;
-  padding: 0.7rem 0.55rem 0.5rem;
-  align-items: stretch;
-}
-
-.morph-static-pane {
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--color-line) 30%, transparent);
-  border-radius: 4px;
-  padding: 0.3rem;
-}
-
-.morph-static-arrow {
-  align-self: center;
-  color: var(--color-line);
-}
-
-@container morph (max-width: 420px) {
-  .morph-optional {
-    display: none;
-  }
-
-  .morph-sheet-grid {
-    grid-template-columns: 1.1rem repeat(4, minmax(0, 1fr));
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .morph-stage.is-playing .morph-border {
-    animation: morph-draw var(--motion-medium) var(--motion-ease) both;
-  }
-
-  .morph-stage.is-playing .morph-grid-line {
-    animation: morph-draw var(--motion-medium) var(--motion-ease) both;
-  }
-
-  .morph-stage.is-playing .morph-scan {
-    animation: morph-scan var(--motion-short) var(--motion-medium) var(--motion-ease) both;
-  }
-
-  .morph-stage.is-playing .morph-sheet {
-    animation: morph-sheet-out var(--motion-medium) var(--motion-medium) var(--motion-ease) both;
-  }
-
-  .morph-stage.is-playing .morph-form {
-    animation: morph-form-in var(--motion-medium) calc(var(--motion-medium) * 2) var(--motion-ease) both;
-  }
-
-  .morph-stage.is-playing .morph-field-box,
-  .morph-stage.is-playing .morph-file-box {
-    animation: morph-box var(--motion-medium) var(--motion-long) var(--motion-ease) both;
-  }
-
-  .morph-stage.is-playing .morph-check {
-    animation: morph-fade var(--motion-short) calc(var(--motion-hero) - var(--motion-medium)) var(--motion-ease) both;
-  }
-
-  .morph-stage.is-playing .morph-check path {
-    animation: morph-check var(--motion-short) calc(var(--motion-hero) - var(--motion-medium)) var(--motion-ease) both;
-  }
-
-}
-
-.morph-stage.is-playing {
-  will-change: transform, opacity;
-}
-
-.morph-stage.is-done {
-  will-change: auto;
-}
-
-.morph-stage.is-done .morph-form,
-.morph-stage.is-playing.is-done .morph-form {
-  opacity: 1 !important;
+html.is-static-motion .paper-sheet {
   transform: none;
-  animation: none !important;
+  box-shadow: none;
 }
 
-.morph-stage.is-done .morph-sheet {
-  opacity: 0 !important;
-  animation: none !important;
+html.is-static-motion .paper-row {
+  border: 1px solid color-mix(in srgb, var(--color-line) 40%, transparent);
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
 }
 
-.morph-stage.is-done .morph-grid-line,
-.morph-stage.is-done .morph-scan {
-  opacity: 0 !important;
-  animation: none !important;
-}
-
-@keyframes morph-draw {
-  from {
-    stroke-dashoffset: 720;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes morph-scan {
-  from {
-    opacity: 0.9;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(18cqi);
-  }
-}
-
-@keyframes morph-sheet-out {
-  to {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-}
-
-@keyframes morph-form-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes morph-box {
-  from {
-    opacity: 0.4;
-    transform: scaleX(0.92);
-    transform-origin: left;
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes morph-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes morph-check {
-  from {
-    stroke-dashoffset: 24;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@media (max-width: 640px) {
-  .morph-optional {
-    display: none;
-  }
-
-  .morph-note {
-    display: none;
-  }
-
-  .morph-form-grid {
-    gap: 0.3rem 0.45rem;
-  }
+html.is-static-motion .paper-value {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .morph-stage,
-  .morph-stage * {
-    animation: none !important;
+  .paper-sheet {
+    transform: none;
+    box-shadow: none;
   }
+
+  .paper-row {
+    border: 1px solid color-mix(in srgb, var(--color-line) 40%, transparent);
+    border-radius: 4px;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .paper-value {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+  }
+}
+
+.paper-row.is-field {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+}
+
+.paper-value.is-typed {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
 }

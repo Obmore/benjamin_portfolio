@@ -11,6 +11,8 @@
   --motion-hero: 2500ms;
 }
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -27,11 +29,39 @@
   --color-cyan: #1f5fad;
 }
 
+.dark {
+  --color-background: #0e1620;
+  --color-foreground: #e8eef4;
+  --color-muted: #9aa8b5;
+  --color-surface: #141c26;
+  --color-border: #243044;
+  --color-accent: #6ea8e0;
+  --color-line: #6ea8e0;
+  --color-price: #f3efe8;
+  --color-cyan: #6ea8e0;
+  --motion-ink: #6ea8e0;
+  color-scheme: dark;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
     color-scheme: light;
     background-color: #fafaf7;
+  }
+
+  html.dark {
+    color-scheme: dark;
+    background-color: #0e1620;
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  html.lenis-smooth {
+    scroll-behavior: auto !important;
   }
 
   body {
@@ -1319,6 +1349,109 @@
     .signal-finale.is-lit [data-cta='assess'] {
       animation: finale-pulse var(--motion-medium) var(--motion-ease) 1;
     }
+  }
+
+  .hero-line {
+    display: block;
+    overflow: hidden;
+  }
+
+  .hero-line-inner {
+    display: block;
+  }
+
+  .marquee {
+    overflow: hidden;
+    border-block: 1px solid color-mix(in srgb, var(--color-line) 18%, transparent);
+    padding: 0.7rem 0;
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    gap: 2.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-line);
+  }
+
+  .marquee-item {
+    white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html:not(.is-static-motion) .marquee-track:not(.is-static) {
+      animation: marquee-run 28s linear infinite;
+    }
+  }
+
+  @keyframes marquee-run {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .contact-finale {
+    min-height: 5.5rem;
+  }
+
+  .envelope {
+    width: 4.5rem;
+    height: 2.8rem;
+    position: relative;
+    transform-style: preserve-3d;
+  }
+
+  .envelope-body,
+  .envelope-flap {
+    position: absolute;
+    inset: 0;
+    border: 1px solid color-mix(in srgb, var(--color-line) 40%, transparent);
+    background: var(--color-surface);
+  }
+
+  .envelope-flap {
+    clip-path: polygon(0 0, 50% 55%, 100% 0);
+    background: color-mix(in srgb, var(--color-line) 10%, var(--color-surface));
+  }
+
+  .explode-stage {
+    --sep: 8px;
+    --rx: 0deg;
+    --rz: 0deg;
+    perspective: 900px;
+  }
+
+  .explode-layer-0 {
+    transform: translate3d(calc(var(--sep) * -1), calc(var(--sep) * 0.35), 0)
+      rotateX(var(--rx)) rotateZ(var(--rz));
+  }
+
+  .explode-layer-1 {
+    transform: rotateX(var(--rx));
+  }
+
+  .explode-layer-2 {
+    transform: translate3d(var(--sep), calc(var(--sep) * -0.35), 0)
+      rotateX(var(--rx)) rotateZ(calc(var(--rz) * -1));
+  }
+
+  html.is-static-motion .explode-layer-0 {
+    transform: translate(-8px, 6px);
+  }
+
+  html.is-static-motion .explode-layer-2 {
+    transform: translate(8px, -6px);
+  }
+
+  html.is-motion .explode-layer-0,
+  html.is-motion .explode-layer-2 {
+    animation: none;
   }
 
   @keyframes finale-pulse {

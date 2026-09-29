@@ -1,4 +1,6 @@
-import type { CSSProperties } from 'react'
+import { useLayoutEffect, useRef, type CSSProperties } from 'react'
+import { gsap } from 'gsap'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 const LAYERS = ['structure', 'content', 'finished'] as const
 
@@ -17,9 +19,36 @@ export function ExplodedShot({
   href?: string
   labels: { structure: string; content: string; finished: string }
 }) {
+  const reduced = usePrefersReducedMotion()
+  const stageRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const stage = stageRef.current
+    if (!stage || reduced) return
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        stage,
+        { '--sep': '0px', '--rx': '0deg', '--rz': '0deg' },
+        {
+          '--sep': '22px',
+          '--rx': '12deg',
+          '--rz': '-6deg',
+          ease: 'none',
+          scrollTrigger: {
+            trigger: stage,
+            start: 'top 75%',
+            end: 'bottom 35%',
+            scrub: true,
+          },
+        },
+      )
+    }, stage)
+    return () => ctx.revert()
+  }, [reduced])
+
   const picture = (
     <div className="explode-wrap">
-      <div className="explode-stage">
+      <div ref={stageRef} className="explode-stage">
         {LAYERS.map((key, index) => (
           <figure
             key={key}

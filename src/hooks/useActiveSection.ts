@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { engineScrollTo } from '@/lib/motionEngine'
 
 export function useActiveSection(sectionIds: string[]) {
   const [activeId, setActiveId] = useState(sectionIds[0] ?? '')
@@ -36,6 +37,8 @@ export function useActiveSection(sectionIds: string[]) {
 export function scrollToSection(id: string) {
   const element = document.getElementById(id)
   if (!element) return
+
+  if (engineScrollTo(id)) return
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const apply = () => {

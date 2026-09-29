@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { mkdirSync, copyFileSync, existsSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, renameSync } from 'node:fs'
 import { join } from 'node:path'
 import { chromium } from 'playwright'
 
@@ -54,54 +54,122 @@ async function waitForServer(url) {
   throw new Error(`Preview did not start at ${url}`)
 }
 
-async function shot(page, width, height, fullPage, reduced, destName, scrollTo = 0) {
-  await page.setViewportSize({ width, height })
-  if (reduced) {
-    await page.emulateMedia({ reducedMotion: 'reduce' })
-  } else {
-    await page.emulateMedia({ reducedMotion: 'no-preference' })
-  }
+async function prepare(page) {
   await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 30000 })
   await page.waitForSelector('h1')
   await Promise.race([
     page.evaluate(() => document.fonts.ready),
     page.waitForTimeout(3000),
   ])
-  if (reduced) {
-    await page.waitForSelector('.compare-stage', { timeout: 4000 }).catch(() => null)
-  } else {
-    await page.waitForSelector('.morph-stage.is-done', { timeout: 6000 }).catch(() => page.waitForTimeout(3500))
-  }
-  let y = 0
-  if (typeof scrollTo === 'string') {
-    y = await page.evaluate((sel) => {
-      const el = document.querySelector(sel)
-      if (!el) return 0
-      return Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - 72))
-    }, scrollTo)
-  } else {
-    y = scrollTo
-  }
-  await page.evaluate((nextY) => window.scrollTo(0, nextY), y)
-  if (y) await page.waitForTimeout(180)
+}
+
+async function saveShot(page, destName, fullPage = false) {
   mkdirSync(DOCS, { recursive: true })
   mkdirSync(ARTIFACTS, { recursive: true })
   const docsPath = join(DOCS, destName)
-  await page.screenshot({ path: docsPath, fullPage, animations: reduced ? 'disabled' : 'allow' })
+  await page.screenshot({ path: docsPath, fullPage, animations: 'allow' })
   copyFileSync(docsPath, join(ARTIFACTS, destName))
   console.log(`wrote ${docsPath}`)
 }
 
+async function scrollToSel(page, sel) {
+  const y = await page.evaluate((selector) => {
+    const el = document.querySelector(selector)
+    if (!el) return 0
+    return Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - 72))
+  }, sel)
+  await page.evaluate((nextY) => window.scrollTo(0, nextY), y)
+  await page.waitForTimeout(280)
+}
+
+async function shotSet(page, width, height) {
+  await page.setViewportSize({ width, height })
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await prepare(page)
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.waitForTimeout(200)
+  await saveShot(page, `hero_top_${width}x${height}.png`)
+  await page.evaluate(() => window.scrollTo(0, Math.round(window.innerHeight * 0.85)))
+  await page.waitForTimeout(350)
+  await saveShot(page, `hero_morph_${width}x${height}.png`)
+  await scrollToSel(page, '#problema')
+  await saveShot(page, `problem_${width}x${height}.png`)
+  await scrollToSel(page, '#megoldas')
+  await saveShot(page, `solution_${width}x${height}.png`)
+  await scrollToSel(page, '#ajanlatkero-minta')
+  await saveShot(page, `tryit_${width}x${height}.png`)
+  await scrollToSel(page, '#folyamat')
+  await saveShot(page, `process_${width}x${height}.png`)
+  await scrollToSel(page, '#munkaim')
+  await saveShot(page, `work_${width}x${height}.png`)
+  await scrollToSel(page, '#arak')
+  await saveShot(page, `prices_${width}x${height}.png`)
+  await scrollToSel(page, '#rolam')
+  await saveShot(page, `about_${width}x${height}.png`)
+  await scrollToSel(page, '#kapcsolat')
+  await saveShot(page, `contact_${width}x${height}.png`)
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await saveShot(page, `full_${width}.png`, true)
+}
+
+async function recordScroll(browser, width, height, destName) {
+  const context = await browser.newContext({
+    viewport: { width, height },
+    colorScheme: 'light',
+    locale: 'hu-HU',
+    reducedMotion: 'no-preference',
+    recordVideo: {
+      dir: ARTIFACTS,
+      size: { width, height },
+    },
+  })
+  await context.addInitScript(() => {
+    window.__MOTION_PROFILE__ = 'full'
+    localStorage.setItem('portfolio-locale', 'hu')
+    document.documentElement.classList.remove('dark')
+  })
+  const page = await context.newPage()
+  await prepare(page)
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.waitForTimeout(400)
+  const maxY = await page.evaluate(() =>
+    Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
+  )
+  const steps = 28
+  for (let i = 1; i <= steps; i += 1) {
+    await page.evaluate(
+      ({ next, total }) => window.scrollTo(0, Math.round((next / total) * maxY)),
+      { next: i, total: steps, maxY },
+    )
+    await page.waitForTimeout(220)
+  }
+  await page.waitForTimeout(500)
+  const video = page.video()
+  await page.close()
+  await context.close()
+  if (!video) return
+  const src = await video.path()
+  const dest = join(ARTIFACTS, destName)
+  try {
+    renameSync(src, dest)
+  } catch {
+    copyFileSync(src, dest)
+  }
+  console.log(`wrote ${dest}`)
+}
+
 async function run() {
   const killer = setTimeout(() => {
-    console.error('capture timed out after 150s')
+    console.error('capture timed out after 180s')
     process.exit(1)
-  }, 150000)
+  }, 180000)
 
   if (!existsSync('dist') && !process.env.BASE_URL) {
     console.error('dist/ missing. Run npm run build first.')
     process.exit(1)
   }
+  mkdirSync(DOCS, { recursive: true })
+  mkdirSync(ARTIFACTS, { recursive: true })
   const preview = startPreview()
   try {
     await waitForServer(BASE)
@@ -113,25 +181,29 @@ async function run() {
       locale: 'hu-HU',
     })
     await context.addInitScript(() => {
+      window.__MOTION_PROFILE__ = 'full'
       localStorage.setItem('portfolio-locale', 'hu')
       document.documentElement.classList.remove('dark')
     })
     const page = await context.newPage()
-    await shot(page, 1440, 900, true, false, 'full_1440.png')
-    await shot(page, 390, 844, true, false, 'full_390.png')
-    await shot(page, 390, 844, false, false, 'first_390x844.png')
-    await shot(page, 390, 844, true, true, 'full_390_reduced_motion.png')
-    await shot(page, 1440, 900, true, true, 'full_1440_reduced_motion.png')
-    await shot(page, 390, 844, false, false, 'mid_390_process.png', '.process-diagram')
-    await shot(page, 390, 844, false, false, 'mid_390_skills.png', '#kompetenciak')
-    await shot(page, 390, 844, false, false, 'mid_390_explode.png', '#munkaim')
-    await shot(page, 390, 844, false, false, 'mid_390_quote.png', '.mail-preview')
-    await shot(page, 390, 844, false, false, 'mid_390_finale.png', '.signal-finale')
-    await shot(page, 1440, 900, false, false, 'mid_1440_process.png', '.process-diagram')
-    await shot(page, 1440, 900, false, false, 'mid_1440_skills.png', '#kompetenciak')
-    await shot(page, 1440, 900, false, false, 'mid_1440_explode.png', '#munkaim')
-    await shot(page, 1440, 900, false, false, 'mid_1440_quote.png', '.mail-preview')
+    await shotSet(page, 1440, 900)
+    await shotSet(page, 390, 844)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await context.addInitScript(() => {
+      window.__MOTION_PROFILE__ = 'static'
+    })
+    await prepare(page)
+    await saveShot(page, 'full_390_reduced_motion.png', true)
+    await context.close()
+    await recordScroll(browser, 1440, 900, 'scroll_1440x900.webm')
+    await recordScroll(browser, 390, 844, 'scroll_390x844.webm')
     await browser.close()
+    for (const name of readdirSync(ARTIFACTS)) {
+      if (name.endsWith('.webm') || name.endsWith('.png')) {
+        console.log(`artifact ${join(ARTIFACTS, name)}`)
+      }
+    }
   } finally {
     stopPreview(preview)
   }

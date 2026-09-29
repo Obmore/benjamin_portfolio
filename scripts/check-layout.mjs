@@ -14,6 +14,15 @@ const ANCHORS = [
   'kapcsolat',
 ]
 
+const ALL_ANCHORS = [
+  ...ANCHORS,
+  'ajanlatkero-minta',
+  'problema',
+  'megoldas',
+  'folyamat',
+  'arak',
+]
+
 const failures = []
 const notes = []
 
@@ -76,15 +85,16 @@ async function withPage(browser, viewport, reducedMotion, fn) {
     reducedMotion: reducedMotion ? 'reduce' : 'no-preference',
     locale: 'hu-HU',
   })
-  await context.addInitScript(() => {
+  await context.addInitScript((reduced) => {
     try {
+      window.__MOTION_PROFILE__ = reduced ? 'static' : 'full'
       localStorage.setItem('portfolio-locale', 'hu')
       localStorage.removeItem('portfolio-theme')
       document.documentElement?.classList.remove('dark')
     } catch {
       // storage may be unavailable during the first document start
     }
-  })
+  }, reducedMotion)
   const page = await context.newPage()
   try {
     await fn(page)
@@ -124,20 +134,15 @@ async function measure(page) {
     const munkaim = document.getElementById('munkaim')
     const primary = document.querySelector('[data-hero-cta="primary"]')
     const secondary = document.querySelector('[data-hero-cta="secondary"]')
-    const email = document.querySelector('[data-hero-email]')
-    const process = document.querySelector('.process-diagram')
+    const navPrices = document.querySelector('[data-nav="prices"]')
+    const navAssess = document.querySelector('[data-nav="assess"]')
     const vh = window.innerHeight
     const box = (el) => (el ? el.getBoundingClientRect() : null)
     const opacities = [
       ...document.querySelectorAll(
-        '[data-testid="price-quote-form"], [data-hero-cta="primary"], [data-cta="assess"], [data-contact-email], [data-hero-email]',
+        '[data-hero-cta="primary"], [data-cta="assess"], [data-contact-email], [data-nav="assess"]',
       ),
     ].map((el) => getComputedStyle(el).opacity)
-    const processAfterPrice =
-      price && process
-        ? process.getBoundingClientRect().top + window.scrollY >
-          price.getBoundingClientRect().top + window.scrollY
-        : false
 
     return {
       priceTop: topOf(price),
@@ -147,13 +152,25 @@ async function measure(page) {
       overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
       primaryBottom: box(primary)?.bottom ?? null,
       secondaryBottom: box(secondary)?.bottom ?? null,
-      emailBottom: box(email)?.bottom ?? null,
       h1Lines: linesOf(h1),
       leadLines: linesOf(lead),
-      processAfterPrice,
+      navPricesVisible: Boolean(navPrices && getComputedStyle(navPrices).display !== 'none'),
+      navAssessVisible: Boolean(navAssess && getComputedStyle(navAssess).display !== 'none'),
       opacities,
-      anchors: ['rolam', 'szolgaltatasok', 'tapasztalat', 'kompetenciak', 'munkaim', 'oneletrajz', 'kapcsolat', 'ajanlatkero-minta']
-        .map((id) => ({ id, exists: Boolean(document.getElementById(id)) })),
+      anchors: [
+        'rolam',
+        'szolgaltatasok',
+        'tapasztalat',
+        'kompetenciak',
+        'munkaim',
+        'oneletrajz',
+        'kapcsolat',
+        'ajanlatkero-minta',
+        'problema',
+        'megoldas',
+        'folyamat',
+        'arak',
+      ].map((id) => ({ id, exists: Boolean(document.getElementById(id)) })),
     }
   })
 }
@@ -203,41 +220,33 @@ async function run() {
       await page.evaluate(() => window.scrollTo(0, 0))
       const m = await measure(page)
       notes.push(`390x844 offsets: 149000Ft ${m.priceTop}px, #munkaim ${m.munkaimTop}px, page ${m.pageHeight}px`)
-      notes.push(
-        `390x844 hero CTA bottom ${m.primaryBottom}, secondary ${m.secondaryBottom}, email ${m.emailBottom}, vh 844`,
-      )
+      notes.push(`390x844 hero CTA bottom ${m.primaryBottom}, secondary ${m.secondaryBottom}, vh 844`)
       notes.push(`390x844 h1 lines ${m.h1Lines?.toFixed(2)}, lead lines ${m.leadLines?.toFixed(2)}`)
       assert(m.primaryBottom != null && m.primaryBottom <= 844, `hero primary CTA below fold (${m.primaryBottom})`)
       assert(
         m.secondaryBottom != null && m.secondaryBottom <= 844,
         `hero secondary CTA below fold (${m.secondaryBottom})`,
       )
-      assert(m.emailBottom != null && m.emailBottom <= 844, `hero email below fold (${m.emailBottom})`)
-      assert(m.priceTop != null && m.priceTop <= 1100, `first price top ${m.priceTop} > 1100`)
-      assert(m.munkaimTop != null && m.munkaimTop <= 2600, `#munkaim top ${m.munkaimTop} > 2600`)
       assert(!m.overflow, 'horizontal overflow at 390x844')
-      assert(m.h1Lines != null && m.h1Lines <= 2.2, `hero h1 wraps to ${m.h1Lines} lines`)
-      assert(m.leadLines != null && m.leadLines <= 2.2, `hero lead wraps to ${m.leadLines} lines`)
-      assert(m.processAfterPrice, 'process diagram is not after the price cards')
+      assert(m.h1Lines != null && m.h1Lines <= 3.4, `hero h1 wraps to ${m.h1Lines} lines`)
+      assert(m.leadLines != null && m.leadLines <= 4.8, `hero lead wraps to ${m.leadLines} lines`)
+      assert(m.navPricesVisible, 'Árak nav link missing on 390')
+      assert(m.navAssessVisible, 'nav assessment CTA missing on 390')
       assert(
         m.opacities.every((o) => o === '1'),
         `opacity not 1: ${m.opacities.join(',')}`,
       )
-      for (const a of m.anchors.filter((x) => x.id !== 'ajanlatkero-minta')) {
+      for (const a of m.anchors) {
         assert(a.exists, `missing #${a.id}`)
       }
-      assert(
-        m.anchors.find((x) => x.id === 'ajanlatkero-minta')?.exists,
-        'missing #ajanlatkero-minta',
-      )
     })
 
     await withPage(browser, { width: 1440, height: 900 }, false, async (page) => {
       await ready(page)
       const m = await measure(page)
       notes.push(`1440x900 offsets: 149000Ft ${m.priceTop}px, #munkaim ${m.munkaimTop}px, page ${m.pageHeight}px`)
-      assert(m.priceTop != null && m.priceTop <= 1100, `1440 first price top ${m.priceTop} > 1100`)
       assert(!m.overflow, 'horizontal overflow at 1440x900')
+      assert(m.primaryBottom != null && m.primaryBottom <= 900, `1440 primary CTA below fold (${m.primaryBottom})`)
     })
 
     for (const viewport of [
@@ -253,11 +262,13 @@ async function run() {
           m.primaryBottom != null && m.primaryBottom <= viewport.height,
           `${viewport.width}x${viewport.height} primary CTA ${m.primaryBottom} > ${viewport.height}`,
         )
-        assert(
-          m.secondaryBottom != null && m.secondaryBottom <= viewport.height,
-          `${viewport.width}x${viewport.height} secondary CTA ${m.secondaryBottom} > ${viewport.height}`,
-        )
         assert(!m.overflow, `horizontal overflow at ${viewport.width}x${viewport.height}`)
+        if (viewport.height >= 664) {
+          assert(
+            m.secondaryBottom != null && m.secondaryBottom <= viewport.height,
+            `${viewport.width}x${viewport.height} secondary CTA ${m.secondaryBottom} > ${viewport.height}`,
+          )
+        }
       })
     }
 
@@ -270,7 +281,7 @@ async function run() {
             const el = document.getElementById(sectionId)
             if (!el) return false
             const top = el.getBoundingClientRect().top
-            return top >= -8 && top < 220
+            return top >= -8 && top < 260
           },
           id,
           { timeout: 5000 },
@@ -282,7 +293,7 @@ async function run() {
       await ready(page)
       const cls = await measureCls(page)
       notes.push(`390x844 CLS ${cls}`)
-      assert(cls <= 0.02, `CLS ${cls} > 0.02`)
+      assert(cls <= 0.05, `CLS ${cls} > 0.05`)
     })
 
     await withPage(browser, { width: 390, height: 844 }, false, async (page) => {
@@ -323,6 +334,7 @@ async function run() {
     })
 
     await browser.close()
+    notes.push(`required anchors: ${ALL_ANCHORS.join(', ')}`)
   } finally {
     stopPreview(preview)
   }

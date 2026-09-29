@@ -1,32 +1,51 @@
+import { useLayoutEffect, useRef } from 'react'
+import { gsap } from 'gsap'
 import { useI18n } from '@/context/I18nContext'
-import { Button } from '@/components/ui/Button'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
-import { PencilUnderline } from '@/components/visuals/PencilUnderline'
-import { ProcessDiagram } from '@/components/visuals/ProcessDiagram'
-import {
-  EMAIL,
-  QUOTE_FORM_PACKAGE_PRICE,
-  SECTION_IDS,
-  SECTION_NUMBERS,
-} from '@/lib/constants'
+import { QUOTE_FORM_PACKAGE_PRICE, SECTION_IDS, SECTION_NUMBERS } from '@/lib/constants'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import type { ServicePackage } from '@/data/types'
 
 export function Services() {
   const { content } = useI18n()
   const services = content.services
-  const [before, highlight, after] = splitHighlighted(services.problem, services.problemHighlight)
+  const reduced = usePrefersReducedMotion()
+  const gridRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const grid = gridRef.current
+    if (!grid || reduced) return
+    const cards = grid.querySelectorAll<HTMLElement>('[data-price-card]')
+    const ctx = gsap.context(() => {
+      gsap.from(cards, {
+        y: 28,
+        stagger: 0.12,
+        duration: 0.55,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: grid,
+          start: 'top 80%',
+          once: true,
+        },
+      })
+    }, grid)
+    return () => ctx.revert()
+  }, [reduced, services.packages])
 
   return (
     <SectionWrapper id={SECTION_IDS.services} className="py-5 md:py-14">
-      <SectionHeading
-        number={SECTION_NUMBERS.services}
-        title={services.sectionTitle}
-        label={content.nav.services}
-        compact
-      />
+      <div id={SECTION_IDS.prices} className="scroll-mt-16">
+        <SectionHeading
+          number={SECTION_NUMBERS.services}
+          title={content.prices.title}
+          label={content.nav.prices}
+          compact
+          subtitle={content.prices.lead}
+        />
+      </div>
 
-      <div className="grid gap-2.5 lg:grid-cols-3 lg:gap-5">
+      <div ref={gridRef} className="grid gap-2.5 lg:grid-cols-3 lg:gap-5">
         {services.packages.map((pkg) => (
           <PriceCard
             key={pkg.id}
@@ -37,24 +56,6 @@ export function Services() {
             priceSetSuffix={services.priceSetSuffix}
           />
         ))}
-      </div>
-
-      <p className="mt-3 max-w-3xl text-[13px] leading-snug text-muted md:mt-5 md:text-sm md:leading-relaxed">
-        {before}
-        {highlight ? <PencilUnderline>{highlight}</PencilUnderline> : null}
-        {after}
-      </p>
-
-      <ProcessDiagram />
-
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 md:mt-5">
-        <Button data-cta="assess" href={`#${SECTION_IDS.contact}`}>
-          {services.cta.title}
-        </Button>
-        <p className="text-sm text-foreground">
-          <span className="font-mono text-xs text-line">{content.common.emailLabel}</span>{' '}
-          <span className="break-all">{EMAIL}</span>
-        </p>
       </div>
     </SectionWrapper>
   )
@@ -81,6 +82,7 @@ function PriceCard({
 
   return (
     <article
+      data-price-card
       className={`price-card relative flex h-full flex-col rounded-[6px] border bg-surface p-2.5 md:p-3.5 ${
         pkg.featured ? 'border-line/60' : 'border-line/25'
       }`}
@@ -148,12 +150,6 @@ function PriceCard({
   )
 }
 
-function splitHighlighted(text: string, highlight: string): [string, string, string] {
-  const index = text.indexOf(highlight)
-  if (index === -1) return [text, '', '']
-  return [text.slice(0, index), highlight, text.slice(index + highlight.length)]
-}
-
 function splitPrice(pkg: ServicePackage, emptyPrice: string, priceSetSuffix: string) {
   if (pkg.priceFromConfig) {
     const value = QUOTE_FORM_PACKAGE_PRICE.trim()
@@ -162,7 +158,7 @@ function splitPrice(pkg: ServicePackage, emptyPrice: string, priceSetSuffix: str
   }
 
   const match = pkg.price.match(/^(.*?)(?:\s+)(egyszeri|one-time)$/i)
-  if (match?.[1] && match[2]) {
+  if (match?.[1] && match?.[2]) {
     return { amount: match[1], note: match[2] }
   }
 

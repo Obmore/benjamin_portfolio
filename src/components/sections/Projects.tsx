@@ -19,6 +19,7 @@ export function Projects() {
         number={SECTION_NUMBERS.projects}
         title={content.projects.title}
         label={content.nav.projects}
+        subtitle={content.projects.lead}
       />
       <div className="space-y-6">
         {featured ? (

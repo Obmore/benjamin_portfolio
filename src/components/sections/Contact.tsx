@@ -1,15 +1,17 @@
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { gsap } from 'gsap'
 import { useI18n } from '@/context/I18nContext'
 import { Button } from '@/components/ui/Button'
-import { Reveal } from '@/components/ui/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
-import { FinaleSwitch } from '@/components/visuals/SignalRail'
 import { EMAIL, LINKEDIN_URL, SECTION_IDS, SECTION_NUMBERS } from '@/lib/constants'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 export function Contact() {
   const { content } = useI18n()
   const [copied, setCopied] = useState(false)
+  const reduced = usePrefersReducedMotion()
+  const finaleRef = useRef<HTMLDivElement>(null)
 
   const copyEmail = async () => {
     try {
@@ -21,6 +23,26 @@ export function Contact() {
     }
   }
 
+  useLayoutEffect(() => {
+    const finale = finaleRef.current
+    if (!finale || reduced) return
+    const sheet = finale.querySelector<HTMLElement>('[data-envelope]')
+    const message = finale.querySelector<HTMLElement>('[data-finale-msg]')
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: finale,
+          start: 'top 85%',
+          end: 'top 30%',
+          scrub: true,
+        },
+      })
+      tl.fromTo(sheet, { rotateX: 0, y: 0, autoAlpha: 1 }, { rotateX: 75, y: -40, autoAlpha: 0.15, ease: 'none' })
+      tl.fromTo(message, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, ease: 'none' }, 0.45)
+    }, finale)
+    return () => ctx.revert()
+  }, [reduced])
+
   return (
     <SectionWrapper id={SECTION_IDS.contact}>
       <SectionHeading
@@ -28,68 +50,48 @@ export function Contact() {
         title={content.contact.title}
         label={content.nav.contact}
       />
-      <Reveal>
-        <p className="mb-6 max-w-2xl text-muted leading-relaxed">{content.contact.text}</p>
-      </Reveal>
-      <FinaleSwitch>
+      <p className="mb-6 max-w-2xl text-muted leading-relaxed">{content.contact.text}</p>
+      <div className="signal-finale">
         <Button
           data-cta="assess"
           href={`mailto:${EMAIL}?subject=${encodeURIComponent(content.contact.mailSubject)}`}
         >
-          {content.services.cta.title}
+          {content.hero.ctaAssess}
         </Button>
-        <p className="text-sm text-foreground">
-          <span className="font-mono text-xs text-line">{content.common.emailLabel}</span>{' '}
-          <span className="break-all">{EMAIL}</span>
+      </div>
+      <div className="mt-6">
+        <p className="text-sm text-muted">{content.contact.orWrite}</p>
+        <p
+          id="kapcsolat-email"
+          data-contact-email
+          className="mt-1 select-all break-all font-mono text-base text-foreground"
+        >
+          {EMAIL}
         </p>
-      </FinaleSwitch>
-      <div className="crop-marks mt-8 max-w-xl divide-y divide-line/20 rounded-[6px] border border-line/25 bg-surface">
-        <div className="grid gap-2 px-5 py-4 sm:grid-cols-[7rem_1fr] sm:items-start">
-          <p className="font-mono text-xs uppercase tracking-wider text-line">
-            {content.common.emailLabel}
-          </p>
-          <div>
-            <p
-              id="kapcsolat-email"
-              data-contact-email
-              className="select-all break-all font-mono text-base text-foreground"
-            >
-              {EMAIL}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => void copyEmail()}
-                aria-label={content.common.copyEmail}
-              >
-                {copied ? (
-                  <svg
-                    className="check-draw is-on h-4 w-4"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M5 12.5 L10 17.5 L19 7"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <rect x="8" y="8" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-                    <path d="M16 8V6.5A1.5 1.5 0 0 0 14.5 5h-9A1.5 1.5 0 0 0 4 6.5v9A1.5 1.5 0 0 0 5.5 17H8" stroke="currentColor" strokeWidth="1.5" />
-                  </svg>
-                )}
-                {copied ? content.common.emailCopied : content.common.copyEmail}
-              </Button>
-            </div>
-            <p className="sr-only" role="status">
-              {copied ? content.common.emailCopied : ''}
-            </p>
-          </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => void copyEmail()}
+            aria-label={content.common.copyEmail}
+          >
+            {copied ? content.common.emailCopied : content.common.copyEmail}
+          </Button>
         </div>
+        <p className="sr-only" role="status">
+          {copied ? content.common.emailCopied : ''}
+        </p>
+      </div>
+      <div ref={finaleRef} className="contact-finale mt-10">
+        <div className="envelope" data-envelope aria-hidden="true">
+          <span className="envelope-flap" />
+          <span className="envelope-body" />
+        </div>
+        <p data-finale-msg className="finale-copy mt-4 text-sm font-medium text-foreground">
+          {content.contact.finale}
+        </p>
+      </div>
+      <div className="crop-marks mt-8 max-w-xl divide-y divide-line/20 rounded-[6px] border border-line/25 bg-surface">
         <div className="grid gap-2 px-5 py-4 sm:grid-cols-[7rem_1fr]">
           <p className="font-mono text-xs uppercase tracking-wider text-line">
             {content.common.locationLabel}

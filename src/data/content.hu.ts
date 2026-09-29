@@ -14,13 +14,24 @@ export const contentHu: SiteContent = {
     projects: 'Munkáim',
     cv: 'Önéletrajz',
     contact: 'Kapcsolat',
+    howItWorks: 'Hogyan működik',
+    prices: 'Árak',
   },
   hero: {
-    headline: 'villamosmérnök és szoftverfejlesztő',
+    kicker: 'Ott Benjámin, villamosmérnök és szoftverfejlesztő',
+    headline: 'A jó megrendelés jól kitöltött lappal kezdődik.',
+    headlineLines: ['A jó megrendelés', 'jól kitöltött lappal kezdődik.'],
     subheadline:
-      'Python, teljes körű webfejlesztés, ipari kommunikáció, energetikai rendszerek, telekommunikációs K+F és műszaki projektmenedzsment egy kézben.',
-    offerHeadline: 'Az ügyfele kitölti, Ön egyben megkapja.',
-    offerLead: 'Webes ajánlatkérő és rendelőlap, minden adat egy helyre érkezik.',
+      'Webes ajánlatkérőt és rendelőlapot készítek, hogy az ügyfelei elsőre megadjanak mindent, amire Önnek szüksége van.',
+    ctaAssess: 'Kérjen felmérést',
+    ctaHow: 'Nézze meg, hogyan működik',
+    scrollHint: 'Görgessen tovább',
+    paperTitle: 'Rendelőlap',
+    paperRows: [
+      { label: 'Méret', value: '1200 × 800 mm' },
+      { label: 'Mennyiség', value: '12' },
+      { label: 'Megjegyzés', value: '1200 × 800 mm' },
+    ],
     pricesJump: 'Árak',
     sheetLabel: '1. lap',
     ctaContact: 'Kapcsolatfelvétel',
@@ -40,15 +51,47 @@ export const contentHu: SiteContent = {
       'Kutatás és fejlesztés',
     ],
     morphAria:
-      'Ábra: egy Excel-rendelőlap oszlopaiból webes ajánlatkérő űrlap mezői lesznek.',
+      'Ábra: egy kézzel kitöltött rendelőlap soraiból webes ajánlatkérő űrlap mezői lesznek.',
     morphFile: 'rendelolap.xlsx',
     compareBefore: 'Előtte',
     compareAfter: 'Utána',
-    compareAria: 'Excel-rendelőlap és webes ajánlatkérő összehasonlítása',
+    compareAria: 'Kézi rendelőlap és webes ajánlatkérő összehasonlítása',
   },
+  problem: {
+    title: 'Így érkezik ma egy ajánlatkérés',
+    cards: [
+      { text: 'Egy e-mailben, egy telefonon, egy harmadik a kapcsolati űrlapon.' },
+      { text: 'A méret kimaradt, ezért vissza kell kérdezni.', missingSize: true },
+      { text: 'A rendelőlapot kinyomtatják, kézzel kitöltik, visszaküldik.' },
+      { text: 'Az adatokat végül kézzel kell átírni.' },
+    ],
+  },
+  solution: {
+    title: 'Az ügyfele kitölti, Ön egyben megkapja.',
+    text: 'Az ügyfél a honlapján tölti ki a lapot, és a fontos mezők nem maradhatnak üresen. Ön egyetlen, rendezett levélben kapja meg, a választ pedig ugyanúgy Ön írja meg, mint eddig. Új rendszert nem kell megtanulnia.',
+  },
+  tryIt: {
+    title: 'Próbálja ki',
+    text: 'Töltse ki a mintát, és nézze meg, milyen levelet kapna belőle egy cég.',
+  },
+  process: {
+    title: 'Így dolgozom',
+    lead: 'Négy lépés az első beszélgetéstől az átadásig.',
+  },
+  prices: {
+    title: 'Árak',
+    lead: 'A csomagok ára előre ismert. Egyedi fejlesztésnél a felmérés után mondok árat.',
+  },
+  marquee: [
+    'Webes ajánlatkérő',
+    'Online rendelőlap',
+    'Bemutatkozó oldal',
+    'Egyedi webes megoldás',
+    'Üzemeltetés',
+  ],
   about: {
     title: 'Rólam',
-    text: 'Villamosmérnöki háttérrel rendelkező szoftverfejlesztő és műszaki projektmérnök vagyok. Olyan feladatok érdekelnek, ahol a mérnöki gondolkodás, a szoftverfejlesztés és a rendszerszintű problémamegoldás találkozik.\n\nDolgoztam webes és backend fejlesztéseken, Python-alapú mérnöki feladatokon, telekommunikációs K+F környezetben, valamint ipari és energetikai projektek műszaki koordinációján. Erősségem, hogy képes vagyok hidat képezni a fejlesztői, mérnöki és üzleti szereplők között.',
+    text: 'Villamosmérnök és szoftverfejlesztő vagyok. Ipari, energetikai és távközlési rendszereken dolgozom, emellett kisvállalkozásoknak készítek webes megoldásokat.',
     highlights: [
       {
         title: 'Mérnöki rendszerszemlélet',
@@ -179,7 +222,8 @@ export const contentHu: SiteContent = {
     ],
   },
   projects: {
-    title: 'Munkáim',
+    title: 'Munkáim rétegről rétegre',
+    lead: 'Görgessen, és nézze meg, hogyan lesz a vázlatból kész oldal.',
     sampleBadge: 'Minta',
     explode: {
       structure: 'Szerkezet',
@@ -208,7 +252,7 @@ export const contentHu: SiteContent = {
         subtitle: 'Bemutatkozó oldal',
         site: { label: 'lelkiter.hu', href: 'https://lelkiter.hu' },
         paragraphs: [
-          'Bemutatkozó oldal egy budapesti segítő szakembernek, aki családállítással, rajzvizsgálattal, álomfejtéssel, masszázzsal és homeopátiával foglalkozik. Magyarul és angolul olvasható, és külön oldalakon mutatja be a szakembert, a szolgáltatásokat és a blogbejegyzéseket. Mobilon is jól kezelhető, a látogató pedig e-mailben vagy telefonon közvetlenül felveheti a kapcsolatot.',
+          'Bemutatkozó oldal egy budapesti segítő szakembernek, aki családállítással, rajzvizsgálattal, álomfejtéssel, masszázzsal és homeopátiával foglalkozik. Magyarul és angolul olvasható, és külön oldalokon mutatja be a szakembert, a szolgáltatásokat és a blogbejegyzéseket. Mobilon is jól kezelhető, a látogató pedig e-mailben vagy telefonon közvetlenül felveheti a kapcsolatot.',
         ],
         tech: 'Technológia: React, Vite, Cloudflare. Tervezés és fejlesztés: Ott Benjámin.',
         image: 'work/lelkiter.webp',
@@ -255,8 +299,8 @@ export const contentHu: SiteContent = {
   },
   services: {
     title: 'Webes ajánlatkérő a letölthető Excel-rendelőlap helyett',
-    sectionTitle: 'Szolgáltatások és árak',
-    lead: 'Ha az ügyfelei ma letölthető Excel- vagy PDF-rendelőlapon, esetleg e-mailben kérnek ajánlatot, ezt egyszerű webes űrlapra cserélem az Ön honlapján.',
+    sectionTitle: 'Árak',
+    lead: 'A csomagok ára előre ismert. Egyedi fejlesztésnél a felmérés után mondok árat.',
     problem:
       'A kézi ajánlatkérés sok időt visz el. Az ügyfél letölti a táblázatot, kitölti és csatolja, a cég pedig kézzel viszi tovább, amit kapott. Webes űrlappal minden adat egyszerre és hiánytalanul érkezik meg.',
     problemHighlight: 'egyszerre és hiánytalanul',
@@ -340,8 +384,8 @@ export const contentHu: SiteContent = {
       },
     ],
     form: {
-      title: 'Ajánlatkérő minta',
-      intro: 'Próbálja ki. Így látnák az ügyfelei egy gyártó vagy szabászati cég honlapján.',
+      title: 'Próbálja ki',
+      intro: 'Töltse ki a mintát, és nézze meg, milyen levelet kapna belőle egy cég.',
       demoBanner:
         'Ez egy minta, az innen elküldött adatok nem jutnak el hozzám. Ajánlatot a Kapcsolat részben kérhet.',
       liveBanner: 'Ez minta. A kitöltött kérés e-mailben eljut hozzám.',
@@ -410,8 +454,10 @@ export const contentHu: SiteContent = {
     },
   },
   contact: {
-    title: 'Kapcsolat',
-    text: 'Ha webes ajánlatkérő űrlapra, bemutatkozó oldalra vagy egyedi webes megoldásra van szüksége, írjon nekem e-mailt. Röviden egyeztetünk, utána megírom, mit javaslok, és mit tartalmaz a munka. Ipari és energetikai szakmai megkeresésekre is szívesen válaszolok.',
+    title: 'Beszéljünk arról, mire van szüksége.',
+    text: 'Írja meg, most hogyan érkeznek Önhöz az ajánlatkérések, és javaslatot adok a legegyszerűbb megoldásra.',
+    orWrite: 'Vagy írjon ide:',
+    finale: 'Az ajánlatkérés megérkezett.',
     email: 'bendzsiott1998@gmail.com',
     location: 'Budapest',
     mailSubject: 'Felmérés kérése',
