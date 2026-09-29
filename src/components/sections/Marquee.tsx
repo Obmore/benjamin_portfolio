@@ -18,7 +18,7 @@ export function Marquee() {
     const skew = gsap.quickTo(track, 'skewX', { duration: 0.35, ease: 'power3.out' })
     const update = () => {
       const velocity = getLenis()?.velocity ?? ScrollTrigger.getAll()[0]?.getVelocity?.() ?? 0
-      const next = gsap.utils.clamp(-8, 8, velocity / 40)
+      const next = gsap.utils.clamp(-14, 14, velocity / 28)
       skew(next)
     }
 

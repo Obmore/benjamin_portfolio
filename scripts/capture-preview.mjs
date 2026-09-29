@@ -1,5 +1,5 @@
-import { spawn } from 'node:child_process'
-import { copyFileSync, existsSync, mkdirSync, readdirSync, renameSync } from 'node:fs'
+import { spawn, spawnSync } from 'node:child_process'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, renameSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { chromium } from 'playwright'
 
@@ -72,26 +72,35 @@ async function saveShot(page, destName, fullPage = false) {
   console.log(`wrote ${docsPath}`)
 }
 
+async function setScroll(page, y) {
+  await page.evaluate((nextY) => {
+    window.scrollTo(0, nextY)
+    document.documentElement.scrollTop = nextY
+    window.dispatchEvent(new Event('scroll'))
+  }, y)
+  await page.waitForTimeout(320)
+}
+
 async function scrollToSel(page, sel) {
   const y = await page.evaluate((selector) => {
     const el = document.querySelector(selector)
     if (!el) return 0
     return Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - 72))
   }, sel)
-  await page.evaluate((nextY) => window.scrollTo(0, nextY), y)
-  await page.waitForTimeout(280)
+  await setScroll(page, y)
 }
 
 async function shotSet(page, width, height) {
   await page.setViewportSize({ width, height })
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await prepare(page)
-  await page.evaluate(() => window.scrollTo(0, 0))
+  await setScroll(page, 0)
   await page.waitForTimeout(200)
   await saveShot(page, `hero_top_${width}x${height}.png`)
-  await page.evaluate(() => window.scrollTo(0, Math.round(window.innerHeight * 0.85)))
-  await page.waitForTimeout(350)
+  await setScroll(page, Math.round(height * 0.52))
   await saveShot(page, `hero_morph_${width}x${height}.png`)
+  await setScroll(page, Math.round(height * 1.05))
+  await saveShot(page, `hero_end_${width}x${height}.png`)
   await scrollToSel(page, '#problema')
   await saveShot(page, `problem_${width}x${height}.png`)
   await scrollToSel(page, '#megoldas')
@@ -108,8 +117,40 @@ async function shotSet(page, width, height) {
   await saveShot(page, `about_${width}x${height}.png`)
   await scrollToSel(page, '#kapcsolat')
   await saveShot(page, `contact_${width}x${height}.png`)
-  await page.evaluate(() => window.scrollTo(0, 0))
+  await setScroll(page, 0)
   await saveShot(page, `full_${width}.png`, true)
+}
+
+async function saveVideo(page, context, destName) {
+  const video = page.video()
+  await page.close()
+  await context.close()
+  if (!video) return null
+  const src = await video.path()
+  const dest = join(ARTIFACTS, destName)
+  try {
+    renameSync(src, dest)
+  } catch {
+    copyFileSync(src, dest)
+  }
+  console.log(`wrote ${dest}`)
+  return dest
+}
+
+function compressWebm(path) {
+  if (!existsSync(path)) return
+  const size = statSync(path).size
+  if (size < 12 * 1024 * 1024) return
+  const tmp = `${path}.tmp.webm`
+  const result = spawnSync(
+    'ffmpeg',
+    ['-y', '-i', path, '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '36', '-an', tmp],
+    { stdio: 'inherit' },
+  )
+  if (result.status === 0 && existsSync(tmp)) {
+    renameSync(tmp, path)
+    console.log(`compressed ${path}`)
+  }
 }
 
 async function recordScroll(browser, width, height, destName) {
@@ -135,34 +176,67 @@ async function recordScroll(browser, width, height, destName) {
   const maxY = await page.evaluate(() =>
     Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
   )
-  const steps = 28
+  const steps = 26
   for (let i = 1; i <= steps; i += 1) {
     await page.evaluate(
       ({ next, total, end }) => window.scrollTo(0, Math.round((next / total) * end)),
       { next: i, total: steps, end: maxY },
     )
-    await page.waitForTimeout(220)
+    await page.waitForTimeout(200)
   }
+  await page.waitForTimeout(400)
+  const dest = await saveVideo(page, context, destName)
+  if (dest) compressWebm(dest)
+}
+
+async function recordHeroStory(browser) {
+  const width = 1440
+  const height = 900
+  const context = await browser.newContext({
+    viewport: { width, height },
+    colorScheme: 'light',
+    locale: 'hu-HU',
+    reducedMotion: 'no-preference',
+    recordVideo: {
+      dir: ARTIFACTS,
+      size: { width, height },
+    },
+  })
+  await context.addInitScript(() => {
+    window.__MOTION_PROFILE__ = 'full'
+    localStorage.setItem('portfolio-locale', 'hu')
+    document.documentElement.classList.remove('dark')
+  })
+  const page = await context.newPage()
+  await prepare(page)
+  await page.evaluate(() => window.scrollTo(0, 0))
   await page.waitForTimeout(500)
-  const video = page.video()
-  await page.close()
-  await context.close()
-  if (!video) return
-  const src = await video.path()
-  const dest = join(ARTIFACTS, destName)
-  try {
-    renameSync(src, dest)
-  } catch {
-    copyFileSync(src, dest)
+  const end = Math.round(height * 1.12)
+  const steps = 22
+  for (let i = 1; i <= steps; i += 1) {
+    await page.evaluate(
+      ({ next, total, dest }) => window.scrollTo(0, Math.round((next / total) * dest)),
+      { next: i, total: steps, dest: end },
+    )
+    await page.waitForTimeout(400)
   }
-  console.log(`wrote ${dest}`)
+  await page.waitForTimeout(600)
+  const webm = await saveVideo(page, context, 'hero_story_1440x900.webm')
+  if (!webm) return
+  const mp4 = join(ARTIFACTS, 'hero_story_1440x900.mp4')
+  const converted = spawnSync(
+    'ffmpeg',
+    ['-y', '-i', webm, '-t', '11', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '26', '-an', mp4],
+    { stdio: 'inherit' },
+  )
+  if (converted.status === 0) console.log(`wrote ${mp4}`)
 }
 
 async function run() {
   const killer = setTimeout(() => {
-    console.error('capture timed out after 180s')
+    console.error('capture timed out after 360s')
     process.exit(1)
-  }, 240000)
+  }, 360000)
 
   if (!existsSync('dist') && !process.env.BASE_URL) {
     console.error('dist/ missing. Run npm run build first.')
@@ -198,9 +272,10 @@ async function run() {
     await context.close()
     await recordScroll(browser, 1440, 900, 'scroll_1440x900.webm')
     await recordScroll(browser, 390, 844, 'scroll_390x844.webm')
+    await recordHeroStory(browser)
     await browser.close()
     for (const name of readdirSync(ARTIFACTS)) {
-      if (name.endsWith('.webm') || name.endsWith('.png')) {
+      if (name.endsWith('.webm') || name.endsWith('.png') || name.endsWith('.mp4')) {
         console.log(`artifact ${join(ARTIFACTS, name)}`)
       }
     }

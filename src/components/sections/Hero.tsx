@@ -3,7 +3,6 @@ import { gsap } from 'gsap'
 import { useI18n } from '@/context/I18nContext'
 import { Button } from '@/components/ui/Button'
 import { QuoteFormMorph } from '@/components/hero/QuoteFormMorph'
-import { SignalSegment } from '@/components/visuals/SignalRail'
 import { ASSESS_MAILTO, SECTION_IDS } from '@/lib/constants'
 import { scrollToSection } from '@/hooks/useActiveSection'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
@@ -26,23 +25,23 @@ export function Hero() {
     const ctx = gsap.context(() => {
       if (lines.length) {
         gsap.from(lines, {
-          yPercent: 110,
-          duration: 0.9,
-          stagger: 0.08,
+          yPercent: 112,
+          duration: 1.05,
+          stagger: 0.09,
           ease: 'expo.out',
         })
       }
       gsap.from([kicker, lead], {
-        y: 10,
-        duration: 0.7,
+        y: 14,
+        duration: 0.75,
         stagger: 0.08,
         ease: 'power2.out',
-        delay: 0.12,
+        delay: 0.1,
       })
       if (hint) {
         gsap.to(hint, {
-          y: 6,
-          duration: 1.4,
+          y: 7,
+          duration: 1.35,
           repeat: -1,
           yoyo: true,
           ease: 'sine.inOut',
@@ -55,60 +54,43 @@ export function Hero() {
   }, [reduced, hero.headline])
 
   return (
-    <section id="hero" ref={rootRef} className="relative scroll-mt-16 pt-14 md:pt-20">
-      <SignalSegment staticDraw />
+    <section id="hero" ref={rootRef} className="relative scroll-mt-16">
       <div data-hero-pin className="hero-pin">
-        <div className="mx-auto grid w-full max-w-6xl gap-3 px-5 py-3 md:gap-6 md:px-8 md:py-8 lg:grid-cols-12 lg:items-center">
-          <div className="lg:col-span-6">
-            <p
-              data-hero-kicker
-              className="max-w-xl font-mono text-[11px] leading-snug tracking-wide text-line md:text-xs"
-            >
-              {hero.kicker}
-            </p>
-            <h1 className="hero-offer-title mt-2 text-[1.35rem] font-semibold leading-[1.18] tracking-tight text-foreground md:mt-3 md:text-4xl md:leading-tight">
-              {hero.headlineLines.map((line) => (
-                <span key={line} className="hero-line">
-                  <span className="hero-line-inner" data-hero-line>
-                    {line}
-                  </span>
+        <div className="hero-frame">
+          <p data-hero-kicker className="hero-kicker">
+            {hero.kicker}
+          </p>
+          <h1 className="hero-offer-title">
+            {hero.headlineLines.map((line) => (
+              <span key={line} className="hero-line">
+                <span className="hero-line-inner" data-hero-line>
+                  {line}
                 </span>
-              ))}
-            </h1>
-            <p
-              data-hero-lead
-              className="hero-offer-lead mt-2 max-w-xl text-[14px] leading-snug text-muted md:mt-3 md:text-[15px] md:leading-relaxed"
-            >
-              {hero.subheadline}
-            </p>
-            <div
-              data-hero-actions
-              className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 md:mt-5"
-            >
-              <Button
-                data-hero-cta="primary"
-                className="w-auto"
-                href={ASSESS_MAILTO}
-              >
-                {hero.ctaAssess}
-              </Button>
-              <button
-                type="button"
-                data-hero-cta="secondary"
-                className="inline-flex min-h-12 items-center text-sm font-medium text-line underline-offset-4 hover:underline"
-                onClick={() => scrollToSection(SECTION_IDS.problem)}
-              >
-                {hero.ctaHow}
-              </button>
+              </span>
+            ))}
+          </h1>
+          <div className="hero-shell">
+            <div className="hero-copy">
+              <p data-hero-lead className="hero-offer-lead">
+                {hero.subheadline}
+              </p>
+              <div data-hero-actions className="hero-actions">
+                <Button data-hero-cta="primary" className="w-auto" href={ASSESS_MAILTO}>
+                  {hero.ctaAssess}
+                </Button>
+                <button
+                  type="button"
+                  data-hero-cta="secondary"
+                  className="inline-flex min-h-12 items-center text-sm font-medium text-line underline-offset-4 hover:underline"
+                  onClick={() => scrollToSection(SECTION_IDS.problem)}
+                >
+                  {hero.ctaHow}
+                </button>
+              </div>
+              <p data-scroll-hint className="hero-scroll-hint">
+                {hero.scrollHint}
+              </p>
             </div>
-            <p
-              data-scroll-hint
-              className="mt-3 font-mono text-[11px] tracking-wide text-line md:mt-4"
-            >
-              {hero.scrollHint}
-            </p>
-          </div>
-          <div className="lg:col-span-6">
             <QuoteFormMorph />
           </div>
         </div>

@@ -26,19 +26,35 @@ export function Contact() {
   useLayoutEffect(() => {
     const finale = finaleRef.current
     if (!finale || reduced) return
-    const sheet = finale.querySelector<HTMLElement>('[data-envelope]')
+    const sheet = finale.querySelector<HTMLElement>('[data-finale-sheet]')
+    const envelope = finale.querySelector<HTMLElement>('[data-envelope]')
+    const flap = finale.querySelector<HTMLElement>('[data-envelope-flap]')
     const message = finale.querySelector<HTMLElement>('[data-finale-msg]')
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: finale,
-          start: 'top 85%',
-          end: 'top 30%',
+          start: 'top 82%',
+          end: 'top 28%',
           scrub: true,
         },
       })
-      tl.fromTo(sheet, { rotateX: 0, y: 0, autoAlpha: 1 }, { rotateX: 75, y: -40, autoAlpha: 0.15, ease: 'none' })
-      tl.fromTo(message, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, ease: 'none' }, 0.45)
+      tl.fromTo(
+        sheet,
+        { rotateX: 0, y: 0, autoAlpha: 1, scale: 1 },
+        { rotateX: 78, y: 28, autoAlpha: 0.05, scale: 0.72, ease: 'none' },
+        0,
+      )
+      tl.fromTo(
+        envelope,
+        { autoAlpha: 0, y: 18, scale: 0.9 },
+        { autoAlpha: 1, y: 0, scale: 1, ease: 'none' },
+        0.28,
+      )
+      if (flap) {
+        tl.fromTo(flap, { rotateX: -70 }, { rotateX: 0, ease: 'none' }, 0.42)
+      }
+      tl.fromTo(message, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, ease: 'none' }, 0.58)
     }, finale)
     return () => ctx.revert()
   }, [reduced])
@@ -83,11 +99,21 @@ export function Contact() {
         </p>
       </div>
       <div ref={finaleRef} className="contact-finale mt-10">
-        <div className="envelope" data-envelope aria-hidden="true">
-          <span className="envelope-flap" />
-          <span className="envelope-body" />
+        <div className="finale-stage" aria-hidden="true">
+          <div className="finale-sheet" data-finale-sheet>
+            <p>{content.hero.paperTitle}</p>
+            {content.hero.paperRows.map((row) => (
+              <span key={`finale-${row.label}`}>
+                {row.label}: {row.value}
+              </span>
+            ))}
+          </div>
+          <div className="envelope" data-envelope>
+            <span className="envelope-flap" data-envelope-flap />
+            <span className="envelope-body" />
+          </div>
         </div>
-        <p data-finale-msg className="finale-copy mt-4 text-sm font-medium text-foreground">
+        <p data-finale-msg className="finale-copy text-sm font-medium text-foreground">
           {content.contact.finale}
         </p>
       </div>

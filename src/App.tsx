@@ -18,6 +18,7 @@ import { Skills } from '@/components/sections/Skills'
 import { CvDownload } from '@/components/sections/CvDownload'
 import { Contact } from '@/components/sections/Contact'
 import { MotionRoot } from '@/components/motion/MotionRoot'
+import { StoryRail } from '@/components/motion/StoryRail'
 import { I18nProvider } from '@/context/I18nContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 
@@ -31,6 +32,7 @@ function App() {
             <BlueprintBackground />
             <SheetFrame />
             <Navbar />
+            <StoryRail />
             <main id="main" className="relative" tabIndex={-1}>
               <SignalMeasure />
               <Hero />

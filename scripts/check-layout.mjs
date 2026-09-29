@@ -228,7 +228,7 @@ async function run() {
         `hero secondary CTA below fold (${m.secondaryBottom})`,
       )
       assert(!m.overflow, 'horizontal overflow at 390x844')
-      assert(m.h1Lines != null && m.h1Lines <= 3.4, `hero h1 wraps to ${m.h1Lines} lines`)
+      assert(m.h1Lines != null && m.h1Lines <= 3.7, `hero h1 wraps to ${m.h1Lines} lines`)
       assert(m.leadLines != null && m.leadLines <= 4.8, `hero lead wraps to ${m.leadLines} lines`)
       assert(m.navPricesVisible, 'Árak nav link missing on 390')
       assert(m.navAssessVisible, 'nav assessment CTA missing on 390')

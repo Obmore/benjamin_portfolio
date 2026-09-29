@@ -161,7 +161,9 @@ export interface SiteContent {
     compareBefore: string
     compareAfter: string
     compareAria: string
+    inboxLabel: string
   }
+  rail: { id: string; label: string }[]
   problem: {
     title: string
     cards: ProblemCard[]

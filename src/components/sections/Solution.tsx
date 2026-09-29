@@ -15,7 +15,7 @@ export function Solution() {
         label={content.nav.howItWorks}
       />
       <p className="mb-6 max-w-3xl text-muted leading-relaxed">{content.solution.text}</p>
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-3xl" data-solution-form>
         <CompareSlider autoSweep />
       </div>
     </SectionWrapper>

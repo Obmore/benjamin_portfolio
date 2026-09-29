@@ -28,11 +28,12 @@ export function ExplodedShot({
     const ctx = gsap.context(() => {
       gsap.fromTo(
         stage,
-        { '--sep': '0px', '--rx': '0deg', '--rz': '0deg' },
+        { '--sep': '0px', '--rx': '0deg', '--rz': '0deg', '--tz': '0px' },
         {
-          '--sep': '22px',
-          '--rx': '12deg',
-          '--rz': '-6deg',
+          '--sep': '40px',
+          '--rx': '18deg',
+          '--rz': '-9deg',
+          '--tz': '28px',
           ease: 'none',
           scrollTrigger: {
             trigger: stage,

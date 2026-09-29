@@ -30,7 +30,7 @@ export const contentHu: SiteContent = {
     paperRows: [
       { label: 'Méret', value: '1200 × 800 mm' },
       { label: 'Mennyiség', value: '12' },
-      { label: 'Megjegyzés', value: '1200 × 800 mm' },
+      { label: 'Megjegyzés', value: 'Tölgy, lakkozva' },
     ],
     pricesJump: 'Árak',
     sheetLabel: '1. lap',
@@ -56,7 +56,19 @@ export const contentHu: SiteContent = {
     compareBefore: 'Előtte',
     compareAfter: 'Utána',
     compareAria: 'Kézi rendelőlap és webes ajánlatkérő összehasonlítása',
+    inboxLabel: 'A cég ezt az összefoglalót kapná',
   },
+  rail: [
+    { id: 'hero', label: 'Ajánlat' },
+    { id: 'problema', label: 'Probléma' },
+    { id: 'megoldas', label: 'Megoldás' },
+    { id: 'ajanlatkero-minta', label: 'Minta' },
+    { id: 'folyamat', label: 'Folyamat' },
+    { id: 'munkaim', label: 'Munkák' },
+    { id: 'szolgaltatasok', label: 'Árak' },
+    { id: 'rolam', label: 'Rólam' },
+    { id: 'kapcsolat', label: 'Kapcsolat' },
+  ],
   problem: {
     title: 'Így érkezik ma egy ajánlatkérés',
     cards: [

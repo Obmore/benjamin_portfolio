@@ -33,7 +33,7 @@ export const contentEn: SiteContent = {
     paperRows: [
       { label: 'Size', value: '1200 × 800 mm' },
       { label: 'Quantity', value: '12' },
-      { label: 'Notes', value: '1200 × 800 mm' },
+      { label: 'Notes', value: 'Oak, lacquered' },
     ],
     pricesJump: 'Prices',
     sheetLabel: 'Sheet 1',
@@ -59,7 +59,19 @@ export const contentEn: SiteContent = {
     compareBefore: 'Before',
     compareAfter: 'After',
     compareAria: 'Comparison of a paper order form and a web quote form', // EN-REVIEW
+    inboxLabel: 'This is the summary the company would receive', // EN-REVIEW
   },
+  rail: [
+    { id: 'hero', label: 'Offer' }, // EN-REVIEW
+    { id: 'problema', label: 'Problem' }, // EN-REVIEW
+    { id: 'megoldas', label: 'Solution' }, // EN-REVIEW
+    { id: 'ajanlatkero-minta', label: 'Sample' }, // EN-REVIEW
+    { id: 'folyamat', label: 'Process' }, // EN-REVIEW
+    { id: 'munkaim', label: 'Work' }, // EN-REVIEW
+    { id: 'szolgaltatasok', label: 'Prices' }, // EN-REVIEW
+    { id: 'rolam', label: 'About' }, // EN-REVIEW
+    { id: 'kapcsolat', label: 'Contact' }, // EN-REVIEW
+  ],
   problem: {
     title: 'This is how a quote request arrives today', // EN-REVIEW
     cards: [

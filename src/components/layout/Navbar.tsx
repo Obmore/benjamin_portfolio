@@ -118,9 +118,14 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-transform ${
+      className={`fixed inset-x-0 top-0 z-50 ${
         hidden ? '-translate-y-full' : 'translate-y-0'
       } ${scrolled ? 'border-b border-line/20 bg-background' : 'bg-background/95'}`}
+      style={{
+        transitionProperty: 'transform',
+        transitionDuration: 'var(--motion-short)',
+        transitionTimingFunction: 'var(--motion-ease)',
+      }}
     >
       <a href="#main" className="skip-link">
         {content.common.skipToContent}
