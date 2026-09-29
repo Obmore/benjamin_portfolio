@@ -4,7 +4,7 @@ export const contentHu: SiteContent = {
   meta: {
     title: 'Ott Benjámin, villamosmérnök és szoftverfejlesztő',
     description:
-      'Ott Benjámin, villamosmérnök és szoftverfejlesztő. Python, full-stack fejlesztés, ipari rendszerek, energetika és telekommunikációs K+F.',
+      'Ott Benjámin, villamosmérnök és szoftverfejlesztő. Python, webes fejlesztés, ipari rendszerek, energetika és telekommunikációs K+F.',
   },
   nav: {
     about: 'Rólam',
@@ -29,7 +29,7 @@ export const contentHu: SiteContent = {
     paperTitle: 'Rendelőlap',
     paperRows: [
       { label: 'Méret', value: '1200 × 800 mm' },
-      { label: 'Mennyiség', value: '12' },
+      { label: 'Mennyiség', value: '12 db' },
       { label: 'Megjegyzés', value: 'Tölgy, lakkozva' },
     ],
     pricesJump: 'Árak',
@@ -59,8 +59,8 @@ export const contentHu: SiteContent = {
     inboxLabel: 'A cég ezt az összefoglalót kapná',
   },
   rail: [
-    { id: 'hero', label: 'Ajánlat' },
-    { id: 'problema', label: 'Probléma' },
+    { id: 'hero', label: 'Kezdés' },
+    { id: 'problema', label: 'Ma' },
     { id: 'megoldas', label: 'Megoldás' },
     { id: 'ajanlatkero-minta', label: 'Minta' },
     { id: 'folyamat', label: 'Folyamat' },
@@ -106,19 +106,19 @@ export const contentHu: SiteContent = {
     text: 'Villamosmérnök és szoftverfejlesztő vagyok. Ipari, energetikai és távközlési rendszereken dolgozom, emellett kisvállalkozásoknak készítek webes megoldásokat.',
     highlights: [
       {
-        title: 'Mérnöki rendszerszemlélet',
+        title: 'Mérnöki szemlélet',
         description:
-          'Strukturált elemzés, rendszerszintű gondolkodás és műszaki problémák átfogó megközelítése.',
+          'A feladatot egészében nézem, és a műszaki részleteket is végiggondolom, mielőtt fejleszteni kezdek.',
       },
       {
-        title: 'Szoftverfejlesztési háttér',
+        title: 'Szoftverfejlesztés',
         description:
-          'Full-stack tapasztalat modern webes és backend technológiákkal, valamint Python-alapú mérnöki fejlesztésekkel.',
+          'Teljes körű webfejlesztés a felülettől a szerveroldalig, emellett mérnöki célú programok.',
       },
       {
-        title: 'Projekt- és partnerkoordináció',
+        title: 'Projektkoordináció',
         description:
-          'Fejlesztői, mérnöki és üzleti szereplők közötti egyeztetés, dokumentáció és tesztelési folyamatok támogatása.',
+          'Egyeztetek a fejlesztőkkel, a mérnökökkel és a megrendelővel, és a dokumentációt meg a tesztelést is kézben tartom.',
       },
     ],
   },
@@ -151,9 +151,9 @@ export const contentHu: SiteContent = {
         company: 'Rollin',
         period: '2023 és 2025 között',
         bullets: [
-          'Webalkalmazások frontend és backend fejlesztése.',
+          'Webalkalmazások frontend és szerveroldali fejlesztése.',
           'React, Vite, Tailwind CSS és Ant Design használata frontend oldalon.',
-          'Backend- és API-fejlesztési feladatok C#, Microsoft SQL és Quartz környezetben.',
+          'Szerveroldali és API-fejlesztési feladatok C#, Microsoft SQL és Quartz környezetben.',
           'Azure DevOps, Git és CI/CD szemléletű fejlesztési folyamatok használata.',
         ],
       },
@@ -174,7 +174,7 @@ export const contentHu: SiteContent = {
         period: '2024 óta',
         bullets: [
           'Webes és technikai megoldások fejlesztése üzleti igények alapján.',
-          'Frontend, backend és automatizációs jellegű feladatok.',
+          'Frontend, szerveroldali és automatizációs jellegű feladatok.',
           'Modern fejlesztői eszközök és AI-támogatott munkafolyamatok alkalmazása.',
         ],
       },

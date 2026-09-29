@@ -146,6 +146,8 @@ async function shotSet(page, width, height) {
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await prepare(page)
   await jumpScroll(page, 0)
+  await page.waitForTimeout(280)
+  await saveShot(page, `hero_top_${width}x${height}.png`)
   await scrollToSel(page, '#megoldas', width >= 900 ? 160 : 40)
   await page.waitForTimeout(900)
   await saveShot(page, `solution_${width}x${height}.png`)
@@ -155,6 +157,10 @@ async function shotSet(page, width, height) {
   await saveShot(page, `process_${width}x${height}.png`)
   await scrollToSel(page, '#munkaim')
   await saveShot(page, `work_${width}x${height}.png`)
+  if (width >= 900) {
+    await scrollToSel(page, '#rolam')
+    await saveShot(page, `about_${width}x${height}.png`)
+  }
   await scrollContactEnd(page)
   await saveShot(page, `contact_end_${width}x${height}.png`)
 }
@@ -297,6 +303,9 @@ async function run() {
       'work_390x844.png',
       'contact_end_1440x900.png',
       'contact_end_390x844.png',
+      'hero_top_390x844.png',
+      'hero_top_1440x900.png',
+      'about_1440x900.png',
     ]) {
       console.log(`artifact ${join(ARTIFACTS, name)}`)
     }

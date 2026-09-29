@@ -341,6 +341,44 @@ async function run() {
       assert(m.leadLines != null && m.leadLines <= 4.8, `hero lead wraps to ${m.leadLines} lines`)
       assert(m.navPricesVisible, 'Árak nav link missing on 390')
       assert(m.navAssessVisible, 'nav assessment CTA missing on 390')
+      const chrome390 = await page.evaluate(() => {
+        const header = document.querySelector('header')
+        const text = header?.textContent ?? ''
+        const paper = document.querySelector('[data-paper]')
+        const cta = document.querySelector('[data-hero-cta="primary"]')
+        const a = paper?.getBoundingClientRect()
+        const b = cta?.getBoundingClientRect()
+        const overlap =
+          Boolean(a && b) &&
+          a.left < b.right - 0.5 &&
+          a.right > b.left + 0.5 &&
+          a.top < b.bottom - 0.5 &&
+          a.bottom > b.top + 0.5
+        const qty = [...document.querySelectorAll('[data-paper-row]')].map((el) =>
+          el.textContent?.replace(/\s+/g, ' ').trim(),
+        )
+        return {
+          hasLang: Boolean(
+            document.querySelector('[data-lang], [data-locale-toggle], [aria-label*="English"], [aria-label*="language"]'),
+          ),
+          hasTheme: Boolean(document.querySelector('[data-theme-toggle], [aria-label*="téma" i], [aria-label*="theme" i]')),
+          prices: Boolean(header?.querySelector('[data-nav="prices"]')) && /Árak/.test(text),
+          assess: Boolean(header?.querySelector('[data-nav="assess"]')) && /Kérjen felmérést/.test(text),
+          paperCtaOverlap: overlap,
+          qty,
+        }
+      })
+      notes.push(`390 header chrome lang=${chrome390.hasLang} theme=${chrome390.hasTheme} arak=${chrome390.prices} assess=${chrome390.assess}`)
+      notes.push(`390 hero paper rows ${chrome390.qty.join(' | ')} overlap=${chrome390.paperCtaOverlap}`)
+      assert(!chrome390.hasLang, 'language toggle visible on 390 header')
+      assert(!chrome390.hasTheme, 'theme toggle visible on 390 header')
+      assert(chrome390.prices, '390 header missing Árak')
+      assert(chrome390.assess, '390 header missing Kérjen felmérést')
+      assert(!chrome390.paperCtaOverlap, '390 hero paper overlaps the orange CTA')
+      assert(
+        chrome390.qty.some((row) => /Mennyiség/.test(row) && /12 db/.test(row)),
+        `390 hero quantity is ${chrome390.qty.join(', ')}`,
+      )
       assert(
         m.opacities.every((o) => o === '1'),
         `opacity not 1: ${m.opacities.join(',')}`,
@@ -358,6 +396,31 @@ async function run() {
       assert(m.primaryBottom != null && m.primaryBottom <= 900, `1440 primary CTA below fold (${m.primaryBottom})`)
       notes.push(`1440 rail at top ${await activeRail(page)}`)
       assert((await activeRail(page)) === 'hero', `rail at top is ${await activeRail(page)}`)
+      const chrome1440 = await page.evaluate(() => {
+        const header = document.querySelector('header')
+        const rail = [...document.querySelectorAll('.story-rail-item')].map((el) => ({
+          id: el.getAttribute('data-rail-item'),
+          label: el.querySelector('.story-rail-label')?.textContent?.trim() ?? '',
+        }))
+        return {
+          hasLang: Boolean(
+            document.querySelector('[data-lang], [data-locale-toggle], [aria-label*="English"], [aria-label*="language"]'),
+          ),
+          hasTheme: Boolean(document.querySelector('[data-theme-toggle], [aria-label*="theme" i], [aria-label*="téma" i]')),
+          rail,
+          body: document.body.innerText,
+        }
+      })
+      notes.push(`1440 header lang=${chrome1440.hasLang} theme=${chrome1440.hasTheme}`)
+      notes.push(`1440 rail labels ${chrome1440.rail.map((item) => `${item.id}:${item.label}`).join(', ')}`)
+      assert(!chrome1440.hasLang, 'language toggle visible on 1440 header')
+      assert(!chrome1440.hasTheme, 'theme toggle visible on 1440 header')
+      assert(chrome1440.rail[0]?.label === 'Kezdés', `1440 first rail is ${chrome1440.rail[0]?.label}`)
+      assert(
+        chrome1440.rail.find((item) => item.id === 'problema')?.label === 'Ma',
+        '1440 rail missing Ma',
+      )
+      assert(!/Full-stack|full-stack|\bbackend\b|\bBackend\b/.test(chrome1440.body), 'HU page still has Full-stack/backend')
       await jumpTo(page, Math.round(900 * 1.2))
       notes.push(`1440 rail at hero end ${await activeRail(page)}`)
       assert((await activeRail(page)) === 'hero', `rail at hero end is ${await activeRail(page)}`)
@@ -382,6 +445,15 @@ async function run() {
         const rail = await activeRail(page)
         notes.push(`1440 rail at ${expected} ${rail}`)
         assert(rail === expected, `rail at ${expected} is ${rail}`)
+        if (expected === 'rolam') {
+          const aboutTitles = await page.evaluate(() =>
+            [...document.querySelectorAll('#rolam h3')].map((el) => el.textContent?.trim()),
+          )
+          notes.push(`1440 about titles ${aboutTitles.join(' | ')}`)
+          assert(aboutTitles.includes('Mérnöki szemlélet'), 'about missing Mérnöki szemlélet')
+          assert(aboutTitles.includes('Szoftverfejlesztés'), 'about missing Szoftverfejlesztés')
+          assert(aboutTitles.includes('Projektkoordináció'), 'about missing Projektkoordináció')
+        }
       }
 
       const clickNav = async (selector, id) => {
