@@ -315,7 +315,9 @@ async function run() {
       ]) {
         console.log(`artifact ${join(ARTIFACTS, name)}`)
       }
-      return
+      stopPreview(preview)
+      clearTimeout(killer)
+      process.exit(0)
     }
     await shotSet(page, 1440, 900)
     await shotSet(page, 390, 844)
