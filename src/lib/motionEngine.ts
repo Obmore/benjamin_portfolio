@@ -34,6 +34,7 @@ export function startMotionEngine(): () => void {
     autoRaf: false,
   })
   lenis = instance
+  window.__lenis = instance
   instance.on('scroll', ScrollTrigger.update)
   tickerFn = (time: number) => {
     instance.raf(time * 1000)
@@ -52,6 +53,7 @@ export function startMotionEngine(): () => void {
     tickerFn = null
     instance.destroy()
     lenis = null
+    delete window.__lenis
     ScrollTrigger.getAll().forEach((trigger) => trigger.kill())
     document.documentElement.classList.remove('lenis', 'lenis-smooth', 'is-motion')
     document.documentElement.style.scrollBehavior = ''

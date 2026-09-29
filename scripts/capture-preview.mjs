@@ -72,26 +72,34 @@ async function saveShot(page, destName, fullPage = false) {
   console.log(`wrote ${docsPath}`)
 }
 
-async function setScroll(page, y) {
+async function jumpScroll(page, y) {
   await page.evaluate((nextY) => {
-    window.scrollTo(0, nextY)
-    document.documentElement.scrollTop = nextY
+    const lenis = window.__lenis
+    if (lenis?.scrollTo) {
+      lenis.scrollTo(nextY, { immediate: true, force: true })
+    } else {
+      window.scrollTo(0, nextY)
+      document.documentElement.scrollTop = nextY
+    }
     window.dispatchEvent(new Event('scroll'))
   }, y)
-  await page.waitForTimeout(360)
+  await page.waitForTimeout(480)
+}
+
+async function setScroll(page, y) {
+  await jumpScroll(page, y)
 }
 
 async function scrollToSel(page, sel, extra = 0) {
-  await page.evaluate(
+  const y = await page.evaluate(
     ({ selector, extraY }) => {
       const el = document.querySelector(selector)
-      if (!el) return
-      el.scrollIntoView({ block: 'start', inline: 'nearest' })
-      window.scrollBy(0, extraY - 72)
+      if (!el) return 0
+      return Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY + extraY - 72))
     },
     { selector: sel, extraY: extra },
   )
-  await page.waitForTimeout(420)
+  await jumpScroll(page, y)
 }
 
 async function shotSet(page, width, height) {
@@ -195,7 +203,11 @@ async function recordScroll(browser, width, height, destName) {
   const steps = 26
   for (let i = 1; i <= steps; i += 1) {
     await page.evaluate(
-      ({ next, total, end }) => window.scrollTo(0, Math.round((next / total) * end)),
+      ({ next, total, end }) => {
+        const y = Math.round((next / total) * end)
+        if (window.__lenis?.scrollTo) window.__lenis.scrollTo(y, { immediate: true, force: true })
+        else window.scrollTo(0, y)
+      },
       { next: i, total: steps, end: maxY },
     )
     await page.waitForTimeout(200)
@@ -232,8 +244,9 @@ async function recordHeroStory(browser) {
   for (let i = 1; i <= steps; i += 1) {
     await page.evaluate(
       ({ next, total, dest }) => {
-        window.scrollTo(0, Math.round((next / total) * dest))
-        document.documentElement.scrollTop = Math.round((next / total) * dest)
+        const y = Math.round((next / total) * dest)
+        if (window.__lenis?.scrollTo) window.__lenis.scrollTo(y, { immediate: true, force: true })
+        else window.scrollTo(0, y)
       },
       { next: i, total: steps, dest: end },
     )

@@ -3,6 +3,7 @@ export type MotionProfile = 'full' | 'static'
 declare global {
   interface Window {
     __MOTION_PROFILE__?: MotionProfile
+    __lenis?: { scrollTo: (value: number, options?: { immediate?: boolean; force?: boolean }) => void }
   }
 }
 
