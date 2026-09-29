@@ -94,29 +94,29 @@ export function QuoteFormMorph() {
       </div>
       <aside className="inbox-card" data-inbox>
         <p className="inbox-kicker">{content.hero.inboxLabel}</p>
-        <dl>
+        <div>
           <div className="inbox-row">
-            <dt>{form.previewFrom}</dt>
-            <dd>
+            <p>{form.previewFrom}</p>
+            <p>
               {form.sampleName}
               <span className="block text-muted">{form.sampleCompany}</span>
-            </dd>
+            </p>
           </div>
           <div className="inbox-row">
-            <dt>{form.previewTo}</dt>
-            <dd>{form.previewRecipient}</dd>
+            <p>{form.previewTo}</p>
+            <p>{form.previewRecipient}</p>
           </div>
           <div className="inbox-row">
-            <dt>{form.previewSubjectLabel}</dt>
-            <dd>{form.previewSubject}</dd>
+            <p>{form.previewSubjectLabel}</p>
+            <p>{form.previewSubject}</p>
           </div>
-        </dl>
-        {content.hero.paperRows.map((row) => (
-          <div key={`inbox-${row.label}`} className="inbox-row">
-            <dt>{row.label}</dt>
-            <dd>{row.value}</dd>
-          </div>
-        ))}
+          {content.hero.paperRows.map((row) => (
+            <div key={`inbox-${row.label}`} className="inbox-row">
+              <p>{row.label}</p>
+              <p>{row.value}</p>
+            </div>
+          ))}
+        </div>
       </aside>
     </div>
   )

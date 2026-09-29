@@ -155,15 +155,17 @@
   font-size: 0.82rem;
 }
 
-.inbox-row dt {
+.inbox-row p {
   margin: 0;
+}
+
+.inbox-row p:first-child {
   font-family: var(--font-mono);
   font-size: 0.62rem;
   color: var(--color-line);
 }
 
-.inbox-row dd {
-  margin: 0;
+.inbox-row p:last-child {
   color: var(--color-foreground);
 }
 

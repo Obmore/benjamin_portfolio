@@ -15,6 +15,7 @@ export function Process() {
   useLayoutEffect(() => {
     const pin = pinRef.current
     if (!pin) return
+    const board = pin.querySelector<HTMLElement>('[data-process-board]')
     const line = pin.querySelector<HTMLElement>('[data-process-line]')
     const steps = [...pin.querySelectorAll<HTMLElement>('[data-process-step]')]
 
@@ -68,9 +69,9 @@ export function Process() {
       mm.add(desktopMotionQuery(), () => {
         const tl = gsap.timeline({
           scrollTrigger: {
-            trigger: pin,
+            trigger: board ?? pin,
             start: 'center center',
-            end: () => `+=${Math.round(window.innerHeight * 0.72)}`,
+            end: () => `+=${Math.round(window.innerHeight * 0.56)}`,
             pin: true,
             scrub: 0.5,
             anticipatePin: 1,
@@ -94,7 +95,7 @@ export function Process() {
           label={content.process.title}
           subtitle={content.process.lead}
         />
-        <div className="process-board">
+        <div className="process-board" data-process-board>
           <div className="process-line-wrap" aria-hidden="true">
             <div className="process-line-fill" data-process-line />
           </div>

@@ -132,7 +132,7 @@ async function shotSet(page, width, height) {
   await saveShot(page, `solution_${width}x${height}.png`)
   await scrollToSel(page, '#ajanlatkero-minta')
   await saveShot(page, `tryit_${width}x${height}.png`)
-  await scrollToSel(page, '#folyamat', width >= 900 ? 200 : 0)
+  await scrollToSel(page, '#folyamat', width >= 900 ? 80 : 0)
   await saveShot(page, `process_${width}x${height}.png`)
   await scrollToSel(page, '#munkaim')
   await saveShot(page, `work_${width}x${height}.png`)
