@@ -175,6 +175,53 @@ async function measure(page) {
   })
 }
 
+async function jumpTo(page, y) {
+  await page.evaluate((nextY) => {
+    if (window.__lenis?.scrollTo) window.__lenis.scrollTo(nextY, { immediate: true, force: true })
+    else {
+      window.scrollTo(0, nextY)
+      document.documentElement.scrollTop = nextY
+    }
+  }, y)
+  await page.waitForTimeout(350)
+}
+
+async function jumpToSel(page, selector) {
+  const y = await page.evaluate((sel) => {
+    const el = document.querySelector(sel)
+    if (!el) return 0
+    return Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - 72))
+  }, selector)
+  await jumpTo(page, y)
+}
+
+async function problemTextHits(page) {
+  return page.evaluate(() => {
+    const cards = [...document.querySelectorAll('[data-problem-card]')]
+    const hits = []
+    cards.forEach((card, index) => {
+      const text = card.querySelector('[data-problem-text]')
+      if (!text) return
+      const a = text.getBoundingClientRect()
+      cards.forEach((other, otherIndex) => {
+        if (other === card) return
+        const b = other.getBoundingClientRect()
+        const overlapX = a.left < b.right - 0.5 && a.right > b.left + 0.5
+        const overlapY = a.top < b.bottom - 0.5 && a.bottom > b.top + 0.5
+        if (overlapX && overlapY) hits.push(`${index + 1} under ${otherIndex + 1}`)
+      })
+    })
+    return hits
+  })
+}
+
+async function activeRail(page) {
+  return page.evaluate(() => {
+    const active = document.querySelector('.story-rail-item.is-active')
+    return active?.getAttribute('data-rail-item') ?? null
+  })
+}
+
 async function measureCls(page) {
   return page.evaluate(async () => {
     let cls = 0
@@ -247,7 +294,36 @@ async function run() {
       notes.push(`1440x900 offsets: 149000Ft ${m.priceTop}px, #munkaim ${m.munkaimTop}px, page ${m.pageHeight}px`)
       assert(!m.overflow, 'horizontal overflow at 1440x900')
       assert(m.primaryBottom != null && m.primaryBottom <= 900, `1440 primary CTA below fold (${m.primaryBottom})`)
+      notes.push(`1440 rail at top ${await activeRail(page)}`)
+      assert((await activeRail(page)) === 'hero', `rail at top is ${await activeRail(page)}`)
+      await jumpTo(page, Math.round(900 * 1.2))
+      notes.push(`1440 rail at hero end ${await activeRail(page)}`)
+      assert((await activeRail(page)) === 'hero', `rail at hero end is ${await activeRail(page)}`)
+      await jumpToSel(page, '#problema')
+      const problemHits = await problemTextHits(page)
+      notes.push(`1440 problem overlaps ${problemHits.join(',') || 'none'}`)
+      assert(problemHits.length === 0, `1440 problem cards overlap: ${problemHits.join(', ')}`)
+      notes.push(`1440 rail at problem ${await activeRail(page)}`)
+      assert((await activeRail(page)) === 'problema', `rail at problem is ${await activeRail(page)}`)
     })
+
+    for (const viewport of [
+      { width: 390, height: 844 },
+      { width: 1024, height: 768 },
+      { width: 1280, height: 800 },
+      { width: 1920, height: 1080 },
+    ]) {
+      await withPage(browser, viewport, false, async (page) => {
+        await ready(page)
+        await jumpToSel(page, '#problema')
+        const hits = await problemTextHits(page)
+        notes.push(`${viewport.width} problem overlaps ${hits.join(',') || 'none'}`)
+        assert(
+          hits.length === 0,
+          `${viewport.width}x${viewport.height} problem cards overlap: ${hits.join(', ')}`,
+        )
+      })
+    }
 
     for (const viewport of [
       { width: 360, height: 640 },

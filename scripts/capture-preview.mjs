@@ -292,6 +292,31 @@ async function run() {
       document.documentElement.classList.remove('dark')
     })
     const page = await context.newPage()
+    if (process.env.CAPTURE_FOCUS === 'rail-problem') {
+      await page.setViewportSize({ width: 1440, height: 900 })
+      await page.emulateMedia({ reducedMotion: 'no-preference' })
+      await prepare(page)
+      await setScroll(page, Math.round(900 * 1.2))
+      await saveShot(page, 'hero_end_1440x900.png')
+      await scrollToSel(page, '#problema')
+      await saveShot(page, 'problem_1440x900.png')
+      await page.setViewportSize({ width: 390, height: 844 })
+      await prepare(page)
+      await scrollToSel(page, '#problema')
+      await saveShot(page, 'problem_390x844.png')
+      await context.close()
+      await recordScroll(browser, 1440, 900, 'scroll_1440x900.webm')
+      await browser.close()
+      for (const name of [
+        'scroll_1440x900.webm',
+        'problem_1440x900.png',
+        'problem_390x844.png',
+        'hero_end_1440x900.png',
+      ]) {
+        console.log(`artifact ${join(ARTIFACTS, name)}`)
+      }
+      return
+    }
     await shotSet(page, 1440, 900)
     await shotSet(page, 390, 844)
     await page.setViewportSize({ width: 390, height: 844 })

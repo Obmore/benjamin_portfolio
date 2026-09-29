@@ -8,10 +8,10 @@ import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { desktopMotionQuery, mobileMotionQuery } from '@/lib/motionProfile'
 
 const SCATTER = [
-  { rotate: -8, x: -36, y: 48 },
-  { rotate: 9, x: 42, y: 28 },
-  { rotate: 5, x: -18, y: 64 },
-  { rotate: -6, x: 30, y: 56 },
+  { rotate: -6, x: -28, y: 40 },
+  { rotate: 7, x: 32, y: 24 },
+  { rotate: 4, x: -16, y: 48 },
+  { rotate: -5, x: 22, y: 44 },
 ] as const
 
 export function Problem() {
@@ -113,7 +113,6 @@ export function Problem() {
             key={card.text}
             data-problem-card
             className="problem-card crop-marks rounded-[6px] p-4 md:p-5"
-            style={{ transform: `rotate(${SCATTER[index]?.rotate ?? 0}deg)` }}
           >
             <p className="font-mono text-[11px] tracking-wide text-line">
               {String(index + 1).padStart(2, '0')}
@@ -124,7 +123,10 @@ export function Problem() {
                 <span className="problem-missing-field" aria-hidden="true" />
               </p>
             ) : null}
-            <p className="mt-2 text-sm leading-relaxed text-foreground md:text-base">
+            <p
+              data-problem-text
+              className="mt-2 text-sm leading-relaxed text-foreground md:text-base"
+            >
               {card.text}
             </p>
           </li>
