@@ -10,6 +10,8 @@ import {
 
 type Theme = 'light' | 'dark'
 
+const THEME_STORAGE_KEY = 'portfolio-theme'
+
 interface ThemeContextValue {
   theme: Theme
   toggleTheme: () => void
@@ -17,24 +19,32 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-function readTheme(): Theme {
-  return 'light'
+function getSystemTheme(): Theme {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
-function applyTheme(_theme: Theme) {
-  document.documentElement.classList.remove('dark')
-  document.documentElement.style.colorScheme = 'light'
+function getInitialTheme(): Theme {
+  const stored = localStorage.getItem(THEME_STORAGE_KEY)
+  if (stored === 'light' || stored === 'dark') return stored
+  return getSystemTheme()
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme] = useState<Theme>(readTheme)
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof document !== 'undefined') {
+      return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+    }
+    return getInitialTheme()
+  })
 
   useEffect(() => {
-    applyTheme('light')
-  }, [])
+    const root = document.documentElement
+    root.classList.toggle('dark', theme === 'dark')
+    localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
 
   const toggleTheme = useCallback(() => {
-    applyTheme('light')
+    setTheme((current) => (current === 'light' ? 'dark' : 'light'))
   }, [])
 
   const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme])

@@ -1,99 +1,82 @@
-import { useLayoutEffect, useRef } from 'react'
-import { gsap } from 'gsap'
+import { motion } from 'framer-motion'
 import { useI18n } from '@/context/I18nContext'
 import { Button } from '@/components/ui/Button'
-import { QuoteFormMorph } from '@/components/hero/QuoteFormMorph'
-import { ASSESS_MAILTO, SECTION_IDS } from '@/lib/constants'
+import { Chip } from '@/components/ui/Chip'
+import { HeroVisual } from '@/components/visuals/HeroVisual'
+import { TechnicalLines } from '@/components/visuals/TechnicalLines'
+import { CV_EN_PATH, CV_HU_PATH, LINKEDIN_URL, SECTION_IDS } from '@/lib/constants'
 import { scrollToSection } from '@/hooks/useActiveSection'
-import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.12 },
+  },
+}
+
+const item = {
+  hidden: { opacity: 0, y: 24 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const },
+  },
+}
 
 export function Hero() {
-  const { content } = useI18n()
-  const hero = content.hero
-  const reduced = usePrefersReducedMotion()
-  const rootRef = useRef<HTMLElement>(null)
-
-  useLayoutEffect(() => {
-    const root = rootRef.current
-    if (!root || reduced) return
-
-    const lines = root.querySelectorAll<HTMLElement>('[data-hero-line]')
-    const kicker = root.querySelector<HTMLElement>('[data-hero-kicker]')
-    const lead = root.querySelector<HTMLElement>('[data-hero-lead]')
-    const hint = root.querySelector<HTMLElement>('[data-scroll-hint]')
-
-    const ctx = gsap.context(() => {
-      if (lines.length) {
-        gsap.from(lines, {
-          yPercent: 112,
-          duration: 1.05,
-          stagger: 0.09,
-          ease: 'expo.out',
-        })
-      }
-      gsap.from([kicker, lead], {
-        y: 14,
-        duration: 0.75,
-        stagger: 0.08,
-        ease: 'power2.out',
-        delay: 0.1,
-      })
-      if (hint) {
-        gsap.to(hint, {
-          y: 7,
-          duration: 1.35,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut',
-          delay: 1,
-        })
-      }
-    }, root)
-
-    return () => ctx.revert()
-  }, [reduced, hero.headline])
+  const { content, locale } = useI18n()
+  const cvPath = locale === 'hu' ? CV_HU_PATH : CV_EN_PATH
 
   return (
-    <section id="hero" ref={rootRef} className="relative scroll-mt-16">
-      <div data-hero-pin className="hero-pin">
-        <div className="hero-frame">
-          <div className="hero-shell">
-            <div className="hero-copy">
-              <p data-hero-kicker className="hero-kicker">
-                {hero.kicker}
-              </p>
-              <h1 className="hero-offer-title">
-                {hero.headlineLines.map((line) => (
-                  <span key={line} className="hero-line">
-                    <span className="hero-line-inner" data-hero-line>
-                      {line}
-                    </span>
-                  </span>
-                ))}
-              </h1>
-              <p data-hero-lead className="hero-offer-lead">
-                {hero.subheadline}
-              </p>
-              <div data-hero-actions className="hero-actions">
-                <Button data-hero-cta="primary" className="w-auto" href={ASSESS_MAILTO}>
-                  {hero.ctaAssess}
-                </Button>
-                <button
-                  type="button"
-                  data-hero-cta="secondary"
-                  className="inline-flex min-h-12 items-center text-sm font-medium text-line underline-offset-4 hover:underline"
-                  onClick={() => scrollToSection(SECTION_IDS.problem)}
-                >
-                  {hero.ctaHow}
-                </button>
-              </div>
-              <p data-scroll-hint className="hero-scroll-hint">
-                {hero.scrollHint}
-              </p>
-            </div>
-            <QuoteFormMorph />
-          </div>
-        </div>
+    <section
+      id="hero"
+      className="relative flex min-h-screen items-center scroll-mt-24 pt-24"
+    >
+      <TechnicalLines />
+      <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-5 py-16 md:px-8 lg:grid-cols-2 lg:gap-16">
+        <motion.div variants={container} initial="hidden" animate="show">
+          <motion.h1
+            variants={item}
+            className="text-4xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl"
+          >
+            <span className="block">Ott Benjámin</span>
+            <span className="mt-3 block text-2xl font-medium tracking-tight text-muted md:text-3xl">
+              {content.hero.headline}
+            </span>
+          </motion.h1>
+          <motion.p variants={item} className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
+            {content.hero.subheadline}
+          </motion.p>
+          <motion.div variants={item} className="mt-8 flex flex-wrap gap-3">
+            <Button type="button" onClick={() => scrollToSection(SECTION_IDS.contact)}>
+              {content.hero.ctaContact}
+            </Button>
+            <Button
+              variant="outline"
+              href={cvPath}
+              external
+            >
+              {content.hero.ctaCv}
+            </Button>
+            <Button variant="ghost" href={LINKEDIN_URL} external>
+              {content.hero.ctaLinkedIn}
+            </Button>
+          </motion.div>
+          <motion.div variants={item} className="mt-10 flex flex-wrap gap-2">
+            {content.hero.chips.map((chip) => (
+              <Chip key={chip} label={chip} />
+            ))}
+          </motion.div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <HeroVisual />
+        </motion.div>
       </div>
     </section>
   )

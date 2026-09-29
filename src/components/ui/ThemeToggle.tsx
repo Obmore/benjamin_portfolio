@@ -10,7 +10,7 @@ export function ThemeToggle() {
       type="button"
       onClick={toggleTheme}
       aria-label={theme === 'light' ? content.common.themeToDark : content.common.themeToLight}
-      className="rounded-[6px] border border-line/30 bg-surface p-2 text-muted hover:border-line hover:text-foreground"
+      className="rounded-lg border border-border/70 bg-surface/70 p-2 text-muted transition-colors hover:border-accent/40 hover:text-accent"
     >
       {theme === 'light' ? (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">

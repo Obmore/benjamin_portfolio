@@ -4,8 +4,7 @@ import { EMAIL, LINKEDIN_URL } from '@/lib/constants'
 
 export function SeoHead() {
   const { content, locale } = useI18n()
-  const siteUrl = 'https://ottbenjamin.hu/'
-  const preview = Boolean(import.meta.env.VITE_PREVIEW)
+  const siteUrl = 'https://obmore.github.io/benjamin_portfolio/'
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -32,7 +31,6 @@ export function SeoHead() {
       <meta property="og:type" content="website" />
       <meta property="og:url" content={siteUrl} />
       <meta name="twitter:card" content="summary" />
-      {preview ? <meta name="robots" content="noindex" /> : null}
       <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
     </Helmet>
   )

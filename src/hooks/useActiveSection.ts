@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { engineScrollTo } from '@/lib/motionEngine'
 
 export function useActiveSection(sectionIds: string[]) {
   const [activeId, setActiveId] = useState(sectionIds[0] ?? '')
@@ -34,50 +33,19 @@ export function useActiveSection(sectionIds: string[]) {
   return activeId
 }
 
+const HEADER_OFFSET_PX = 96
+
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 export function scrollToSection(id: string) {
   const element = document.getElementById(id)
   if (!element) return
 
-  if (engineScrollTo(id)) return
-
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const apply = () => {
-    element.scrollIntoView({ behavior: 'auto', block: 'start' })
-  }
-
-  const doc = document as Document & {
-    startViewTransition?: (update: () => void) => unknown
-  }
-
-  if (!reduce && typeof doc.startViewTransition === 'function') {
-    try {
-      doc.startViewTransition(apply)
-      return
-    } catch {
-      apply()
-      return
-    }
-  }
-
-  element.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
-}
-
-export function bindInPageAnchors() {
-  const onClick = (event: MouseEvent) => {
-    if (event.defaultPrevented || event.button !== 0) return
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-    const target = (event.target as Element | null)?.closest?.('a[href^="#"]')
-    if (!(target instanceof HTMLAnchorElement)) return
-    if (target.origin !== window.location.origin) return
-    const id = decodeURIComponent(target.hash.replace(/^#/, ''))
-    if (!id || !document.getElementById(id)) return
-    event.preventDefault()
-    if (window.location.hash !== target.hash) {
-      history.pushState(null, '', target.hash)
-    }
-    scrollToSection(id)
-  }
-
-  document.addEventListener('click', onClick)
-  return () => document.removeEventListener('click', onClick)
+  const top = window.scrollY + element.getBoundingClientRect().top - HEADER_OFFSET_PX
+  window.scrollTo({
+    top: Math.max(0, top),
+    behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+  })
 }
