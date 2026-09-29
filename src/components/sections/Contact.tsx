@@ -32,7 +32,6 @@ export function Contact() {
     }
     const sheet = finale.querySelector<HTMLElement>('[data-finale-sheet]')
     const envelope = finale.querySelector<HTMLElement>('[data-envelope]')
-    const flap = finale.querySelector<HTMLElement>('[data-envelope-flap]')
     const message = finale.querySelector<HTMLElement>('[data-finale-msg]')
     const ctx = gsap.context(() => {
       const showFinale = () => {
@@ -67,9 +66,6 @@ export function Contact() {
         { opacity: 1, y: 0, scale: 1, ease: 'none' },
         0.22,
       )
-      if (flap) {
-        tl.fromTo(flap, { rotateX: -70 }, { rotateX: 0, ease: 'none' }, 0.38)
-      }
       tl.fromTo(
         message,
         { opacity: 0, y: 10, visibility: 'visible' },
@@ -130,8 +126,13 @@ export function Contact() {
             ))}
           </div>
           <div className="envelope" data-envelope>
-            <span className="envelope-flap" data-envelope-flap />
-            <span className="envelope-body" />
+            <svg className="envelope-svg" viewBox="0 0 200 128" aria-hidden="true">
+              <rect className="envelope-fill envelope-stroke" x="10" y="34" width="180" height="84" />
+              <path className="envelope-flap-fill envelope-stroke" d="M10 34 L100 8 L190 34 Z" />
+              <path className="envelope-stroke" d="M10 34 L100 88 L190 34" />
+              <circle className="envelope-check-ring" cx="100" cy="72" r="13" />
+              <path className="envelope-check" d="M93 72 L98 78 L109 64" />
+            </svg>
           </div>
         </div>
         <p data-finale-msg className="finale-copy text-sm font-medium text-foreground">

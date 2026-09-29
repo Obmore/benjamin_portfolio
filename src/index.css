@@ -1631,9 +1631,16 @@
 
   .finale-stage {
     position: relative;
-    width: min(100%, 18rem);
-    height: 7.2rem;
+    width: 7.5rem;
+    height: 5.1rem;
     transform-style: preserve-3d;
+  }
+
+  @media (min-width: 768px) {
+    .finale-stage {
+      width: 11.25rem;
+      height: 7.4rem;
+    }
   }
 
   .finale-sheet {
@@ -1664,26 +1671,56 @@
 
   .envelope {
     position: absolute;
-    left: 1.4rem;
+    left: 0;
     bottom: 0;
-    width: 6.2rem;
-    height: 3.6rem;
-    transform-style: preserve-3d;
+    width: 7.5rem;
+    height: auto;
     opacity: 0;
   }
 
-  .envelope-body,
-  .envelope-flap {
-    position: absolute;
-    inset: 0;
-    border: 1px solid color-mix(in srgb, var(--color-line) 40%, transparent);
-    background: var(--color-surface);
+  @media (min-width: 768px) {
+    .envelope {
+      width: 11.25rem;
+    }
   }
 
-  .envelope-flap {
-    clip-path: polygon(0 0, 50% 55%, 100% 0);
-    background: color-mix(in srgb, var(--color-line) 12%, var(--color-surface));
-    transform-origin: top center;
+  .envelope-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .envelope-stroke {
+    fill: none;
+    stroke: var(--motion-ink);
+    stroke-width: var(--motion-stroke);
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .envelope-fill {
+    fill: var(--color-surface);
+  }
+
+  .envelope-flap-fill {
+    fill: color-mix(in srgb, var(--color-line) 10%, var(--color-surface));
+  }
+
+  .envelope-check-ring {
+    fill: var(--color-surface);
+    stroke: var(--motion-cta);
+    stroke-width: var(--motion-stroke);
+    vector-effect: non-scaling-stroke;
+  }
+
+  .envelope-check {
+    fill: none;
+    stroke: var(--motion-cta);
+    stroke-width: var(--motion-stroke);
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    vector-effect: non-scaling-stroke;
   }
 
   .finale-copy {
@@ -1699,8 +1736,10 @@
     visibility: visible;
   }
 
+  .contact-finale.is-done .finale-sheet,
   html.is-static-motion .finale-sheet {
-    opacity: 0.35;
+    opacity: 0;
+    visibility: hidden;
   }
 
   .explode-stage {

@@ -265,14 +265,29 @@ async function processStepReport(page) {
 async function finaleVisible(page) {
   return page.evaluate(() => {
     const msg = document.querySelector('[data-finale-msg]')
-    if (!msg) return { exists: false, opacity: 0, text: '' }
+    const envelope = document.querySelector('[data-envelope]')
+    const svg = envelope?.querySelector('svg')
+    if (!msg) return { exists: false, opacity: 0, text: '', envelope: false, envelopeW: 0 }
     const style = getComputedStyle(msg)
+    const envStyle = envelope ? getComputedStyle(envelope) : null
     const box = msg.getBoundingClientRect()
+    const envBox = envelope?.getBoundingClientRect()
     return {
       exists: true,
       text: msg.textContent?.trim() ?? '',
       opacity: Number(style.opacity),
       inView: box.top < window.innerHeight && box.bottom > 0,
+      envelope: Boolean(
+        svg &&
+          envStyle &&
+          Number(envStyle.opacity) >= 0.85 &&
+          envStyle.visibility !== 'hidden' &&
+          envBox &&
+          envBox.width >= 110 &&
+          envBox.bottom > 0 &&
+          envBox.top < window.innerHeight,
+      ),
+      envelopeW: Math.round(envBox?.width ?? 0),
     }
   })
 }
@@ -510,6 +525,7 @@ async function run() {
       assert(finale.exists, 'finale message missing')
       assert(finale.text.includes('megérkezett'), `finale text is ${finale.text}`)
       assert(finale.opacity >= 0.85 && finale.inView, `finale not visible ${JSON.stringify(finale)}`)
+      assert(finale.envelope && finale.envelopeW >= 150, `1440 envelope missing ${JSON.stringify(finale)}`)
 
       await clickNav('[data-nav="prices"]', 'arak')
       for (const id of ['megoldas', 'munkaim', 'rolam', 'kapcsolat']) {
@@ -557,6 +573,7 @@ async function run() {
       notes.push(`390 finale ${JSON.stringify(finale)}`)
       assert(finale.text.includes('megérkezett'), `390 finale text is ${finale.text}`)
       assert(finale.opacity >= 0.85 && finale.inView, `390 finale not visible ${JSON.stringify(finale)}`)
+      assert(finale.envelope && finale.envelopeW >= 110 && finale.envelopeW <= 140, `390 envelope missing ${JSON.stringify(finale)}`)
     })
 
     for (const viewport of [
@@ -698,6 +715,17 @@ async function run() {
         return hero.getAnimations({ subtree: true }).filter((a) => a.playState === 'running').length
       })
       assert(running === 0, `reduced-motion hero still has ${running} running animations`)
+      await jumpToSel(page, '#kapcsolat')
+      const finaleY = await page.evaluate(() => {
+        const el = document.querySelector('.contact-finale')
+        if (!el) return 0
+        return Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - Math.round(window.innerHeight * 0.38)))
+      })
+      await jumpTo(page, finaleY)
+      const finale = await finaleVisible(page)
+      notes.push(`390 reduced finale ${JSON.stringify(finale)}`)
+      assert(finale.envelope, `390 reduced envelope missing ${JSON.stringify(finale)}`)
+      assert(finale.text.includes('megérkezett'), `390 reduced finale text is ${finale.text}`)
     })
 
     await browser.close()
