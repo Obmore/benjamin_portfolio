@@ -19,6 +19,7 @@ export function Navbar() {
   const { content } = useI18n()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [pendingScrollId, setPendingScrollId] = useState<string | null>(null)
   const activeId = useActiveSection(navItems.map((item) => item.id))
 
   useEffect(() => {
@@ -43,9 +44,26 @@ export function Navbar() {
     }
   }, [menuOpen])
 
+  useEffect(() => {
+    if (menuOpen || pendingScrollId === null) return
+
+    const id = pendingScrollId
+    const frame = window.requestAnimationFrame(() => {
+      scrollToSection(id)
+      setPendingScrollId(null)
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [menuOpen, pendingScrollId])
+
   const handleNavClick = (id: string) => {
+    if (menuOpen) {
+      document.body.style.overflow = ''
+      setMenuOpen(false)
+      setPendingScrollId(id)
+      return
+    }
+
     scrollToSection(id)
-    setMenuOpen(false)
   }
 
   return (

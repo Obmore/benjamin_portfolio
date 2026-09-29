@@ -33,8 +33,19 @@ export function useActiveSection(sectionIds: string[]) {
   return activeId
 }
 
+const HEADER_OFFSET_PX = 96
+
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 export function scrollToSection(id: string) {
   const element = document.getElementById(id)
   if (!element) return
-  element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+  const top = window.scrollY + element.getBoundingClientRect().top - HEADER_OFFSET_PX
+  window.scrollTo({
+    top: Math.max(0, top),
+    behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+  })
 }
