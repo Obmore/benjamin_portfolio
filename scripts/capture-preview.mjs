@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from 'node:child_process'
-import { copyFileSync, existsSync, mkdirSync, readdirSync, renameSync, statSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, renameSync, statSync, unlinkSync } from 'node:fs'
 import { join } from 'node:path'
 import { chromium } from 'playwright'
 
@@ -7,6 +7,7 @@ const PORT = process.env.PREVIEW_PORT ?? '4173'
 const BASE = process.env.BASE_URL ?? `http://127.0.0.1:${PORT}/`
 const DOCS = join(process.cwd(), 'docs', 'preview')
 const ARTIFACTS = process.env.ARTIFACTS_DIR ?? '/opt/cursor/artifacts'
+const MAX_MP4 = 6 * 1024 * 1024
 
 function startPreview() {
   if (process.env.BASE_URL) return null
@@ -63,15 +64,6 @@ async function prepare(page) {
   ])
 }
 
-async function saveShot(page, destName, fullPage = false) {
-  mkdirSync(DOCS, { recursive: true })
-  mkdirSync(ARTIFACTS, { recursive: true })
-  const docsPath = join(DOCS, destName)
-  await page.screenshot({ path: docsPath, fullPage, animations: 'allow' })
-  copyFileSync(docsPath, join(ARTIFACTS, destName))
-  console.log(`wrote ${docsPath}`)
-}
-
 async function jumpScroll(page, y) {
   await page.evaluate((nextY) => {
     const lenis = window.__lenis
@@ -86,10 +78,6 @@ async function jumpScroll(page, y) {
   await page.waitForTimeout(480)
 }
 
-async function setScroll(page, y) {
-  await jumpScroll(page, y)
-}
-
 async function scrollToSel(page, sel, extra = 0) {
   const y = await page.evaluate(
     ({ selector, extraY }) => {
@@ -102,81 +90,108 @@ async function scrollToSel(page, sel, extra = 0) {
   await jumpScroll(page, y)
 }
 
+async function saveShot(page, destName) {
+  mkdirSync(DOCS, { recursive: true })
+  mkdirSync(ARTIFACTS, { recursive: true })
+  const docsPath = join(DOCS, destName)
+  await page.screenshot({ path: docsPath, fullPage: false, animations: 'allow' })
+  copyFileSync(docsPath, join(ARTIFACTS, destName))
+  console.log(`wrote ${docsPath}`)
+}
+
+async function scrollProcessMid(page) {
+  const y = await page.evaluate(() => {
+    const pin = document.querySelector('.process-pin')
+    if (!pin) return 0
+    const top = pin.getBoundingClientRect().top + window.scrollY
+    const height = pin.getBoundingClientRect().height
+    return Math.max(0, Math.round(top + height * 0.45 - 80))
+  })
+  await jumpScroll(page, y)
+}
+
+async function scrollContactEnd(page) {
+  const y = await page.evaluate(() => {
+    const el = document.querySelector('.contact-finale')
+    if (!el) return 0
+    return Math.max(
+      0,
+      Math.round(el.getBoundingClientRect().top + window.scrollY - Math.round(window.innerHeight * 0.36)),
+    )
+  })
+  await jumpScroll(page, y)
+  const visible = await page.evaluate(() => {
+    const msg = document.querySelector('[data-finale-msg]')
+    if (!msg) return false
+    const style = getComputedStyle(msg)
+    const box = msg.getBoundingClientRect()
+    return (
+      Number(style.opacity) >= 0.85 &&
+      style.visibility !== 'hidden' &&
+      box.top < window.innerHeight &&
+      box.bottom > 0
+    )
+  })
+  if (!visible) {
+    const maxY = await page.evaluate(() =>
+      Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
+    )
+    await jumpScroll(page, maxY)
+  }
+  await page.waitForTimeout(350)
+}
+
 async function shotSet(page, width, height) {
   await page.setViewportSize({ width, height })
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await prepare(page)
-  await setScroll(page, 0)
-  await page.waitForTimeout(280)
-  await saveShot(page, `hero_top_${width}x${height}.png`)
-  if (width >= 900) {
-    await setScroll(page, Math.round(height * 0.48))
-    await saveShot(page, `hero_morph_${width}x${height}.png`)
-    await setScroll(page, Math.round(height * 1.2))
-    await saveShot(page, `hero_end_${width}x${height}.png`)
-  } else {
-    const stageY = await page.evaluate(() => {
-      const stage = document.querySelector('.paper-stage')
-      if (!stage) return 280
-      return Math.max(0, Math.round(stage.getBoundingClientRect().top + window.scrollY - 80))
-    })
-    await setScroll(page, stageY)
-    await saveShot(page, `hero_morph_${width}x${height}.png`)
-    await setScroll(page, stageY + 220)
-    await saveShot(page, `hero_end_${width}x${height}.png`)
-  }
-  await scrollToSel(page, '#problema')
-  await saveShot(page, `problem_${width}x${height}.png`)
+  await jumpScroll(page, 0)
   await scrollToSel(page, '#megoldas', width >= 900 ? 160 : 40)
   await page.waitForTimeout(900)
   await saveShot(page, `solution_${width}x${height}.png`)
   await scrollToSel(page, '#ajanlatkero-minta')
   await saveShot(page, `tryit_${width}x${height}.png`)
-  await scrollToSel(page, '#folyamat', width >= 900 ? 80 : 0)
+  await scrollProcessMid(page)
   await saveShot(page, `process_${width}x${height}.png`)
   await scrollToSel(page, '#munkaim')
   await saveShot(page, `work_${width}x${height}.png`)
-  await scrollToSel(page, '#arak')
-  await saveShot(page, `prices_${width}x${height}.png`)
-  await scrollToSel(page, '#rolam')
-  await saveShot(page, `about_${width}x${height}.png`)
-  await scrollToSel(page, '#kapcsolat', width >= 900 ? 240 : 180)
-  await page.waitForTimeout(400)
-  await saveShot(page, `contact_${width}x${height}.png`)
-  await setScroll(page, 0)
-  await saveShot(page, `full_${width}.png`, true)
+  await scrollContactEnd(page)
+  await saveShot(page, `contact_end_${width}x${height}.png`)
 }
 
-async function saveVideo(page, context, destName) {
-  const video = page.video()
-  await page.close()
-  await context.close()
-  if (!video) return null
-  const src = await video.path()
-  const dest = join(ARTIFACTS, destName)
-  try {
-    renameSync(src, dest)
-  } catch {
-    copyFileSync(src, dest)
+function encodeMp4(src, dest) {
+  const attempts = [
+    ['-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'medium', '-crf', '28', '-movflags', '+faststart', '-an'],
+    ['-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'medium', '-crf', '32', '-movflags', '+faststart', '-an'],
+    [
+      '-c:v',
+      'libx264',
+      '-pix_fmt',
+      'yuv420p',
+      '-preset',
+      'medium',
+      '-crf',
+      '34',
+      '-vf',
+      'fps=20',
+      '-movflags',
+      '+faststart',
+      '-an',
+    ],
+  ]
+  for (const args of attempts) {
+    const tmp = `${dest}.tmp.mp4`
+    const result = spawnSync('ffmpeg', ['-y', '-i', src, ...args, tmp], { stdio: 'inherit' })
+    if (result.status === 0 && existsSync(tmp)) {
+      renameSync(tmp, dest)
+      const size = statSync(dest).size
+      console.log(`encoded ${dest} ${(size / 1024 / 1024).toFixed(2)} MB`)
+      if (size <= MAX_MP4) return true
+    } else if (existsSync(tmp)) {
+      unlinkSync(tmp)
+    }
   }
-  console.log(`wrote ${dest}`)
-  return dest
-}
-
-function compressWebm(path) {
-  if (!existsSync(path)) return
-  const size = statSync(path).size
-  if (size < 12 * 1024 * 1024) return
-  const tmp = `${path}.tmp.webm`
-  const result = spawnSync(
-    'ffmpeg',
-    ['-y', '-i', path, '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '36', '-an', tmp],
-    { stdio: 'inherit' },
-  )
-  if (result.status === 0 && existsSync(tmp)) {
-    renameSync(tmp, path)
-    console.log(`compressed ${path}`)
-  }
+  return existsSync(dest) && statSync(dest).size <= MAX_MP4
 }
 
 async function recordScroll(browser, width, height, destName) {
@@ -202,7 +217,7 @@ async function recordScroll(browser, width, height, destName) {
   const maxY = await page.evaluate(() =>
     Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
   )
-  const steps = 26
+  const steps = width >= 900 ? 28 : 24
   for (let i = 1; i <= steps; i += 1) {
     await page.evaluate(
       ({ next, total, end }) => {
@@ -212,58 +227,27 @@ async function recordScroll(browser, width, height, destName) {
       },
       { next: i, total: steps, end: maxY },
     )
-    await page.waitForTimeout(200)
+    await page.waitForTimeout(width >= 900 ? 180 : 160)
   }
-  await page.waitForTimeout(400)
-  const dest = await saveVideo(page, context, destName)
-  if (dest) compressWebm(dest)
-}
-
-async function recordHeroStory(browser) {
-  const width = 1440
-  const height = 900
-  const context = await browser.newContext({
-    viewport: { width, height },
-    colorScheme: 'light',
-    locale: 'hu-HU',
-    reducedMotion: 'no-preference',
-    recordVideo: {
-      dir: ARTIFACTS,
-      size: { width, height },
-    },
-  })
-  await context.addInitScript(() => {
-    window.__MOTION_PROFILE__ = 'full'
-    localStorage.setItem('portfolio-locale', 'hu')
-    document.documentElement.classList.remove('dark')
-  })
-  const page = await context.newPage()
-  await prepare(page)
-  await page.evaluate(() => window.scrollTo(0, 0))
   await page.waitForTimeout(500)
-  const end = Math.round(height * 1.45)
-  const steps = 24
-  for (let i = 1; i <= steps; i += 1) {
-    await page.evaluate(
-      ({ next, total, dest }) => {
-        const y = Math.round((next / total) * dest)
-        if (window.__lenis?.scrollTo) window.__lenis.scrollTo(y, { immediate: true, force: true })
-        else window.scrollTo(0, y)
-      },
-      { next: i, total: steps, dest: end },
-    )
-    await page.waitForTimeout(380)
+  const video = page.video()
+  await page.close()
+  await context.close()
+  if (!video) throw new Error(`no video for ${destName}`)
+  const src = await video.path()
+  const dest = join(ARTIFACTS, destName)
+  const ok = encodeMp4(src, dest)
+  try {
+    if (src && existsSync(src) && src !== dest) unlinkSync(src)
+  } catch {
+    // source already consumed
   }
-  await page.waitForTimeout(800)
-  const webm = await saveVideo(page, context, 'hero_story_1440x900.webm')
-  if (!webm) return
-  const mp4 = join(ARTIFACTS, 'hero_story_1440x900.mp4')
-  const converted = spawnSync(
-    'ffmpeg',
-    ['-y', '-i', webm, '-t', '11', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '26', '-an', mp4],
-    { stdio: 'inherit' },
-  )
-  if (converted.status === 0) console.log(`wrote ${mp4}`)
+  if (!ok) {
+    const size = existsSync(dest) ? statSync(dest).size : 0
+    throw new Error(`${destName} is ${(size / 1024 / 1024).toFixed(2)} MB (limit 6 MB)`)
+  }
+  copyFileSync(dest, join(DOCS, destName))
+  console.log(`wrote ${dest}`)
 }
 
 async function run() {
@@ -294,75 +278,27 @@ async function run() {
       document.documentElement.classList.remove('dark')
     })
     const page = await context.newPage()
-    if (process.env.CAPTURE_FOCUS === 'problem') {
-      await page.setViewportSize({ width: 1440, height: 900 })
-      await page.emulateMedia({ reducedMotion: 'no-preference' })
-      await prepare(page)
-      await scrollToSel(page, '#problema')
-      await saveShot(page, 'problem_1440x900.png')
-      await page.setViewportSize({ width: 390, height: 844 })
-      await prepare(page)
-      await scrollToSel(page, '#problema')
-      await saveShot(page, 'problem_390x844.png')
-      await context.close()
-      await browser.close()
-      for (const name of ['problem_1440x900.png', 'problem_390x844.png']) {
-        console.log(`artifact ${join(ARTIFACTS, name)}`)
-      }
-      stopPreview(preview)
-      clearTimeout(killer)
-      process.exit(0)
-    }
-    if (process.env.CAPTURE_FOCUS === 'rail-problem') {
-      await page.setViewportSize({ width: 1440, height: 900 })
-      await page.emulateMedia({ reducedMotion: 'no-preference' })
-      await prepare(page)
-      await setScroll(page, Math.round(900 * 1.2))
-      await saveShot(page, 'hero_end_1440x900.png')
-      await scrollToSel(page, '#problema')
-      await saveShot(page, 'problem_1440x900.png')
-      await page.setViewportSize({ width: 390, height: 844 })
-      await prepare(page)
-      await scrollToSel(page, '#problema')
-      await saveShot(page, 'problem_390x844.png')
-      await context.close()
-      await recordScroll(browser, 1440, 900, 'scroll_1440x900.webm')
-      await browser.close()
-      for (const name of [
-        'scroll_1440x900.webm',
-        'problem_1440x900.png',
-        'problem_390x844.png',
-        'hero_end_1440x900.png',
-      ]) {
-        console.log(`artifact ${join(ARTIFACTS, name)}`)
-      }
-      stopPreview(preview)
-      clearTimeout(killer)
-      process.exit(0)
-    }
     await shotSet(page, 1440, 900)
     await shotSet(page, 390, 844)
-    await page.setViewportSize({ width: 1440, height: 900 })
-    await setScroll(page, 0)
-    await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'no-preference' })
-    await page.waitForTimeout(200)
-    await saveShot(page, 'hero_os_dark_pref_1440x900.png')
-    await page.setViewportSize({ width: 390, height: 844 })
-    await page.emulateMedia({ reducedMotion: 'reduce' })
-    await context.addInitScript(() => {
-      window.__MOTION_PROFILE__ = 'static'
-    })
-    await prepare(page)
-    await saveShot(page, 'full_390_reduced_motion.png', true)
     await context.close()
-    await recordScroll(browser, 1440, 900, 'scroll_1440x900.webm')
-    await recordScroll(browser, 390, 844, 'scroll_390x844.webm')
-    await recordHeroStory(browser)
+    await recordScroll(browser, 390, 844, 'scroll_390x844.mp4')
+    await recordScroll(browser, 1440, 900, 'scroll_1440x900.mp4')
     await browser.close()
-    for (const name of readdirSync(ARTIFACTS)) {
-      if (name.endsWith('.webm') || name.endsWith('.png') || name.endsWith('.mp4')) {
-        console.log(`artifact ${join(ARTIFACTS, name)}`)
-      }
+    for (const name of [
+      'scroll_390x844.mp4',
+      'scroll_1440x900.mp4',
+      'solution_1440x900.png',
+      'solution_390x844.png',
+      'tryit_1440x900.png',
+      'tryit_390x844.png',
+      'process_1440x900.png',
+      'process_390x844.png',
+      'work_1440x900.png',
+      'work_390x844.png',
+      'contact_end_1440x900.png',
+      'contact_end_390x844.png',
+    ]) {
+      console.log(`artifact ${join(ARTIFACTS, name)}`)
     }
   } finally {
     stopPreview(preview)

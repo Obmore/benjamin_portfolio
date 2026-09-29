@@ -15,7 +15,6 @@ export function Process() {
   useLayoutEffect(() => {
     const pin = pinRef.current
     if (!pin) return
-    const board = pin.querySelector<HTMLElement>('[data-process-board]')
     const line = pin.querySelector<HTMLElement>('[data-process-line]')
     const steps = [...pin.querySelectorAll<HTMLElement>('[data-process-step]')]
 
@@ -36,51 +35,41 @@ export function Process() {
       const mm = gsap.matchMedia()
 
       mm.add(mobileMotionQuery(), () => {
-        if (line) {
-          gsap.fromTo(
-            line,
-            { scaleY: 0 },
-            {
-              scaleY: 1,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: pin,
-                start: 'top 75%',
-                end: 'bottom 45%',
-                scrub: true,
-                onUpdate: (self) => setActive(self.progress),
-              },
+        if (!line) return
+        gsap.fromTo(
+          line,
+          { scaleY: 0 },
+          {
+            scaleY: 1,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: pin,
+              start: 'top 75%',
+              end: 'bottom 45%',
+              scrub: true,
+              onUpdate: (self) => setActive(self.progress),
             },
-          )
-        }
-        gsap.from(steps, {
-          y: 16,
-          stagger: 0.1,
-          duration: 0.4,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: pin,
-            start: 'top 72%',
-            once: true,
           },
-        })
+        )
       })
 
       mm.add(desktopMotionQuery(), () => {
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: board ?? pin,
-            start: 'center center',
-            end: () => `+=${Math.round(window.innerHeight * 0.56)}`,
-            pin: true,
-            scrub: 0.5,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-            onUpdate: (self) => setActive(self.progress),
+        if (!line) return
+        gsap.fromTo(
+          line,
+          { scaleX: 0 },
+          {
+            scaleX: 1,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: pin,
+              start: 'top 28%',
+              end: 'bottom 60%',
+              scrub: 0.45,
+              onUpdate: (self) => setActive(self.progress),
+            },
           },
-        })
-        if (line) tl.fromTo(line, { scaleX: 0 }, { scaleX: 1, ease: 'none' }, 0)
-        return () => tl.kill()
+        )
       })
     }, pin)
     return () => ctx.revert()

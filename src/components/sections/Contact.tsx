@@ -25,18 +25,34 @@ export function Contact() {
 
   useLayoutEffect(() => {
     const finale = finaleRef.current
-    if (!finale || reduced) return
+    if (!finale) return
+    if (reduced) {
+      finale.classList.add('is-done')
+      return
+    }
     const sheet = finale.querySelector<HTMLElement>('[data-finale-sheet]')
     const envelope = finale.querySelector<HTMLElement>('[data-envelope]')
     const flap = finale.querySelector<HTMLElement>('[data-envelope-flap]')
     const message = finale.querySelector<HTMLElement>('[data-finale-msg]')
     const ctx = gsap.context(() => {
+      const showFinale = () => {
+        finale.classList.add('is-done')
+        if (message) gsap.set(message, { opacity: 1, y: 0, visibility: 'visible' })
+        if (envelope) gsap.set(envelope, { opacity: 1, y: 0, scale: 1, visibility: 'visible' })
+      }
+      const markDone = (progress: number) => {
+        if (progress >= 0.72) showFinale()
+        else finale.classList.remove('is-done')
+      }
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: finale,
-          start: 'top 82%',
-          end: 'top 28%',
+          start: 'top 84%',
+          end: 'top 62%',
           scrub: true,
+          onUpdate: (self) => markDone(self.progress),
+          onRefresh: (self) => markDone(self.progress),
+          onLeave: showFinale,
         },
       })
       tl.fromTo(
@@ -47,14 +63,19 @@ export function Contact() {
       )
       tl.fromTo(
         envelope,
-        { autoAlpha: 0, y: 18, scale: 0.9 },
-        { autoAlpha: 1, y: 0, scale: 1, ease: 'none' },
-        0.28,
+        { opacity: 0, y: 18, scale: 0.9 },
+        { opacity: 1, y: 0, scale: 1, ease: 'none' },
+        0.22,
       )
       if (flap) {
-        tl.fromTo(flap, { rotateX: -70 }, { rotateX: 0, ease: 'none' }, 0.42)
+        tl.fromTo(flap, { rotateX: -70 }, { rotateX: 0, ease: 'none' }, 0.38)
       }
-      tl.fromTo(message, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, ease: 'none' }, 0.58)
+      tl.fromTo(
+        message,
+        { opacity: 0, y: 10, visibility: 'visible' },
+        { opacity: 1, y: 0, visibility: 'visible', ease: 'none' },
+        0.42,
+      )
     }, finale)
     return () => ctx.revert()
   }, [reduced])

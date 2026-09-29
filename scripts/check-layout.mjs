@@ -219,6 +219,64 @@ async function problemTextHits(page) {
   })
 }
 
+async function processStepReport(page) {
+  return page.evaluate(() => {
+    const inView = (el, minOpacity = 0.12) => {
+      const box = el.getBoundingClientRect()
+      const style = getComputedStyle(el)
+      return (
+        box.height > 2 &&
+        box.width > 2 &&
+        box.bottom > 8 &&
+        box.top < window.innerHeight - 8 &&
+        style.visibility !== 'hidden' &&
+        style.display !== 'none' &&
+        Number(style.opacity) > minOpacity
+      )
+    }
+    const nodes = [...document.querySelectorAll('[data-process-step]')]
+    const titleEls = [...document.querySelectorAll('.process-node-title')]
+    const visibleTitles = titleEls.filter((el) => inView(el)).map((el) => el.textContent?.trim() ?? '')
+    const counts = {}
+    for (const text of visibleTitles) {
+      if (!text) continue
+      counts[text] = (counts[text] || 0) + 1
+    }
+    const section = document.getElementById('folyamat')
+    const pinSpacers = [...document.querySelectorAll('.pin-spacer')].filter((el) => {
+      if (section && section.contains(el)) return true
+      const box = el.getBoundingClientRect()
+      const sectionBox = section?.getBoundingClientRect()
+      if (!sectionBox) return false
+      return box.bottom > sectionBox.top && box.top < sectionBox.bottom
+    })
+    return {
+      dom: nodes.length,
+      titleNodes: titleEls.length,
+      visible: visibleTitles,
+      duplicates: Object.entries(counts)
+        .filter(([, count]) => count > 1)
+        .map(([text]) => text),
+      pinSpacers: pinSpacers.length,
+    }
+  })
+}
+
+async function finaleVisible(page) {
+  return page.evaluate(() => {
+    const msg = document.querySelector('[data-finale-msg]')
+    if (!msg) return { exists: false, opacity: 0, text: '' }
+    const style = getComputedStyle(msg)
+    const box = msg.getBoundingClientRect()
+    return {
+      exists: true,
+      text: msg.textContent?.trim() ?? '',
+      opacity: Number(style.opacity),
+      inView: box.top < window.innerHeight && box.bottom > 0,
+    }
+  })
+}
+
 async function activeRail(page) {
   return page.evaluate(() => {
     const active = document.querySelector('.story-rail-item.is-active')
@@ -341,10 +399,93 @@ async function run() {
           { timeout: 8000 },
         )
       }
+      const processStops = [0, 0.2, 0.4, 0.6, 0.8, 1]
+      const pinTop = await page.evaluate(() => {
+        const pin = document.querySelector('.process-pin')
+        if (!pin) return 0
+        return Math.max(0, Math.round(pin.getBoundingClientRect().top + window.scrollY - 72))
+      })
+      const pinHeight = await page.evaluate(() => document.querySelector('.process-pin')?.getBoundingClientRect().height ?? 0)
+      for (const part of processStops) {
+        await jumpTo(page, pinTop + Math.round(pinHeight * part))
+        const report = await processStepReport(page)
+        notes.push(
+          `1440 process ${part} dom=${report.dom} titles=${report.titleNodes} pin=${report.pinSpacers} visible=${report.visible.join('|')}`,
+        )
+        assert(report.dom === 4, `1440 process DOM count ${report.dom}`)
+        assert(report.titleNodes === 4, `1440 process title nodes ${report.titleNodes}`)
+        assert(report.pinSpacers === 0, `1440 process pin-spacer count ${report.pinSpacers}`)
+        assert(report.duplicates.length === 0, `1440 process duplicate titles: ${report.duplicates.join(', ')}`)
+      }
+
+      await jumpToSel(page, '#kapcsolat')
+      const finaleY = await page.evaluate(() => {
+        const el = document.querySelector('.contact-finale')
+        if (!el) return 0
+        return Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - Math.round(window.innerHeight * 0.38)))
+      })
+      await jumpTo(page, finaleY)
+      await page.waitForTimeout(400)
+      let finale = await finaleVisible(page)
+      if (finale.opacity < 0.85) {
+        const maxY = await page.evaluate(() =>
+          Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
+        )
+        await jumpTo(page, maxY)
+        await page.waitForTimeout(350)
+        finale = await finaleVisible(page)
+      }
+      notes.push(`1440 finale ${JSON.stringify(finale)}`)
+      assert(finale.exists, 'finale message missing')
+      assert(finale.text.includes('megérkezett'), `finale text is ${finale.text}`)
+      assert(finale.opacity >= 0.85 && finale.inView, `finale not visible ${JSON.stringify(finale)}`)
+
       await clickNav('[data-nav="prices"]', 'arak')
       for (const id of ['megoldas', 'munkaim', 'rolam', 'kapcsolat']) {
         await clickNav(`[data-nav-link="${id}"]`, id)
       }
+    })
+
+    await withPage(browser, { width: 390, height: 844 }, false, async (page) => {
+      await ready(page)
+      const pinTop = await page.evaluate(() => {
+        const pin = document.querySelector('.process-pin')
+        if (!pin) return 0
+        return Math.max(0, Math.round(pin.getBoundingClientRect().top + window.scrollY - 72))
+      })
+      const pinHeight = await page.evaluate(
+        () => document.querySelector('.process-pin')?.getBoundingClientRect().height ?? 0,
+      )
+      for (const part of [0, 0.25, 0.5, 0.75, 1]) {
+        await jumpTo(page, pinTop + Math.round(pinHeight * part))
+        const report = await processStepReport(page)
+        notes.push(
+          `390 process ${part} dom=${report.dom} titles=${report.titleNodes} pin=${report.pinSpacers} visible=${report.visible.join('|')}`,
+        )
+        assert(report.dom === 4, `390 process DOM count ${report.dom}`)
+        assert(report.titleNodes === 4, `390 process title nodes ${report.titleNodes}`)
+        assert(report.pinSpacers === 0, `390 process pin-spacer count ${report.pinSpacers}`)
+        assert(report.duplicates.length === 0, `390 process duplicate titles: ${report.duplicates.join(', ')}`)
+      }
+      const finaleY = await page.evaluate(() => {
+        const el = document.querySelector('.contact-finale')
+        if (!el) return 0
+        return Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - Math.round(window.innerHeight * 0.38)))
+      })
+      await jumpTo(page, finaleY)
+      await page.waitForTimeout(400)
+      let finale = await finaleVisible(page)
+      if (finale.opacity < 0.85) {
+        const maxY = await page.evaluate(() =>
+          Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
+        )
+        await jumpTo(page, maxY)
+        await page.waitForTimeout(350)
+        finale = await finaleVisible(page)
+      }
+      notes.push(`390 finale ${JSON.stringify(finale)}`)
+      assert(finale.text.includes('megérkezett'), `390 finale text is ${finale.text}`)
+      assert(finale.opacity >= 0.85 && finale.inView, `390 finale not visible ${JSON.stringify(finale)}`)
     })
 
     for (const viewport of [
