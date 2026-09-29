@@ -1,20 +1,19 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { motion, type HTMLMotionProps } from 'framer-motion'
 
 const variantStyles = {
-  primary: 'bg-cta text-white hover:bg-[#9a3412]',
+  primary:
+    'bg-accent text-white shadow-lg shadow-accent/20 hover:shadow-accent/35 hover:bg-accent/90',
   outline:
-    'border border-line/40 bg-surface text-foreground hover:border-line hover:bg-line/5',
-  ghost: 'text-foreground hover:bg-line/10',
+    'border border-accent/30 bg-surface/60 text-foreground hover:border-accent hover:bg-accent/5',
+  ghost: 'text-foreground hover:bg-accent/10',
 } as const
 
 type ButtonVariant = keyof typeof variantStyles
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends HTMLMotionProps<'button'> {
   variant?: ButtonVariant
   href?: string
   external?: boolean
-  children: ReactNode
-  'data-cta'?: string
 }
 
 export function Button({
@@ -23,35 +22,33 @@ export function Button({
   external,
   className = '',
   children,
-  type = 'button',
-  'data-cta': dataCta,
   ...props
 }: ButtonProps) {
-  const classes = `inline-flex min-h-12 items-center justify-center gap-2 rounded-[6px] px-5 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${className}`
-  const motionStyle = {
-    transitionDuration: 'var(--motion-short)',
-    transitionTimingFunction: 'var(--motion-ease)',
-    transitionProperty: 'background-color, border-color, color, opacity',
-  }
+  const classes = `inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${className}`
 
   if (href) {
     return (
-      <a
+      <motion.a
         href={href}
         target={external ? '_blank' : undefined}
         rel={external ? 'noopener noreferrer' : undefined}
         className={classes}
-        style={motionStyle}
-        data-cta={dataCta}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
       >
         {children}
-      </a>
+      </motion.a>
     )
   }
 
   return (
-    <button type={type} className={classes} style={motionStyle} data-cta={dataCta} {...props}>
+    <motion.button
+      className={classes}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      {...props}
+    >
       {children}
-    </button>
+    </motion.button>
   )
 }

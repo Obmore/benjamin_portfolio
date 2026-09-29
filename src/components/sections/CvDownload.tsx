@@ -1,26 +1,19 @@
 import { useI18n } from '@/context/I18nContext'
 import { Button } from '@/components/ui/Button'
-import { Panel } from '@/components/ui/Panel'
-import { Reveal } from '@/components/ui/Reveal'
+import { Card } from '@/components/ui/Card'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
-import { CV_EN_PATH, CV_HU_PATH, LINKEDIN_URL, SECTION_IDS, SECTION_NUMBERS } from '@/lib/constants'
+import { CV_EN_PATH, CV_HU_PATH, LINKEDIN_URL, SECTION_IDS } from '@/lib/constants'
 
 export function CvDownload() {
   const { content } = useI18n()
 
   return (
     <SectionWrapper id={SECTION_IDS.cv}>
-      <SectionHeading
-        number={SECTION_NUMBERS.cv}
-        title={content.cv.title}
-        label={content.nav.cv}
-      />
-      <Panel>
-        <Reveal>
-          <p className="max-w-2xl text-muted leading-relaxed">{content.cv.text}</p>
-        </Reveal>
-        <div className="mt-6 flex flex-wrap gap-3">
+      <SectionHeading title={content.cv.title} label={content.nav.cv} />
+      <Card className="text-center md:text-left">
+        <p className="max-w-2xl text-muted leading-relaxed">{content.cv.text}</p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
           <Button href={CV_HU_PATH} external>
             {content.cv.downloadHu}
           </Button>
@@ -31,7 +24,7 @@ export function CvDownload() {
             {content.cv.linkedIn}
           </Button>
         </div>
-      </Panel>
+      </Card>
     </SectionWrapper>
   )
 }

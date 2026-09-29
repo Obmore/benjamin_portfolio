@@ -9,10 +9,9 @@ import {
   type QuoteFormField,
   type QuoteFormValues,
 } from '@/lib/quoteForm'
-import type { QuoteFormCopy } from '@/data/types'
 
 const FIELD_CLASS =
-  'w-full rounded-[6px] border border-line/30 bg-surface px-4 py-2.5 text-foreground outline-none transition-colors focus:border-line disabled:opacity-60'
+  'w-full rounded-xl border border-border/70 bg-surface/70 px-4 py-2.5 text-foreground outline-none transition-colors focus:border-accent disabled:opacity-60'
 const ERROR_FIELD_CLASS = 'border-red-500/70 focus:border-red-500'
 
 const FIELD_ORDER: QuoteFormField[] = [
@@ -105,15 +104,13 @@ export function QuoteRequestForm() {
       aria-labelledby="quote-form-heading"
     >
       <div
-        className="rounded-[6px] border border-line/30 bg-background px-4 py-3 text-sm leading-relaxed text-muted"
+        className="rounded-xl border border-cyan/40 bg-cyan/5 px-4 py-3 text-sm leading-relaxed text-muted"
         role="status"
       >
         {live ? copy.liveBanner : copy.demoBanner}
       </div>
 
-      <div className="quote-live">
-        <div className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <TextField
           id="quote-name"
           label={copy.fields.name}
@@ -236,7 +233,7 @@ export function QuoteRequestForm() {
           />
           <label
             htmlFor="quote-file"
-            className={`inline-flex cursor-pointer items-center justify-center rounded-[6px] border border-line/30 bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-line peer-focus-visible:border-line peer-focus-visible:ring-2 peer-focus-visible:ring-line peer-focus-visible:ring-offset-2 ${
+            className={`inline-flex cursor-pointer items-center justify-center rounded-xl border border-border/70 bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent/50 peer-focus-visible:border-accent peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2 ${
               submitting ? 'pointer-events-none cursor-not-allowed opacity-60' : ''
             }`}
           >
@@ -273,23 +270,15 @@ export function QuoteRequestForm() {
         <FieldError id="quote-consent-error" message={errors.consent} />
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center">
-        <Button type="submit" disabled={submitting}>
-          {submitting ? copy.submitting : copy.submit}
-        </Button>
-        <p className="text-sm leading-relaxed text-muted" aria-hidden="true">
-          {live ? copy.liveBanner : copy.demoBanner}
-        </p>
-      </div>
+      <Button type="submit" disabled={submitting}>
+        {submitting ? copy.submitting : copy.submit}
+      </Button>
 
       {submitError ? (
         <p className="text-sm text-red-500" role="alert">
           {copy.error}
         </p>
       ) : null}
-        </div>
-        <MailPreview values={values} copy={copy} />
-      </div>
     </form>
   )
 }
@@ -370,80 +359,5 @@ function FieldError({ id, message }: { id: string; message?: string }) {
     <p id={id} className="mt-1 text-xs text-red-500">
       {message}
     </p>
-  )
-}
-
-function MailPreview({
-  values,
-  copy,
-}: {
-  values: QuoteFormValues
-  copy: QuoteFormCopy
-}) {
-  const name = values.name.trim() || copy.sampleName
-  const company = values.company.trim() || copy.sampleCompany
-  const email = values.email.trim() || copy.sampleEmail
-  const phone = values.phone.trim() || copy.samplePhone
-  const material =
-    copy.materials.find((item) => item.value === values.material)?.label ||
-    copy.materials.find((item) => item.value === 'fa')?.label ||
-    '—'
-  const quantityValue = values.quantity.trim() || copy.sampleQuantity
-  const quantity = quantityValue.endsWith(copy.previewQuantityUnit.trim())
-    ? quantityValue
-    : `${quantityValue}${copy.previewQuantityUnit}`
-  const notes = values.notes.trim() || copy.sampleNotes
-  const file = values.file?.name || copy.previewFileNone
-
-  return (
-    <aside className="mail-preview" aria-live="polite">
-      <p className="mail-preview-title">{copy.previewTitle}</p>
-      <div className="mail-preview-window">
-        <dl className="mail-preview-headers">
-          <div>
-            <dt>{copy.previewFrom}</dt>
-            <dd>
-              <span>{name}</span>
-              <span className="mail-preview-meta">{company}</span>
-              <span className="mail-preview-meta">{email}</span>
-            </dd>
-          </div>
-          <div>
-            <dt>{copy.previewTo}</dt>
-            <dd>{copy.previewRecipient}</dd>
-          </div>
-          <div>
-            <dt>{copy.previewSubjectLabel}</dt>
-            <dd>{copy.previewSubject}</dd>
-          </div>
-        </dl>
-        <div className="mail-preview-body">
-          <p>
-            {copy.fields.name}: {name}
-          </p>
-          <p>
-            {copy.fields.company}: {company}
-          </p>
-          <p>
-            {copy.fields.email}: {email}
-          </p>
-          <p>
-            {copy.fields.phone}: {phone}
-          </p>
-          <p>
-            {copy.fields.material}: {material}
-          </p>
-          <p>
-            {copy.fields.quantity}: {quantity}
-          </p>
-          <p>
-            {copy.fields.notes}: {notes}
-          </p>
-          <p>
-            {copy.fields.file}: {file}
-          </p>
-        </div>
-      </div>
-    </aside>
   )
 }

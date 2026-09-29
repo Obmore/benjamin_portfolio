@@ -19,10 +19,6 @@ export const contentEn: SiteContent = {
     headline: 'electrical engineer and software developer',
     subheadline:
       'Python, full-stack development, industrial communication, energy systems, telecommunications R&D and technical project management in one profile.',
-    offerHeadline: 'Your customer fills it in. You receive it in one place.',
-    offerLead: 'A web quote and order form. Every field arrives together.',
-    pricesJump: 'Prices',
-    sheetLabel: 'Sheet 1',
     ctaContact: 'Get in touch',
     ctaCv: 'Download resume',
     ctaLinkedIn: 'LinkedIn profile',
@@ -39,12 +35,6 @@ export const contentEn: SiteContent = {
       'Telecom',
       'R&D',
     ],
-    morphAria:
-      'Illustration: the columns of an Excel order sheet become the fields of a web quote form.',
-    morphFile: 'order-sheet.xlsx',
-    compareBefore: 'Before',
-    compareAfter: 'After',
-    compareAria: 'Comparison of an Excel order sheet and a web quote form',
   },
   about: {
     title: 'About',
@@ -182,12 +172,6 @@ export const contentEn: SiteContent = {
   },
   projects: {
     title: 'My work',
-    sampleBadge: 'Sample',
-    explode: {
-      structure: 'Structure',
-      content: 'Content',
-      finished: 'Finished page',
-    },
     items: [
       {
         id: 'anettesvendi',
@@ -219,20 +203,45 @@ export const contentEn: SiteContent = {
         alt: 'Életrendező introduction site landing screen with contact buttons',
       },
       {
-        id: 'hotel-rental',
-        title: 'Hotel vehicle rental system',
-        subtitle: 'Automated rental of electric scooters and bikes for hotels',
-        tag: 'Team project',
+        id: 'piktor',
+        title: 'Piktor 94',
+        subtitle: 'Product-data sample for a webshop',
+        site: {
+          label: 'obmore.github.io/piktor-content-pilot',
+          href: 'https://obmore.github.io/piktor-content-pilot',
+        },
         paragraphs: [
-          'I worked on the hotel rental web interface, the server-side system, remote control of the e-bikes and the charging station software.',
+          'A working sample for a webshop. It matches products by manufacturer part number, builds a Hungarian product description from source-backed data, and flags any missing field. It hands over the result in a review table and in a form that can be uploaded to the webshop.',
         ],
-        tech: 'Technology: React, TypeScript, .NET, Azure, Raspberry Pi, Python.',
+        tech: 'Technology: JavaScript, Python, automated tests.',
+        image: 'work/piktor.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Piktor 94 product-data sample: product descriptions and missing-data review',
+      },
+      {
+        id: 'ottbenjamin',
+        title: 'ottbenjamin.hu',
+        subtitle: 'Own professional site',
+        paragraphs: [
+          'A Hungarian and English site, readable in light and dark mode. Its code is public: github.com/Obmore/benjamin_portfolio',
+        ],
+        tech: 'Technology: React 19, TypeScript, Vite, Tailwind CSS, Framer Motion.',
+        image: 'work/ottbenjamin.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'ottbenjamin.hu professional site landing screen',
+        links: [
+          {
+            label: 'github.com/Obmore/benjamin_portfolio',
+            href: 'https://github.com/Obmore/benjamin_portfolio',
+          },
+        ],
       },
       {
         id: 'lelek-es-nyelv',
         title: 'Lélek & Nyelv',
         subtitle: 'Sample introduction site',
-        sample: true,
         site: {
           label: 'obmore.github.io/lelek-es-nyelv-portfolio',
           href: 'https://obmore.github.io/lelek-es-nyelv-portfolio',
@@ -257,35 +266,13 @@ export const contentEn: SiteContent = {
   },
   services: {
     title: 'A web quote form instead of a downloadable Excel order sheet',
-    sectionTitle: 'Services and prices',
     lead: 'If your customers currently request a quote on a downloadable Excel or PDF order sheet, or by email, I replace that with a simple web form on your site.',
     problem:
       'Manual quoting takes a lot of time. The customer downloads the spreadsheet, fills it in and attaches it, and the company then retypes what arrived. With a web form every piece of data arrives together and complete.',
-    problemHighlight: 'together and complete',
     craft:
       'I build every piece of work in code, not with a template or a page builder, so the solution follows how your company actually works.',
     emptyPrice: 'Fixed entry price: coming soon',
     priceSetSuffix: 'one-time',
-    processTitle: 'How I work',
-    processSteps: [
-      {
-        title: 'Assessment',
-        description: 'We discuss what you need, and how orders reach you today.',
-      },
-      {
-        title: 'Price before the work',
-        description:
-          'For a ready-made package the listed price applies. For a custom solution I give a price after the assessment.',
-      },
-      {
-        title: 'Build',
-        description: 'I write it in my own code, tailored to your business.',
-      },
-      {
-        title: 'Handover',
-        description: 'One revision round is included. I can take on hosting if you ask.',
-      },
-    ],
     featuredBadge: 'Main offer',
     includesTitle: 'Included',
     packages: [
@@ -344,7 +331,7 @@ export const contentEn: SiteContent = {
       title: 'Sample quote request',
       intro: 'Try it. This is how your customers would see it on a manufacturing or cutting-shop site.',
       demoBanner:
-        'This is a sample; data sent from here does not reach me. You can request a quote in the Contact section.',
+        'This is a sample. Sending is not turned on, so nothing is sent.',
       liveBanner: 'Sample form. The submitted request will reach me by email.',
       submit: 'Request a quote',
       submitting: 'Sending…',
@@ -358,20 +345,6 @@ export const contentEn: SiteContent = {
       fileHint: 'Excel, PDF or DXF. Up to 5 MB.',
       fileChoose: 'Choose file',
       fileNone: 'No file chosen',
-      previewFileNone: 'Not attached',
-      previewQuantityUnit: ' pcs',
-      previewTitle: 'This is the summary the company would receive',
-      previewFrom: 'From',
-      previewTo: 'To',
-      previewRecipient: 'Minta Asztalos Bt.',
-      previewSubjectLabel: 'Subject',
-      previewSubject: 'Quote request from the website',
-      sampleName: 'Minta Péter',
-      sampleCompany: 'Minta Kft.',
-      sampleEmail: 'minta@example.hu',
-      samplePhone: '06 1 000 0000',
-      sampleQuantity: '12',
-      sampleNotes: '1200 × 800 mm',
       fields: {
         name: 'Name',
         company: 'Company',
@@ -415,12 +388,10 @@ export const contentEn: SiteContent = {
     text: 'If you need a web quote form, an introduction site or a custom web solution, write me an email. We will talk briefly, then I will write what I recommend, and what the work includes. I am also glad to reply to industrial and energy-related professional enquiries.',
     email: 'bendzsiott1998@gmail.com',
     location: 'Budapest, Hungary',
-    mailSubject: 'Assessment request',
     linkedIn: 'linkedin.com/in/benjaminottee',
   },
   footer: {
     text: '© 2026 Ott Benjámin, electrical engineer and software developer',
-    sourceLabel: 'Source code of this website:',
   },
   common: {
     emailLabel: 'Email',
@@ -431,11 +402,5 @@ export const contentEn: SiteContent = {
     themeToLight: 'Switch to light mode',
     langToEn: 'Switch to English',
     langToHu: 'Switch to Hungarian',
-    mainNav: 'Main navigation',
-    mobileMenu: 'Mobile menu',
-    closeMenu: 'Close menu',
-    skipToContent: 'Skip to content',
-    copyEmail: 'Copy email address',
-    emailCopied: 'The address has been copied.',
   },
 }
