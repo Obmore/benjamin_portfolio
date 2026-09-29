@@ -78,23 +78,31 @@ function stopPreview(preview) {
   }
 }
 
-async function withPage(browser, viewport, reducedMotion, fn) {
+async function withPage(browser, viewport, reducedMotion, fn, extras = {}) {
   const context = await browser.newContext({
     viewport,
-    colorScheme: 'light',
+    colorScheme: extras.theme === 'dark' ? 'dark' : 'light',
     reducedMotion: reducedMotion ? 'reduce' : 'no-preference',
-    locale: 'hu-HU',
+    locale: extras.locale === 'en' ? 'en-US' : 'hu-HU',
   })
-  await context.addInitScript((reduced) => {
-    try {
-      window.__MOTION_PROFILE__ = reduced ? 'static' : 'full'
-      localStorage.setItem('portfolio-locale', 'hu')
-      localStorage.removeItem('portfolio-theme')
-      document.documentElement?.classList.remove('dark')
-    } catch {
-      // storage may be unavailable during the first document start
-    }
-  }, reducedMotion)
+  await context.addInitScript(
+    (opts) => {
+      try {
+        window.__MOTION_PROFILE__ = opts.reduced ? 'static' : 'full'
+        localStorage.setItem('portfolio-locale', opts.locale === 'en' ? 'en' : 'hu')
+        if (opts.theme === 'dark') {
+          localStorage.setItem('portfolio-theme', 'dark')
+          document.documentElement?.classList.add('dark')
+        } else {
+          localStorage.removeItem('portfolio-theme')
+          document.documentElement?.classList.remove('dark')
+        }
+      } catch {
+        // storage may be unavailable during the first document start
+      }
+    },
+    { reduced: reducedMotion, theme: extras.theme ?? 'light', locale: extras.locale ?? 'hu' },
+  )
   const page = await context.newPage()
   try {
     await fn(page)
@@ -246,9 +254,9 @@ async function measureCls(page) {
 
 async function run() {
   const killer = setTimeout(() => {
-    console.error('layout check timed out after 80s')
+    console.error('layout check timed out after 140s')
     process.exit(1)
-  }, 80000)
+  }, 140000)
 
   if (!existsSync('dist') && !process.env.BASE_URL) {
     console.error('dist/ missing. Run npm run build first.')
@@ -305,6 +313,43 @@ async function run() {
       assert(problemHits.length === 0, `1440 problem cards overlap: ${problemHits.join(', ')}`)
       notes.push(`1440 rail at problem ${await activeRail(page)}`)
       assert((await activeRail(page)) === 'problema', `rail at problem is ${await activeRail(page)}`)
+
+      const railStops = [
+        ['#megoldas', 'megoldas'],
+        ['#ajanlatkero-minta', 'ajanlatkero-minta'],
+        ['#folyamat', 'folyamat'],
+        ['#munkaim', 'munkaim'],
+        ['#szolgaltatasok', 'szolgaltatasok'],
+        ['#rolam', 'rolam'],
+        ['#kapcsolat', 'kapcsolat'],
+      ]
+      for (const [sel, expected] of railStops) {
+        await jumpToSel(page, sel)
+        const rail = await activeRail(page)
+        notes.push(`1440 rail at ${expected} ${rail}`)
+        assert(rail === expected, `rail at ${expected} is ${rail}`)
+      }
+
+      await page.click('[data-nav="prices"]')
+      await page.waitForFunction(() => {
+        const el = document.getElementById('arak') || document.getElementById('szolgaltatasok')
+        if (!el) return false
+        const top = el.getBoundingClientRect().top
+        return top >= -20 && top < 280
+      }, null, { timeout: 8000 })
+      for (const id of ['megoldas', 'munkaim', 'rolam', 'kapcsolat']) {
+        await page.click(`[data-nav-link="${id}"]`)
+        await page.waitForFunction(
+          (sectionId) => {
+            const el = document.getElementById(sectionId)
+            if (!el) return false
+            const top = el.getBoundingClientRect().top
+            return top >= -20 && top < 280
+          },
+          id,
+          { timeout: 8000 },
+        )
+      }
     })
 
     for (const viewport of [
@@ -327,8 +372,11 @@ async function run() {
 
     for (const viewport of [
       { width: 360, height: 640 },
-      { width: 390, height: 664 },
+      { width: 390, height: 844 },
       { width: 768, height: 1024 },
+      { width: 1024, height: 768 },
+      { width: 1440, height: 900 },
+      { width: 1920, height: 1080 },
     ]) {
       await withPage(browser, viewport, false, async (page) => {
         await ready(page)
@@ -339,7 +387,16 @@ async function run() {
           `${viewport.width}x${viewport.height} primary CTA ${m.primaryBottom} > ${viewport.height}`,
         )
         assert(!m.overflow, `horizontal overflow at ${viewport.width}x${viewport.height}`)
-        if (viewport.height >= 664) {
+        await jumpTo(page, Math.round(viewport.height * 2.2))
+        const mid = await measure(page)
+        assert(!mid.overflow, `horizontal overflow mid-page at ${viewport.width}x${viewport.height}`)
+        const maxY = await page.evaluate(() =>
+          Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
+        )
+        await jumpTo(page, maxY)
+        const end = await measure(page)
+        assert(!end.overflow, `horizontal overflow at bottom ${viewport.width}x${viewport.height}`)
+        if (viewport.height >= 664 && viewport.width <= 768) {
           assert(
             m.secondaryBottom != null && m.secondaryBottom <= viewport.height,
             `${viewport.width}x${viewport.height} secondary CTA ${m.secondaryBottom} > ${viewport.height}`,
@@ -348,22 +405,27 @@ async function run() {
       })
     }
 
-    await withPage(browser, { width: 390, height: 844 }, false, async (page) => {
-      for (const id of ANCHORS) {
-        await page.goto(`${BASE}#${id}`, { waitUntil: 'domcontentloaded', timeout: 20000 })
-        await page.waitForSelector(`#${id}`)
-        await page.waitForFunction(
-          (sectionId) => {
-            const el = document.getElementById(sectionId)
-            if (!el) return false
-            const top = el.getBoundingClientRect().top
-            return top >= -8 && top < 260
-          },
-          id,
-          { timeout: 5000 },
-        )
-      }
-    })
+    for (const viewport of [
+      { width: 390, height: 844 },
+      { width: 1440, height: 900 },
+    ]) {
+      await withPage(browser, viewport, false, async (page) => {
+        for (const id of ALL_ANCHORS) {
+          await page.goto(`${BASE}#${id}`, { waitUntil: 'domcontentloaded', timeout: 20000 })
+          await page.waitForSelector(`#${id}`)
+          await page.waitForFunction(
+            (sectionId) => {
+              const el = document.getElementById(sectionId)
+              if (!el) return false
+              const top = el.getBoundingClientRect().top
+              return top >= -8 && top < 280
+            },
+            id,
+            { timeout: 8000 },
+          )
+        }
+      })
+    }
 
     await withPage(browser, { width: 390, height: 844 }, false, async (page) => {
       await ready(page)
@@ -371,6 +433,38 @@ async function run() {
       notes.push(`390x844 CLS ${cls}`)
       assert(cls <= 0.05, `CLS ${cls} > 0.05`)
     })
+
+    await withPage(
+      browser,
+      { width: 1440, height: 900 },
+      false,
+      async (page) => {
+        await ready(page)
+        const dark = await page.evaluate(() => document.documentElement.classList.contains('dark'))
+        const overflow = await page.evaluate(
+          () => document.documentElement.scrollWidth > window.innerWidth + 1,
+        )
+        notes.push(`1440 dark mode ${dark ? 'on' : 'off'}, overflow ${overflow}`)
+        assert(dark, 'dark mode class missing')
+        assert(!overflow, 'horizontal overflow in dark mode')
+      },
+      { theme: 'dark' },
+    )
+
+    await withPage(
+      browser,
+      { width: 1440, height: 900 },
+      false,
+      async (page) => {
+        await ready(page)
+        const lang = await page.evaluate(() => document.documentElement.lang)
+        const h1 = await page.locator('h1').innerText()
+        notes.push(`1440 EN lang=${lang} h1="${h1}"`)
+        assert(lang === 'en', `EN lang is ${lang}`)
+        assert(h1.toLowerCase().includes('form') || h1.toLowerCase().includes('order'), `EN h1 is ${h1}`)
+      },
+      { locale: 'en' },
+    )
 
     await withPage(browser, { width: 390, height: 844 }, false, async (page) => {
       const failed = []

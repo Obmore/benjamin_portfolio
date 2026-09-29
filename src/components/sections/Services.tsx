@@ -84,7 +84,7 @@ function PriceCard({
     <article
       data-price-card
       className={`price-card relative flex h-full flex-col rounded-[6px] border bg-surface p-2.5 md:p-3.5 ${
-        pkg.featured ? 'border-line/60' : 'border-line/25'
+        pkg.featured ? 'is-featured border-line/60' : 'border-line/25'
       }`}
     >
       <svg className="spec-hover-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">

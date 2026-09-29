@@ -1,17 +1,45 @@
+import { useLayoutEffect, useRef } from 'react'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 import { useI18n } from '@/context/I18nContext'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
 import { BrowserFrame } from '@/components/visuals/BrowserFrame'
 import { ExplodedShot } from '@/components/visuals/ExplodedShot'
 import { SECTION_IDS, SECTION_NUMBERS } from '@/lib/constants'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import type { WorkProject } from '@/data/types'
 
 export function Projects() {
   const { content } = useI18n()
+  const reduced = usePrefersReducedMotion()
+  const listRef = useRef<HTMLDivElement>(null)
   const items = content.projects.items
   const featured = items.find((item) => !item.sample)
   const rest = items.filter((item) => item !== featured && !item.sample)
   const samples = items.filter((item) => item.sample)
+
+  useLayoutEffect(() => {
+    const list = listRef.current
+    if (!list || reduced) return
+    const cards = list.querySelectorAll<HTMLElement>('[data-work-card]')
+    const ctx = gsap.context(() => {
+      gsap.from(cards, {
+        y: 22,
+        stagger: 0.1,
+        duration: 0.5,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: list,
+          start: 'top 80%',
+          once: true,
+        },
+      })
+    }, list)
+    return () => ctx.revert()
+  }, [reduced, items])
 
   return (
     <SectionWrapper id={SECTION_IDS.projects}>
@@ -21,7 +49,7 @@ export function Projects() {
         label={content.nav.projects}
         subtitle={content.projects.lead}
       />
-      <div className="space-y-6">
+      <div ref={listRef} className="space-y-6">
         {featured ? (
           <WorkCard
             project={featured}
@@ -110,7 +138,8 @@ function WorkCard({
 
   return (
     <article
-      className={`crop-marks rounded-[6px] border border-line/25 bg-surface ${
+      data-work-card
+      className={`work-card crop-marks rounded-[6px] border border-line/25 bg-surface ${
         explode ? 'overflow-visible' : 'overflow-hidden'
       } ${
         layout === 'featured' && hasImage ? 'grid gap-0 lg:grid-cols-2' : ''

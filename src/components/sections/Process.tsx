@@ -14,9 +14,23 @@ export function Process() {
 
   useLayoutEffect(() => {
     const pin = pinRef.current
-    if (!pin || reduced) return
+    if (!pin) return
     const line = pin.querySelector<HTMLElement>('[data-process-line]')
-    const steps = pin.querySelectorAll<HTMLElement>('[data-process-step]')
+    const steps = [...pin.querySelectorAll<HTMLElement>('[data-process-step]')]
+
+    const setActive = (progress: number) => {
+      const count = Math.max(steps.length - 1, 1)
+      const lit = reduced ? steps.length - 1 : Math.round(progress * count)
+      steps.forEach((step, index) => {
+        step.classList.toggle('is-active', index <= lit)
+      })
+    }
+
+    if (reduced) {
+      setActive(1)
+      return
+    }
+
     const ctx = gsap.context(() => {
       const mm = gsap.matchMedia()
 
@@ -24,15 +38,16 @@ export function Process() {
         if (line) {
           gsap.fromTo(
             line,
-            { scaleX: 0 },
+            { scaleY: 0 },
             {
-              scaleX: 1,
+              scaleY: 1,
               ease: 'none',
               scrollTrigger: {
                 trigger: pin,
                 start: 'top 75%',
                 end: 'bottom 45%',
                 scrub: true,
+                onUpdate: (self) => setActive(self.progress),
               },
             },
           )
@@ -60,6 +75,7 @@ export function Process() {
             scrub: 0.5,
             anticipatePin: 1,
             invalidateOnRefresh: true,
+            onUpdate: (self) => setActive(self.progress),
           },
         })
         if (line) tl.fromTo(line, { scaleX: 0 }, { scaleX: 1, ease: 'none' }, 0)

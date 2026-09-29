@@ -2,6 +2,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
 import { shouldUseStaticMotion } from './motionProfile'
+import { scrollElementTop } from './scrollTarget'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -62,8 +63,8 @@ export function startMotionEngine(): () => void {
 
 export function engineScrollTo(id: string): boolean {
   const element = document.getElementById(id)
-  if (!element) return false
-  if (!lenis) return false
-  lenis.scrollTo(element, { offset: -72, duration: 1.05 })
+  if (!element || !lenis) return false
+  const y = Math.max(0, Math.round(scrollElementTop(element) - 72))
+  lenis.scrollTo(y, { duration: 1.05 })
   return true
 }

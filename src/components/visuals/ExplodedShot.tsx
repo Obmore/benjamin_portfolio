@@ -26,7 +26,15 @@ export function ExplodedShot({
     const stage = stageRef.current
     if (!stage || reduced) return
     const ctx = gsap.context(() => {
-      gsap.fromTo(
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: stage,
+          start: 'top 78%',
+          end: 'bottom 28%',
+          scrub: true,
+        },
+      })
+      tl.fromTo(
         stage,
         { '--sep': '0px', '--rx': '0deg', '--rz': '0deg', '--tz': '0px' },
         {
@@ -35,14 +43,15 @@ export function ExplodedShot({
           '--rz': '-9deg',
           '--tz': '28px',
           ease: 'none',
-          scrollTrigger: {
-            trigger: stage,
-            start: 'top 75%',
-            end: 'bottom 35%',
-            scrub: true,
-          },
         },
       )
+      tl.to(stage, {
+        '--sep': '0px',
+        '--rx': '0deg',
+        '--rz': '0deg',
+        '--tz': '0px',
+        ease: 'none',
+      })
     }, stage)
     return () => ctx.revert()
   }, [reduced])

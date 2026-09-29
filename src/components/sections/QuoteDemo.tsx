@@ -17,7 +17,7 @@ export function QuoteDemo() {
         subtitle={content.tryIt.text}
       />
       <div className="crop-marks rounded-[6px] border border-line/25 bg-surface p-5 md:p-8">
-        <QuoteRequestForm />
+        <QuoteRequestForm demoOnly />
       </div>
     </SectionWrapper>
   )

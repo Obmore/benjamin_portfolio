@@ -64,12 +64,23 @@ export function Problem() {
           )
         })
 
+        const destOf = (card: HTMLElement) => {
+          const form = document.querySelector<HTMLElement>('[data-solution-form]')
+          if (!form) return { x: 0, y: 120 }
+          const a = card.getBoundingClientRect()
+          const b = form.getBoundingClientRect()
+          return {
+            x: b.left + b.width / 2 - (a.left + a.width / 2),
+            y: b.top + b.height / 2 - (a.top + a.height / 2),
+          }
+        }
+
         gsap.to(cards, {
-          x: (index) => (index % 2 === 0 ? 36 : -28),
-          y: (index) => 90 + index * 14,
+          x: (_index, target) => destOf(target as HTMLElement).x,
+          y: (_index, target) => destOf(target as HTMLElement).y,
           rotate: 0,
-          scale: 0.88,
-          opacity: 0.12,
+          scale: 0.34,
+          opacity: 0.06,
           stagger: 0.03,
           ease: 'none',
           scrollTrigger: {

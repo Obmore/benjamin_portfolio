@@ -6,9 +6,10 @@ import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 export function CompareSlider({ autoSweep = false }: { autoSweep?: boolean }) {
   const { content } = useI18n()
   const reduced = usePrefersReducedMotion()
-  const [pos, setPos] = useState(reduced ? 50 : 50)
+  const [pos, setPos] = useState(50)
   const stageRef = useRef<HTMLDivElement>(null)
   const played = useRef(false)
+  const locked = useRef(false)
   const inputId = useId()
   const fields = content.services.form.fields
   const headers = [fields.name, fields.company, fields.email, fields.phone]
@@ -16,20 +17,21 @@ export function CompareSlider({ autoSweep = false }: { autoSweep?: boolean }) {
   const setFromClientX = useCallback((clientX: number) => {
     const rect = stageRef.current?.getBoundingClientRect()
     if (!rect?.width) return
+    locked.current = true
     const next = ((clientX - rect.left) / rect.width) * 100
     setPos(Math.min(100, Math.max(0, next)))
   }, [])
 
   useLayoutEffect(() => {
     const stage = stageRef.current
-    if (!stage || !autoSweep || reduced || played.current) return
+    if (!stage || !autoSweep || reduced || played.current || locked.current) return
 
     const state = { value: 50 }
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: stage,
-          start: 'top 60%',
+          start: 'top 68%',
           once: true,
           onEnter: () => {
             played.current = true
@@ -40,13 +42,17 @@ export function CompareSlider({ autoSweep = false }: { autoSweep?: boolean }) {
         value: 85,
         duration: 0.9,
         ease: 'power2.inOut',
-        onUpdate: () => setPos(state.value),
+        onUpdate: () => {
+          if (!locked.current) setPos(state.value)
+        },
       })
       tl.to(state, {
         value: 100,
         duration: 0.7,
         ease: 'power2.out',
-        onUpdate: () => setPos(state.value),
+        onUpdate: () => {
+          if (!locked.current) setPos(state.value)
+        },
       })
     }, stage)
 
@@ -106,7 +112,10 @@ export function CompareSlider({ autoSweep = false }: { autoSweep?: boolean }) {
         value={pos}
         aria-label={content.hero.compareAria}
         aria-valuetext={`${content.hero.compareBefore} ${Math.round(pos)}, ${content.hero.compareAfter} ${Math.round(100 - pos)}`}
-        onChange={(event) => setPos(Number(event.target.value))}
+        onChange={(event) => {
+          locked.current = true
+          setPos(Number(event.target.value))
+        }}
       />
     </div>
   )

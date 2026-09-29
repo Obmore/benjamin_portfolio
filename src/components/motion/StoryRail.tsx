@@ -92,11 +92,13 @@ export function StoryRail() {
 }
 
 function sectionRect(el: HTMLElement): DOMRect {
-  const spacer = el.querySelector('.pin-spacer')
+  const inner = el.querySelector('.pin-spacer')
+  const parent = el.parentElement?.classList.contains('pin-spacer') ? el.parentElement : null
+  const spacer = inner ?? parent
   if (!spacer) return el.getBoundingClientRect()
   const outer = el.getBoundingClientRect()
-  const inner = spacer.getBoundingClientRect()
-  const top = Math.min(outer.top, inner.top)
-  const bottom = Math.max(outer.bottom, inner.bottom)
+  const box = spacer.getBoundingClientRect()
+  const top = Math.min(outer.top, box.top)
+  const bottom = Math.max(outer.bottom, box.bottom)
   return new DOMRect(outer.left, top, outer.width, Math.max(0, bottom - top))
 }

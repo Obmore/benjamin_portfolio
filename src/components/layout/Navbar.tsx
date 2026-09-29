@@ -144,6 +144,7 @@ export function Navbar() {
             <button
               key={item.id}
               type="button"
+              data-nav-link={item.id}
               onClick={() => handleNavClick(item.id)}
               className={`whitespace-nowrap rounded-[6px] px-2 py-2 text-sm ${
                 activeId === item.id ? 'text-line' : 'text-muted hover:text-foreground'
