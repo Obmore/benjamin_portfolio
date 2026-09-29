@@ -1376,8 +1376,8 @@
 
   .hero-offer-title {
     margin: 0;
-    max-width: 18ch;
-    font-size: clamp(1.6875rem, 7.9vw - 0.24rem, 7.25rem);
+    max-width: 16ch;
+    font-size: clamp(1.6875rem, 7.9vw - 0.24rem, 6.15rem);
     font-weight: 650;
     letter-spacing: -0.038em;
     line-height: 1.14;
@@ -1442,27 +1442,28 @@
     .hero-frame {
       min-height: 100svh;
       flex: 1 1 auto;
-      padding: 5.5rem 2rem 1.75rem;
+      justify-content: center;
+      padding: 5.25rem 2rem 1.6rem;
     }
 
     .hero-offer-title {
-      max-width: none;
       line-height: 0.98;
     }
 
     .hero-shell {
       flex: 1 1 auto;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(22rem, 34rem);
-      gap: 2rem 3rem;
-      align-items: stretch;
-      min-height: 22rem;
-      margin-top: 1.35rem;
+      grid-template-columns: minmax(0, 1.05fr) minmax(22rem, 32rem);
+      gap: 1.5rem 3rem;
+      align-items: center;
+      min-height: 0;
+      margin-top: 0;
     }
 
     .hero-copy {
       justify-content: center;
       min-height: 0;
+      gap: 1.05rem;
     }
 
     .hero-offer-lead {

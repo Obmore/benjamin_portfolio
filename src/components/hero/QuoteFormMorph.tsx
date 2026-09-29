@@ -26,13 +26,12 @@ export function QuoteFormMorph() {
 
     const ctx = gsap.context(() => {
       gsap.from(rows, {
-        y: 28,
-        rotateX: 34,
-        rotate: -7,
-        duration: 0.85,
-        stagger: 0.1,
+        y: 18,
+        rotate: -3,
+        duration: 0.7,
+        stagger: 0.08,
         ease: 'expo.out',
-        delay: 0.18,
+        delay: 0.12,
       })
 
       const mm = gsap.matchMedia()
@@ -153,10 +152,10 @@ function buildStory(
   tl.to(
     rows,
     {
-      y: -14,
-      rotateX: 24,
+      y: -12,
+      rotateX: 16,
       rotate: 0,
-      z: 18,
+      z: 14,
       stagger: 0.045,
       duration: 0.18,
       ease: 'power2.out',
@@ -219,7 +218,7 @@ function buildStory(
     }
   })
 
-  tl.to(submit, { y: 0, scale: 1, duration: 0.1 }, 0.74)
+  tl.to(submit, { y: 0, scale: 1, duration: 0.1 }, 0.7)
   tl.to(
     sheet,
     {
@@ -229,7 +228,7 @@ function buildStory(
         if (caret) gsap.set(caret, { opacity: 0 })
       },
     },
-    0.76,
+    0.72,
   )
 
   if (full && inbox) {
@@ -240,18 +239,18 @@ function buildStory(
         y: -80,
         scale: 0.7,
         opacity: 0.08,
-        duration: 0.2,
+        duration: 0.18,
         ease: 'power2.in',
       },
-      0.8,
+      0.76,
     )
     tl.fromTo(
       inbox,
       { autoAlpha: 0, y: 42, rotateX: -8, scale: 0.94 },
       { autoAlpha: 1, y: 0, rotateX: 0, scale: 1, duration: 0.2, ease: 'power2.out' },
-      0.84,
+      0.8,
     )
   } else if (inbox) {
-    tl.to(inbox, { autoAlpha: 1, y: 0, duration: 0.16 }, 0.82)
+    tl.to(inbox, { autoAlpha: 1, y: 0, duration: 0.16 }, 0.78)
   }
 }

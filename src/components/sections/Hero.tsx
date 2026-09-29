@@ -57,20 +57,20 @@ export function Hero() {
     <section id="hero" ref={rootRef} className="relative scroll-mt-16">
       <div data-hero-pin className="hero-pin">
         <div className="hero-frame">
-          <p data-hero-kicker className="hero-kicker">
-            {hero.kicker}
-          </p>
-          <h1 className="hero-offer-title">
-            {hero.headlineLines.map((line) => (
-              <span key={line} className="hero-line">
-                <span className="hero-line-inner" data-hero-line>
-                  {line}
-                </span>
-              </span>
-            ))}
-          </h1>
           <div className="hero-shell">
             <div className="hero-copy">
+              <p data-hero-kicker className="hero-kicker">
+                {hero.kicker}
+              </p>
+              <h1 className="hero-offer-title">
+                {hero.headlineLines.map((line) => (
+                  <span key={line} className="hero-line">
+                    <span className="hero-line-inner" data-hero-line>
+                      {line}
+                    </span>
+                  </span>
+                ))}
+              </h1>
               <p data-hero-lead className="hero-offer-lead">
                 {hero.subheadline}
               </p>

@@ -78,16 +78,20 @@ async function setScroll(page, y) {
     document.documentElement.scrollTop = nextY
     window.dispatchEvent(new Event('scroll'))
   }, y)
-  await page.waitForTimeout(320)
+  await page.waitForTimeout(360)
 }
 
-async function scrollToSel(page, sel) {
-  const y = await page.evaluate((selector) => {
-    const el = document.querySelector(selector)
-    if (!el) return 0
-    return Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - 72))
-  }, sel)
-  await setScroll(page, y)
+async function scrollToSel(page, sel, extra = 0) {
+  await page.evaluate(
+    ({ selector, extraY }) => {
+      const el = document.querySelector(selector)
+      if (!el) return
+      el.scrollIntoView({ block: 'start', inline: 'nearest' })
+      window.scrollBy(0, extraY - 72)
+    },
+    { selector: sel, extraY: extra },
+  )
+  await page.waitForTimeout(420)
 }
 
 async function shotSet(page, width, height) {
@@ -95,19 +99,31 @@ async function shotSet(page, width, height) {
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await prepare(page)
   await setScroll(page, 0)
-  await page.waitForTimeout(200)
+  await page.waitForTimeout(280)
   await saveShot(page, `hero_top_${width}x${height}.png`)
-  await setScroll(page, Math.round(height * 0.52))
-  await saveShot(page, `hero_morph_${width}x${height}.png`)
-  await setScroll(page, Math.round(height * 1.05))
-  await saveShot(page, `hero_end_${width}x${height}.png`)
+  if (width >= 900) {
+    await setScroll(page, Math.round(height * 0.48))
+    await saveShot(page, `hero_morph_${width}x${height}.png`)
+    await setScroll(page, Math.round(height * 1.2))
+    await saveShot(page, `hero_end_${width}x${height}.png`)
+  } else {
+    const stageY = await page.evaluate(() => {
+      const stage = document.querySelector('.paper-stage')
+      if (!stage) return 280
+      return Math.max(0, Math.round(stage.getBoundingClientRect().top + window.scrollY - 80))
+    })
+    await setScroll(page, stageY)
+    await saveShot(page, `hero_morph_${width}x${height}.png`)
+    await setScroll(page, stageY + 220)
+    await saveShot(page, `hero_end_${width}x${height}.png`)
+  }
   await scrollToSel(page, '#problema')
   await saveShot(page, `problem_${width}x${height}.png`)
   await scrollToSel(page, '#megoldas')
   await saveShot(page, `solution_${width}x${height}.png`)
   await scrollToSel(page, '#ajanlatkero-minta')
   await saveShot(page, `tryit_${width}x${height}.png`)
-  await scrollToSel(page, '#folyamat')
+  await scrollToSel(page, '#folyamat', width >= 900 ? 200 : 0)
   await saveShot(page, `process_${width}x${height}.png`)
   await scrollToSel(page, '#munkaim')
   await saveShot(page, `work_${width}x${height}.png`)
@@ -115,7 +131,7 @@ async function shotSet(page, width, height) {
   await saveShot(page, `prices_${width}x${height}.png`)
   await scrollToSel(page, '#rolam')
   await saveShot(page, `about_${width}x${height}.png`)
-  await scrollToSel(page, '#kapcsolat')
+  await scrollToSel(page, '#kapcsolat', 40)
   await saveShot(page, `contact_${width}x${height}.png`)
   await setScroll(page, 0)
   await saveShot(page, `full_${width}.png`, true)
@@ -211,16 +227,19 @@ async function recordHeroStory(browser) {
   await prepare(page)
   await page.evaluate(() => window.scrollTo(0, 0))
   await page.waitForTimeout(500)
-  const end = Math.round(height * 1.12)
-  const steps = 22
+  const end = Math.round(height * 1.45)
+  const steps = 24
   for (let i = 1; i <= steps; i += 1) {
     await page.evaluate(
-      ({ next, total, dest }) => window.scrollTo(0, Math.round((next / total) * dest)),
+      ({ next, total, dest }) => {
+        window.scrollTo(0, Math.round((next / total) * dest))
+        document.documentElement.scrollTop = Math.round((next / total) * dest)
+      },
       { next: i, total: steps, dest: end },
     )
-    await page.waitForTimeout(400)
+    await page.waitForTimeout(380)
   }
-  await page.waitForTimeout(600)
+  await page.waitForTimeout(800)
   const webm = await saveVideo(page, context, 'hero_story_1440x900.webm')
   if (!webm) return
   const mp4 = join(ARTIFACTS, 'hero_story_1440x900.mp4')
