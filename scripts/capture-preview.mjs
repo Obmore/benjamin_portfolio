@@ -138,8 +138,8 @@ async function recordScroll(browser, width, height, destName) {
   const steps = 28
   for (let i = 1; i <= steps; i += 1) {
     await page.evaluate(
-      ({ next, total }) => window.scrollTo(0, Math.round((next / total) * maxY)),
-      { next: i, total: steps, maxY },
+      ({ next, total, end }) => window.scrollTo(0, Math.round((next / total) * end)),
+      { next: i, total: steps, end: maxY },
     )
     await page.waitForTimeout(220)
   }
@@ -162,7 +162,7 @@ async function run() {
   const killer = setTimeout(() => {
     console.error('capture timed out after 180s')
     process.exit(1)
-  }, 180000)
+  }, 240000)
 
   if (!existsSync('dist') && !process.env.BASE_URL) {
     console.error('dist/ missing. Run npm run build first.')
