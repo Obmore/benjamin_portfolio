@@ -14,22 +14,24 @@ export function Process() {
   useLayoutEffect(() => {
     const board = boardRef.current
     if (!board || reduced) return
-    const line = board.querySelector<SVGGeometryElement>('[data-process-line]')
+    const line = board.querySelector<HTMLElement>('[data-process-line]')
     const steps = board.querySelectorAll<HTMLElement>('[data-process-step]')
     const ctx = gsap.context(() => {
       if (line) {
-        const length = line.getTotalLength()
-        gsap.set(line, { strokeDasharray: length, strokeDashoffset: length })
-        gsap.to(line, {
-          strokeDashoffset: 0,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: board,
-            start: 'top 75%',
-            end: 'bottom 45%',
-            scrub: true,
+        gsap.fromTo(
+          line,
+          { scaleX: 0 },
+          {
+            scaleX: 1,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: board,
+              start: 'top 75%',
+              end: 'bottom 45%',
+              scrub: true,
+            },
           },
-        })
+        )
       }
       gsap.from(steps, {
         y: 16,
@@ -48,7 +50,7 @@ export function Process() {
   }, [reduced, content.services.processSteps])
 
   return (
-    <SectionWrapper id={SECTION_IDS.process} className="process-diagram">
+    <SectionWrapper id={SECTION_IDS.process}>
       <SectionHeading
         number={SECTION_NUMBERS.process}
         title={content.process.title}
@@ -56,21 +58,9 @@ export function Process() {
         subtitle={content.process.lead}
       />
       <div ref={boardRef} className="process-board">
-        <svg
-          className="process-trace process-trace-desk"
-          viewBox="0 0 100 8"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <path
-            data-process-line
-            d="M2 4 H98"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="text-line"
-          />
-        </svg>
+        <div className="process-line-wrap" aria-hidden="true">
+          <div className="process-line-fill" data-process-line />
+        </div>
         <ol className="process-nodes">
           {content.services.processSteps.map((step, index) => (
             <li key={step.title} data-process-step className="process-node">

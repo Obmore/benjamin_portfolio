@@ -1396,6 +1396,32 @@
     }
   }
 
+  .process-line-wrap {
+    display: none;
+    height: 2px;
+    margin: 0 0 0.85rem;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--color-line) 22%, transparent);
+  }
+
+  .process-line-fill {
+    height: 100%;
+    width: 100%;
+    transform: scaleX(1);
+    transform-origin: left;
+    background: var(--color-line);
+  }
+
+  @media (min-width: 768px) {
+    .process-line-wrap {
+      display: block;
+    }
+  }
+
+  html.is-static-motion .process-line-fill {
+    transform: scaleX(1);
+  }
+
   .contact-finale {
     min-height: 5.5rem;
   }
