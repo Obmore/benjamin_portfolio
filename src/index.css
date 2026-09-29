@@ -11,8 +11,6 @@
   --motion-hero: 2500ms;
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 @theme {
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -27,20 +25,6 @@
   --color-cta: #c2410c;
   --color-price: #0b2545;
   --color-cyan: #1f5fad;
-}
-
-.dark {
-  --color-background: #0e1620;
-  --color-foreground: #e8eef4;
-  --color-muted: #9aa8b5;
-  --color-surface: #141c26;
-  --color-border: #243044;
-  --color-accent: #6ea8e0;
-  --color-line: #6ea8e0;
-  --color-price: #f3efe8;
-  --color-cyan: #6ea8e0;
-  --motion-ink: #6ea8e0;
-  color-scheme: dark;
 }
 
 @layer base {
@@ -1791,11 +1775,6 @@
     font-size: 0.58rem;
     letter-spacing: 0.08em;
     color: var(--color-line);
-  }
-
-  .dark .solution-note,
-  .dark .finale-sheet {
-    background: linear-gradient(180deg, #1b2430 0%, #141c26 100%);
   }
 
   @media (min-width: 900px) {

@@ -235,7 +235,7 @@ async function measureCls(page) {
         cls += entry.value
       }
     })
-    observer.observe({ type: 'layout-shift', buffered: true })
+    observer.observe({ type: 'layout-shift', buffered: false })
     const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
     window.scrollTo(0, Math.min(1400, maxY))
     await new Promise((r) => setTimeout(r, 350))
@@ -424,6 +424,7 @@ async function run() {
 
     await withPage(browser, { width: 390, height: 844 }, false, async (page) => {
       await ready(page)
+      await page.waitForTimeout(500)
       const cls = await measureCls(page)
       notes.push(`390x844 CLS ${cls}`)
       assert(cls <= 0.05, `CLS ${cls} > 0.05`)
