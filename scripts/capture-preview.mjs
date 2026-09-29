@@ -344,10 +344,9 @@ async function run() {
     await shotSet(page, 390, 844)
     await page.setViewportSize({ width: 1440, height: 900 })
     await setScroll(page, 0)
-    await page.getByRole('button', { name: /english|angol|EN/i }).first().click()
-    await page.waitForFunction(() => document.documentElement.lang === 'en')
-    await page.waitForTimeout(280)
-    await saveShot(page, 'hero_en_1440x900.png')
+    await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'no-preference' })
+    await page.waitForTimeout(200)
+    await saveShot(page, 'hero_os_dark_pref_1440x900.png')
     await page.setViewportSize({ width: 390, height: 844 })
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await context.addInitScript(() => {

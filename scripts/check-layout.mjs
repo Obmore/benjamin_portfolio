@@ -81,7 +81,7 @@ function stopPreview(preview) {
 async function withPage(browser, viewport, reducedMotion, fn, extras = {}) {
   const context = await browser.newContext({
     viewport,
-    colorScheme: extras.theme === 'dark' ? 'dark' : 'light',
+    colorScheme: extras.colorScheme === 'dark' ? 'dark' : 'light',
     reducedMotion: reducedMotion ? 'reduce' : 'no-preference',
     locale: extras.locale === 'en' ? 'en-US' : 'hu-HU',
   })
@@ -90,13 +90,9 @@ async function withPage(browser, viewport, reducedMotion, fn, extras = {}) {
       try {
         window.__MOTION_PROFILE__ = opts.reduced ? 'static' : 'full'
         localStorage.setItem('portfolio-locale', opts.locale === 'en' ? 'en' : 'hu')
-        if (opts.theme === 'dark') {
-          localStorage.setItem('portfolio-theme', 'dark')
-          document.documentElement?.classList.add('dark')
-        } else {
-          localStorage.removeItem('portfolio-theme')
-          document.documentElement?.classList.remove('dark')
-        }
+        localStorage.removeItem('portfolio-theme')
+        document.documentElement?.classList.remove('dark')
+        document.documentElement.style.colorScheme = 'light'
       } catch {
         // storage may be unavailable during the first document start
       }
@@ -439,30 +435,19 @@ async function run() {
       false,
       async (page) => {
         await ready(page)
-        const dark = await page.evaluate(() => document.documentElement.classList.contains('dark'))
-        const overflow = await page.evaluate(
-          () => document.documentElement.scrollWidth > window.innerWidth + 1,
+        const report = await page.evaluate(() => ({
+          darkClass: document.documentElement.classList.contains('dark'),
+          scheme: getComputedStyle(document.documentElement).colorScheme,
+          bg: getComputedStyle(document.body).backgroundColor,
+        }))
+        notes.push(`1440 OS-dark pref still light: class=${report.darkClass} scheme=${report.scheme} bg=${report.bg}`)
+        assert(!report.darkClass, 'dark class applied under OS dark preference')
+        assert(
+          report.scheme.includes('light') || report.scheme === 'normal',
+          `color-scheme is ${report.scheme}`,
         )
-        notes.push(`1440 dark mode ${dark ? 'on' : 'off'}, overflow ${overflow}`)
-        assert(dark, 'dark mode class missing')
-        assert(!overflow, 'horizontal overflow in dark mode')
       },
-      { theme: 'dark' },
-    )
-
-    await withPage(
-      browser,
-      { width: 1440, height: 900 },
-      false,
-      async (page) => {
-        await ready(page)
-        const lang = await page.evaluate(() => document.documentElement.lang)
-        const h1 = await page.locator('h1').innerText()
-        notes.push(`1440 EN lang=${lang} h1="${h1}"`)
-        assert(lang === 'en', `EN lang is ${lang}`)
-        assert(h1.toLowerCase().includes('form') || h1.toLowerCase().includes('order'), `EN h1 is ${h1}`)
-      },
-      { locale: 'en' },
+      { colorScheme: 'dark' },
     )
 
     await withPage(browser, { width: 390, height: 844 }, false, async (page) => {

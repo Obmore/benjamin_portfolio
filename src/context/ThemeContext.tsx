@@ -16,40 +16,25 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
-const THEME_KEY = 'portfolio-theme'
 
 function readTheme(): Theme {
-  try {
-    const stored = localStorage.getItem(THEME_KEY)
-    if (stored === 'dark' || stored === 'light') return stored
-  } catch {
-    // storage may be blocked
-  }
   return 'light'
 }
 
-function applyTheme(theme: Theme) {
-  document.documentElement.classList.toggle('dark', theme === 'dark')
+function applyTheme(_theme: Theme) {
+  document.documentElement.classList.remove('dark')
+  document.documentElement.style.colorScheme = 'light'
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(readTheme)
+  const [theme] = useState<Theme>(readTheme)
 
   useEffect(() => {
-    applyTheme(theme)
-  }, [theme])
+    applyTheme('light')
+  }, [])
 
   const toggleTheme = useCallback(() => {
-    setTheme((current) => {
-      const next = current === 'light' ? 'dark' : 'light'
-      try {
-        localStorage.setItem(THEME_KEY, next)
-      } catch {
-        // storage may be blocked
-      }
-      applyTheme(next)
-      return next
-    })
+    applyTheme('light')
   }, [])
 
   const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme])

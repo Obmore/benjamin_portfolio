@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { ASSESS_MAILTO, SECTION_IDS } from '@/lib/constants'
 import { bindInPageAnchors, scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
-import { LangToggle } from '@/components/ui/LangToggle'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { Button } from '@/components/ui/Button'
 import { getLenis } from '@/lib/motionEngine'
 
@@ -172,8 +170,6 @@ export function Navbar() {
           >
             {content.hero.ctaAssess}
           </Button>
-          <LangToggle />
-          <ThemeToggle />
           <button
             ref={menuButtonRef}
             type="button"

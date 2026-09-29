@@ -22,15 +22,11 @@
       rel="stylesheet"
     />
     <title>Ott Benjámin, villamosmérnök és szoftverfejlesztő</title>
+    <meta name="color-scheme" content="light" />
     <script>
       ;(function () {
-        try {
-          var theme = localStorage.getItem('portfolio-theme')
-          if (theme === 'dark') document.documentElement.classList.add('dark')
-          else document.documentElement.classList.remove('dark')
-        } catch (error) {
-          document.documentElement.classList.remove('dark')
-        }
+        document.documentElement.classList.remove('dark')
+        document.documentElement.style.colorScheme = 'light'
       })()
     </script>
   </head>

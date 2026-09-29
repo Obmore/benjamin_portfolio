@@ -51,11 +51,6 @@
     overflow-x: clip;
   }
 
-  html.dark {
-    color-scheme: dark;
-    background-color: #0e1620;
-  }
-
   html.lenis,
   html.lenis body {
     height: auto;
