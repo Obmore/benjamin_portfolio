@@ -23,7 +23,7 @@ export function Problem() {
     const list = listRef.current
     if (!list || reduced) return
     const cards = list.querySelectorAll<HTMLElement>('[data-problem-card]')
-    const missing = list.querySelector<HTMLElement>('[data-missing-size]')
+    const callStrokes = list.querySelectorAll<SVGPathElement>('[data-call-stroke]')
     const ctx = gsap.context(() => {
       const mm = gsap.matchMedia()
 
@@ -82,15 +82,18 @@ export function Problem() {
         })
       })
 
-      if (missing) {
-        gsap.to(missing, {
-          autoAlpha: 0.12,
-          duration: 0.38,
-          repeat: 7,
-          yoyo: true,
-          ease: 'steps(2)',
+      if (callStrokes.length) {
+        callStrokes.forEach((stroke) => {
+          const length = stroke.getTotalLength()
+          gsap.set(stroke, { strokeDasharray: length, strokeDashoffset: length })
+        })
+        gsap.to(callStrokes, {
+          strokeDashoffset: 0,
+          duration: 0.7,
+          stagger: 0.1,
+          ease: 'power2.out',
           scrollTrigger: {
-            trigger: missing,
+            trigger: list.querySelector('[data-call-icon]'),
             start: 'top 82%',
             once: true,
           },
@@ -117,12 +120,7 @@ export function Problem() {
             <p className="font-mono text-[11px] tracking-wide text-line">
               {String(index + 1).padStart(2, '0')}
             </p>
-            {card.missingSize ? (
-              <p data-missing-size className="problem-missing">
-                <span className="problem-missing-label">{content.hero.paperRows[0]?.label}</span>
-                <span className="problem-missing-field" aria-hidden="true" />
-              </p>
-            ) : null}
+            {index === 1 ? <PhoneCallMark /> : null}
             <p
               data-problem-text
               className="mt-2 text-sm leading-relaxed text-foreground md:text-base"
@@ -133,5 +131,25 @@ export function Problem() {
         ))}
       </ul>
     </SectionWrapper>
+  )
+}
+
+function PhoneCallMark() {
+  return (
+    <svg
+      className="problem-call"
+      data-call-icon
+      viewBox="0 0 32 32"
+      width="28"
+      height="28"
+      aria-hidden="true"
+    >
+      <path
+        data-call-stroke
+        d="M8.2 20.2c-2-1.5-2.7-4-1.4-6 .4-.7 1.3-.9 2-.5l2.1 1.1c.6.3.8 1.1.5 1.7l-.6 1.3c2.8 2.3 5.1 2.8 7.7.8l1.2-.7c.6-.4 1.5-.2 1.8.5l1.2 2c.4.7.2 1.6-.5 2-2 1.3-4.6 2-7.5 1.2-3-.8-5.4-2.2-6.5-3.4Z"
+      />
+      <path data-call-stroke d="M19.6 8.6c2 1 3.5 2.6 4.3 4.6" />
+      <path data-call-stroke d="M18.1 10.5c1.2.7 2.1 1.7 2.6 3" />
+    </svg>
   )
 }

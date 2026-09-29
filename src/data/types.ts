@@ -121,7 +121,6 @@ export interface PaperRow {
 
 export interface ProblemCard {
   text: string
-  missingSize?: boolean
 }
 
 export interface SiteContent {

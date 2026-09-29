@@ -72,10 +72,10 @@ export const contentHu: SiteContent = {
   problem: {
     title: 'Így érkezik ma egy ajánlatkérés',
     cards: [
-      { text: 'Egy e-mailben, egy telefonon, egy harmadik a kapcsolati űrlapon.' },
-      { text: 'A méret kimaradt, ezért vissza kell kérdezni.', missingSize: true },
-      { text: 'A rendelőlapot kinyomtatják, kézzel kitöltik, visszaküldik.' },
-      { text: 'Az adatokat végül kézzel kell átírni.' },
+      { text: 'Az ügyfél kinyomtatja és kézzel kitölti.' },
+      { text: 'Ha valami hiányzik, Ön visszahívja.' },
+      { text: 'Az adatokat egyenként veszi fel.' },
+      { text: 'Egyeztetni mindenképp kell.' },
     ],
   },
   solution: {

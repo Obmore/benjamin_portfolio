@@ -1684,26 +1684,23 @@
     transform: rotate(1.7deg);
   }
 
-  .problem-missing {
-    display: grid;
-    grid-template-columns: 4.5rem minmax(0, 1fr);
-    gap: 0.45rem;
-    align-items: center;
-    margin-top: 0.55rem;
-  }
-
-  .problem-missing-label {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    color: var(--color-line);
-  }
-
-  .problem-missing-field {
+  .problem-call {
     display: block;
-    height: 1.35rem;
-    border: 1px dashed var(--color-cta);
-    border-radius: 4px;
-    background: color-mix(in srgb, var(--color-cta) 8%, transparent);
+    margin-top: 0.45rem;
+    overflow: visible;
+  }
+
+  .problem-call path {
+    fill: none;
+    stroke: var(--color-line);
+    stroke-width: var(--motion-stroke);
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    vector-effect: non-scaling-stroke;
+  }
+
+  html.is-static-motion .problem-call path {
+    stroke-dashoffset: 0;
   }
 
   @media (min-width: 900px) {

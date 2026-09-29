@@ -75,10 +75,10 @@ export const contentEn: SiteContent = {
   problem: {
     title: 'This is how a quote request arrives today', // EN-REVIEW
     cards: [
-      { text: 'One by email, one by phone, a third on the contact form.' }, // EN-REVIEW
-      { text: 'The size was missing, so someone has to ask again.', missingSize: true }, // EN-REVIEW
-      { text: 'The order form is printed, filled in by hand, then sent back.' }, // EN-REVIEW
-      { text: 'The data then has to be typed in by hand.' }, // EN-REVIEW
+      { text: 'The customer prints it and fills it in by hand.' }, // EN-REVIEW
+      { text: 'If something is missing, you call them back.' }, // EN-REVIEW
+      { text: 'You take down the details one by one.' }, // EN-REVIEW
+      { text: 'It always needs a conversation.' }, // EN-REVIEW
     ],
   },
   solution: {
