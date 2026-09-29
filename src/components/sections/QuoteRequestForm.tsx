@@ -518,24 +518,24 @@ function MailPreview({
     <aside className="mail-preview" aria-live="polite">
       <p className="mail-preview-title">{copy.previewTitle}</p>
       <div className="mail-preview-window">
-        <dl className="mail-preview-headers">
+        <div className="mail-preview-headers">
           <div>
-            <dt>{copy.previewFrom}</dt>
-            <dd>
+            <p>{copy.previewFrom}</p>
+            <p>
               <span>{name}</span>
               <span className="mail-preview-meta">{company}</span>
               <span className="mail-preview-meta">{email}</span>
-            </dd>
+            </p>
           </div>
           <div>
-            <dt>{copy.previewTo}</dt>
-            <dd>{copy.previewRecipient}</dd>
+            <p>{copy.previewTo}</p>
+            <p>{copy.previewRecipient}</p>
           </div>
           <div>
-            <dt>{copy.previewSubjectLabel}</dt>
-            <dd>{copy.previewSubject}</dd>
+            <p>{copy.previewSubjectLabel}</p>
+            <p>{copy.previewSubject}</p>
           </div>
-        </dl>
+        </div>
         <div className="mail-preview-body">
           <p data-preview-line="name">
             {copy.fields.name}: {name}

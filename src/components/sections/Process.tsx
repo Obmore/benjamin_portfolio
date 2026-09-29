@@ -79,11 +79,6 @@ export function Process() {
           },
         })
         if (line) tl.fromTo(line, { scaleX: 0 }, { scaleX: 1, ease: 'none' }, 0)
-        tl.from(
-          steps,
-          { y: 18, stagger: 0.08, duration: 0.2, ease: 'power2.out' },
-          0,
-        )
         return () => tl.kill()
       })
     }, pin)

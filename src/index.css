@@ -1265,13 +1265,12 @@
     margin: 0;
   }
 
-  .mail-preview-headers dt,
-  .mail-preview-headers dd {
+  .mail-preview-headers p {
     margin: 0;
     min-width: 0;
   }
 
-  .mail-preview-headers dt {
+  .mail-preview-headers > div > p:first-child {
     padding-top: 0.12rem;
     font-family: var(--font-mono);
     font-size: 0.62rem;
@@ -1279,7 +1278,7 @@
     color: var(--motion-ink);
   }
 
-  .mail-preview-headers dd {
+  .mail-preview-headers > div > p:last-child {
     font-size: 0.85rem;
     line-height: 1.4;
     color: var(--color-foreground);

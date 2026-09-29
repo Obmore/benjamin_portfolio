@@ -7,7 +7,9 @@ export function LangToggle() {
     <button
       type="button"
       onClick={toggleLocale}
-      aria-label={locale === 'hu' ? content.common.langToEn : content.common.langToHu}
+      aria-label={
+        locale === 'hu' ? `EN: ${content.common.langToEn}` : `HU: ${content.common.langToHu}`
+      }
       className="rounded-[6px] border border-line/30 bg-surface px-3 py-1.5 font-mono text-xs text-muted hover:border-line hover:text-foreground"
     >
       {locale === 'hu' ? 'EN' : 'HU'}
