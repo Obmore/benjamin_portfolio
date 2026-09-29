@@ -397,7 +397,6 @@ async function run() {
       notes.push(`1440 rail at top ${await activeRail(page)}`)
       assert((await activeRail(page)) === 'hero', `rail at top is ${await activeRail(page)}`)
       const chrome1440 = await page.evaluate(() => {
-        const header = document.querySelector('header')
         const rail = [...document.querySelectorAll('.story-rail-item')].map((el) => ({
           id: el.getAttribute('data-rail-item'),
           label: el.querySelector('.story-rail-label')?.textContent?.trim() ?? '',
