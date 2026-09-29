@@ -113,7 +113,7 @@ export const contentHu: SiteContent = {
       {
         title: 'Szoftverfejlesztés',
         description:
-          'Teljes körű webfejlesztés a felülettől a szerveroldalig, emellett mérnöki célú programok.',
+          'Teljes körű webfejlesztés a felülettől a szerveroldalig, emellett mérnöki programok.',
       },
       {
         title: 'Projektkoordináció',
