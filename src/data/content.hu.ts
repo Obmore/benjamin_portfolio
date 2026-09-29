@@ -18,7 +18,11 @@ export const contentHu: SiteContent = {
   hero: {
     headline: 'villamosmérnök és szoftverfejlesztő',
     subheadline:
-      'Python, full-stack fejlesztés, ipari kommunikáció, energetikai rendszerek, telekommunikációs K+F és műszaki projektmenedzsment egy kézben.',
+      'Python, teljes körű webfejlesztés, ipari kommunikáció, energetikai rendszerek, telekommunikációs K+F és műszaki projektmenedzsment egy kézben.',
+    offerHeadline: 'Az ügyfele kitölti, Ön egyben megkapja.',
+    offerLead: 'Webes ajánlatkérő és rendelőlap, minden adat egy helyre érkezik.',
+    pricesJump: 'Árak',
+    sheetLabel: '1. lap',
     ctaContact: 'Kapcsolatfelvétel',
     ctaCv: 'Önéletrajz letöltése',
     ctaLinkedIn: 'LinkedIn profil',
@@ -30,11 +34,17 @@ export const contentHu: SiteContent = {
       'Docker',
       'Linux',
       'TCP/IP',
-      'Industrial Systems',
-      'Energy',
-      'Telecom',
-      'R&D',
+      'Ipari rendszerek',
+      'Energetika',
+      'Távközlés',
+      'Kutatás és fejlesztés',
     ],
+    morphAria:
+      'Ábra: egy Excel-rendelőlap oszlopaiból webes ajánlatkérő űrlap mezői lesznek.',
+    morphFile: 'rendelolap.xlsx',
+    compareBefore: 'Előtte',
+    compareAfter: 'Utána',
+    compareAria: 'Excel-rendelőlap és webes ajánlatkérő összehasonlítása',
   },
   about: {
     title: 'Rólam',
@@ -119,7 +129,7 @@ export const contentHu: SiteContent = {
     title: 'Technológiák és kompetenciák',
     groups: [
       {
-        title: 'Software Development',
+        title: 'Szoftverfejlesztés',
         skills: [
           'Python',
           'JavaScript',
@@ -133,45 +143,49 @@ export const contentHu: SiteContent = {
         ],
       },
       {
-        title: 'Engineering & Systems',
+        title: 'Mérnöki munka és rendszerek',
         skills: [
-          'Electrical Engineering',
-          'Industrial Systems',
-          'Energy Systems',
-          'Telecommunications',
+          'Villamosmérnöki munka',
+          'Ipari rendszerek',
+          'Energetikai rendszerek',
+          'Távközlés',
           'TCP/IP',
           'Modbus',
           'VPN',
-          'System Integration',
+          'Rendszerintegráció',
         ],
       },
       {
-        title: 'DevOps & Tools',
+        title: 'Fejlesztési eszközök és üzemeltetés',
         skills: [
           'Azure DevOps',
           'Git',
           'Docker',
           'Linux',
-          'CI/CD',
-          'Cursor',
-          'AI-assisted development',
+          'Automatikus tesztelés és telepítés',
         ],
       },
       {
-        title: 'Project & Communication',
+        title: 'Projektvezetés és kommunikáció',
         skills: [
-          'Technical Project Management',
-          'Documentation',
-          'Partner Communication',
-          'Testing',
-          'Troubleshooting',
-          'Requirements Analysis',
+          'Műszaki projektvezetés',
+          'Dokumentáció',
+          'Kapcsolattartás a partnerekkel',
+          'Tesztelés',
+          'Hibakeresés és hibaelhárítás',
+          'Igényfelmérés',
         ],
       },
     ],
   },
   projects: {
     title: 'Munkáim',
+    sampleBadge: 'Minta',
+    explode: {
+      structure: 'Szerkezet',
+      content: 'Tartalom',
+      finished: 'Kész oldal',
+    },
     items: [
       {
         id: 'anettesvendi',
@@ -203,45 +217,20 @@ export const contentHu: SiteContent = {
         alt: 'Életrendező bemutatkozó oldal kezdőképernyője kapcsolatfelvétel gombokkal',
       },
       {
-        id: 'piktor',
-        title: 'Piktor 94',
-        subtitle: 'Termékadat-minta webáruháznak',
-        site: {
-          label: 'obmore.github.io/piktor-content-pilot',
-          href: 'https://obmore.github.io/piktor-content-pilot',
-        },
+        id: 'hotel-rental',
+        title: 'Szállodai járműbérlő rendszer',
+        subtitle: 'Elektromos rollerek és kerékpárok automatizált bérlése szállodáknak',
+        tag: 'Csapatmunka',
         paragraphs: [
-          'Működő minta egy webáruház számára. A gyártói cikkszám alapján párosítja a termékeket, a forrásokkal igazolt adatokból magyar termékleírást állít össze, és jelzi, ha valamelyik adat hiányzik. Az eredményt egy ellenőrző táblázatban és a webáruházba feltölthető formában adja át.',
+          'A szállodai bérlés webes felületén, a szerveroldali rendszeren, az elektromos kerékpárok távoli vezérlésén és a töltőállomások szoftverén dolgoztam.',
         ],
-        tech: 'Technológia: JavaScript, Python, automatikus tesztek.',
-        image: 'work/piktor.webp',
-        imageWidth: 1280,
-        imageHeight: 800,
-        alt: 'Piktor 94 termékadat-minta: termékleírások és hiányzó adatok ellenőrző nézete',
-      },
-      {
-        id: 'ottbenjamin',
-        title: 'ottbenjamin.hu',
-        subtitle: 'Saját szakmai oldal',
-        paragraphs: [
-          'Magyar és angol nyelvű oldal, világos és sötét módban is olvasható. A kódja nyilvános: github.com/Obmore/benjamin_portfolio',
-        ],
-        tech: 'Technológia: React 19, TypeScript, Vite, Tailwind CSS, Framer Motion.',
-        image: 'work/ottbenjamin.webp',
-        imageWidth: 1280,
-        imageHeight: 800,
-        alt: 'ottbenjamin.hu saját szakmai oldal kezdőképernyője',
-        links: [
-          {
-            label: 'github.com/Obmore/benjamin_portfolio',
-            href: 'https://github.com/Obmore/benjamin_portfolio',
-          },
-        ],
+        tech: 'Technológia: React, TypeScript, .NET, Azure, Raspberry Pi, Python.',
       },
       {
         id: 'lelek-es-nyelv',
         title: 'Lélek & Nyelv',
         subtitle: 'Bemutatkozó oldal minta',
+        sample: true,
         site: {
           label: 'obmore.github.io/lelek-es-nyelv-portfolio',
           href: 'https://obmore.github.io/lelek-es-nyelv-portfolio',
@@ -266,13 +255,36 @@ export const contentHu: SiteContent = {
   },
   services: {
     title: 'Webes ajánlatkérő a letölthető Excel-rendelőlap helyett',
+    sectionTitle: 'Szolgáltatások és árak',
     lead: 'Ha az ügyfelei ma letölthető Excel- vagy PDF-rendelőlapon, esetleg e-mailben kérnek ajánlatot, ezt egyszerű webes űrlapra cserélem az Ön honlapján.',
     problem:
       'A kézi ajánlatkérés sok időt visz el. Az ügyfél letölti a táblázatot, kitölti és csatolja, a cég pedig kézzel viszi tovább, amit kapott. Webes űrlappal minden adat egyszerre és hiánytalanul érkezik meg.',
+    problemHighlight: 'egyszerre és hiánytalanul',
     craft:
       'Minden munkát kóddal készítek, nem sablonnal vagy oldalépítővel, ezért a megoldás az Ön cégének működéséhez igazodik.',
     emptyPrice: 'Fix belépő ár: hamarosan',
     priceSetSuffix: 'egyszeri',
+    processTitle: 'Így dolgozom',
+    processSteps: [
+      {
+        title: 'Felmérés',
+        description:
+          'Megbeszéljük, mire van szüksége, és ma hogyan jutnak el Önhöz a megrendelések.',
+      },
+      {
+        title: 'Ár a munka előtt',
+        description:
+          'Kész csomagnál a feltüntetett ár érvényes, egyedi megoldásnál a felmérés után adok árat.',
+      },
+      {
+        title: 'Elkészítés',
+        description: 'Saját kóddal készítem, az Ön vállalkozásához igazítva.',
+      },
+      {
+        title: 'Átadás',
+        description: 'Egy javítási kör benne van, az üzemeltetést kérésre vállalom.',
+      },
+    ],
     featuredBadge: 'Fő ajánlat',
     includesTitle: 'A díjban benne van',
     packages: [
@@ -330,7 +342,8 @@ export const contentHu: SiteContent = {
     form: {
       title: 'Ajánlatkérő minta',
       intro: 'Próbálja ki. Így látnák az ügyfelei egy gyártó vagy szabászati cég honlapján.',
-      demoBanner: 'Ez minta. A küldés nincs bekapcsolva, ezért semmi nem megy el.',
+      demoBanner:
+        'Ez egy minta, az innen elküldött adatok nem jutnak el hozzám. Ajánlatot a Kapcsolat részben kérhet.',
       liveBanner: 'Ez minta. A kitöltött kérés e-mailben eljut hozzám.',
       submit: 'Ajánlat kérése',
       submitting: 'Küldés folyamatban',
@@ -344,6 +357,20 @@ export const contentHu: SiteContent = {
       fileHint: 'Excel, PDF vagy DXF. Legfeljebb 5 MB.',
       fileChoose: 'Fájl kiválasztása',
       fileNone: 'Nincs kiválasztott fájl',
+      previewFileNone: 'Nincs csatolva',
+      previewQuantityUnit: ' db',
+      previewTitle: 'A cég ezt az összefoglalót kapná',
+      previewFrom: 'Feladó',
+      previewTo: 'Címzett',
+      previewRecipient: 'Minta Asztalos Bt.',
+      previewSubjectLabel: 'Tárgy',
+      previewSubject: 'Ajánlatkérés a honlapról',
+      sampleName: 'Minta Péter',
+      sampleCompany: 'Minta Kft.',
+      sampleEmail: 'minta@example.hu',
+      samplePhone: '06 1 000 0000',
+      sampleQuantity: '12',
+      sampleNotes: '1200 × 800 mm',
       fields: {
         name: 'Név',
         company: 'Cég',
@@ -386,11 +413,13 @@ export const contentHu: SiteContent = {
     title: 'Kapcsolat',
     text: 'Ha webes ajánlatkérő űrlapra, bemutatkozó oldalra vagy egyedi webes megoldásra van szüksége, írjon nekem e-mailt. Röviden egyeztetünk, utána megírom, mit javaslok, és mit tartalmaz a munka. Ipari és energetikai szakmai megkeresésekre is szívesen válaszolok.',
     email: 'bendzsiott1998@gmail.com',
-    location: 'Budapest, Hungary',
+    location: 'Budapest',
+    mailSubject: 'Felmérés kérése',
     linkedIn: 'linkedin.com/in/benjaminottee',
   },
   footer: {
     text: '© 2026 Ott Benjámin, villamosmérnök és szoftverfejlesztő',
+    sourceLabel: 'A weboldal forráskódja:',
   },
   common: {
     emailLabel: 'E-mail',
@@ -401,5 +430,11 @@ export const contentHu: SiteContent = {
     themeToLight: 'Világos mód',
     langToEn: 'Váltás angolra',
     langToHu: 'Váltás magyarra',
+    mainNav: 'Fő navigáció',
+    mobileMenu: 'Mobil menü',
+    closeMenu: 'Menü bezárása',
+    skipToContent: 'Ugrás a tartalomra',
+    copyEmail: 'E-mail-cím másolása',
+    emailCopied: 'A cím a vágólapra került.',
   },
 }

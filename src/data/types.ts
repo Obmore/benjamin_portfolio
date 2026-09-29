@@ -21,16 +21,19 @@ export interface WorkProject {
   id: string
   title: string
   subtitle?: string
+  sample?: boolean
+  tag?: string
+  relation?: string
   site?: {
     label: string
     href: string
   }
   paragraphs: string[]
   tech: string
-  image: string
-  imageWidth: number
-  imageHeight: number
-  alt: string
+  image?: string
+  imageWidth?: number
+  imageHeight?: number
+  alt?: string
   links?: { label: string; href: string }[]
 }
 
@@ -70,6 +73,20 @@ export interface QuoteFormCopy {
   fileHint: string
   fileChoose: string
   fileNone: string
+  previewFileNone: string
+  previewQuantityUnit: string
+  previewTitle: string
+  previewFrom: string
+  previewTo: string
+  previewRecipient: string
+  previewSubjectLabel: string
+  previewSubject: string
+  sampleName: string
+  sampleCompany: string
+  sampleEmail: string
+  samplePhone: string
+  sampleQuantity: string
+  sampleNotes: string
   fields: {
     name: string
     company: string
@@ -114,10 +131,19 @@ export interface SiteContent {
   hero: {
     headline: string
     subheadline: string
+    offerHeadline: string
+    offerLead: string
+    pricesJump: string
+    sheetLabel: string
     ctaContact: string
     ctaCv: string
     ctaLinkedIn: string
     chips: string[]
+    morphAria: string
+    morphFile: string
+    compareBefore: string
+    compareAfter: string
+    compareAria: string
   }
   about: {
     title: string
@@ -134,6 +160,12 @@ export interface SiteContent {
   }
   projects: {
     title: string
+    sampleBadge: string
+    explode: {
+      structure: string
+      content: string
+      finished: string
+    }
     items: WorkProject[]
   }
   cv: {
@@ -145,9 +177,13 @@ export interface SiteContent {
   }
   services: {
     title: string
+    sectionTitle: string
     lead: string
     problem: string
+    problemHighlight: string
     craft: string
+    processTitle: string
+    processSteps: { title: string; description: string }[]
     emptyPrice: string
     priceSetSuffix: string
     featuredBadge: string
@@ -166,9 +202,11 @@ export interface SiteContent {
     email: string
     location: string
     linkedIn: string
+    mailSubject: string
   }
   footer: {
     text: string
+    sourceLabel: string
   }
   common: {
     emailLabel: string
@@ -179,5 +217,11 @@ export interface SiteContent {
     themeToLight: string
     langToEn: string
     langToHu: string
+    mainNav: string
+    mobileMenu: string
+    closeMenu: string
+    skipToContent: string
+    copyEmail: string
+    emailCopied: string
   }
 }
