@@ -28,8 +28,6 @@ const contentMap: Record<Locale, SiteContent> = {
 }
 
 function getInitialLocale(): Locale {
-  const stored = localStorage.getItem(LOCALE_STORAGE_KEY)
-  if (stored === 'hu' || stored === 'en') return stored
   return 'hu'
 }
 

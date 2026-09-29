@@ -31,6 +31,10 @@ export function quoteFormPackagePriceLabel(emptyLabel: string, setSuffix = ''): 
 export const SECTION_IDS = {
   about: 'rolam',
   services: 'szolgaltatasok',
+  prices: 'arak',
+  problem: 'problema',
+  solution: 'megoldas',
+  process: 'folyamat',
   experience: 'tapasztalat',
   skills: 'kompetenciak',
   projects: 'munkaim',
@@ -40,12 +44,17 @@ export const SECTION_IDS = {
 } as const
 
 export const SECTION_NUMBERS = {
-  services: '01',
-  projects: '02',
-  about: '03',
-  experience: '04',
-  skills: '05',
-  cv: '06',
-  quoteDemo: '07',
-  contact: '08',
+  problem: '01',
+  solution: '02',
+  quoteDemo: '03',
+  process: '04',
+  projects: '05',
+  services: '06',
+  about: '07',
+  experience: '08',
+  skills: '09',
+  cv: '10',
+  contact: '11',
 } as const
+
+export const ASSESS_MAILTO = `mailto:${EMAIL}?subject=${encodeURIComponent('Felmérés kérése')}`

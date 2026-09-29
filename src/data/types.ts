@@ -114,6 +114,15 @@ export interface QuoteFormCopy {
   }
 }
 
+export interface PaperRow {
+  label: string
+  value: string
+}
+
+export interface ProblemCard {
+  text: string
+}
+
 export interface SiteContent {
   meta: {
     title: string
@@ -127,12 +136,19 @@ export interface SiteContent {
     projects: string
     cv: string
     contact: string
+    howItWorks: string
+    prices: string
   }
   hero: {
+    kicker: string
     headline: string
+    headlineLines: [string, string]
     subheadline: string
-    offerHeadline: string
-    offerLead: string
+    ctaAssess: string
+    ctaHow: string
+    scrollHint: string
+    paperTitle: string
+    paperRows: PaperRow[]
     pricesJump: string
     sheetLabel: string
     ctaContact: string
@@ -144,7 +160,30 @@ export interface SiteContent {
     compareBefore: string
     compareAfter: string
     compareAria: string
+    inboxLabel: string
   }
+  rail: { id: string; label: string }[]
+  problem: {
+    title: string
+    cards: ProblemCard[]
+  }
+  solution: {
+    title: string
+    text: string
+  }
+  tryIt: {
+    title: string
+    text: string
+  }
+  process: {
+    title: string
+    lead: string
+  }
+  prices: {
+    title: string
+    lead: string
+  }
+  marquee: string[]
   about: {
     title: string
     text: string
@@ -160,6 +199,7 @@ export interface SiteContent {
   }
   projects: {
     title: string
+    lead: string
     sampleBadge: string
     explode: {
       structure: string
@@ -199,6 +239,8 @@ export interface SiteContent {
   contact: {
     title: string
     text: string
+    orWrite: string
+    finale: string
     email: string
     location: string
     linkedIn: string

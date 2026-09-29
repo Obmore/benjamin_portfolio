@@ -1,59 +1,98 @@
+import { useLayoutEffect, useRef } from 'react'
+import { gsap } from 'gsap'
 import { useI18n } from '@/context/I18nContext'
 import { Button } from '@/components/ui/Button'
 import { QuoteFormMorph } from '@/components/hero/QuoteFormMorph'
-import { SignalSegment } from '@/components/visuals/SignalRail'
-import { EMAIL, SECTION_IDS } from '@/lib/constants'
+import { ASSESS_MAILTO, SECTION_IDS } from '@/lib/constants'
 import { scrollToSection } from '@/hooks/useActiveSection'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 export function Hero() {
   const { content } = useI18n()
   const hero = content.hero
+  const reduced = usePrefersReducedMotion()
+  const rootRef = useRef<HTMLElement>(null)
+
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    if (!root || reduced) return
+
+    const lines = root.querySelectorAll<HTMLElement>('[data-hero-line]')
+    const kicker = root.querySelector<HTMLElement>('[data-hero-kicker]')
+    const lead = root.querySelector<HTMLElement>('[data-hero-lead]')
+    const hint = root.querySelector<HTMLElement>('[data-scroll-hint]')
+
+    const ctx = gsap.context(() => {
+      if (lines.length) {
+        gsap.from(lines, {
+          yPercent: 112,
+          duration: 1.05,
+          stagger: 0.09,
+          ease: 'expo.out',
+        })
+      }
+      gsap.from([kicker, lead], {
+        y: 14,
+        duration: 0.75,
+        stagger: 0.08,
+        ease: 'power2.out',
+        delay: 0.1,
+      })
+      if (hint) {
+        gsap.to(hint, {
+          y: 7,
+          duration: 1.35,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: 1,
+        })
+      }
+    }, root)
+
+    return () => ctx.revert()
+  }, [reduced, hero.headline])
 
   return (
-    <section id="hero" className="relative scroll-mt-16 pt-16 md:pt-20">
-      <SignalSegment staticDraw />
-      <div className="mx-auto grid w-full max-w-6xl gap-3 px-5 py-3 md:gap-5 md:px-8 md:py-8 lg:grid-cols-12 lg:items-start lg:gap-10">
-        <div className="lg:col-span-5">
-          <div className="flex items-baseline gap-3">
-            <p className="font-mono text-xs tracking-wide text-line">Ott Benjámin</p>
-            <p className="font-mono text-[10px] tracking-wide text-line">{hero.sheetLabel}</p>
+    <section id="hero" ref={rootRef} className="relative scroll-mt-16">
+      <div data-hero-pin className="hero-pin">
+        <div className="hero-frame">
+          <div className="hero-shell">
+            <div className="hero-copy">
+              <p data-hero-kicker className="hero-kicker">
+                {hero.kicker}
+              </p>
+              <h1 className="hero-offer-title">
+                {hero.headlineLines.map((line) => (
+                  <span key={line} className="hero-line">
+                    <span className="hero-line-inner" data-hero-line>
+                      {line}
+                    </span>
+                  </span>
+                ))}
+              </h1>
+              <p data-hero-lead className="hero-offer-lead">
+                {hero.subheadline}
+              </p>
+              <div data-hero-actions className="hero-actions">
+                <Button data-hero-cta="primary" className="w-auto" href={ASSESS_MAILTO}>
+                  {hero.ctaAssess}
+                </Button>
+                <button
+                  type="button"
+                  data-hero-cta="secondary"
+                  className="inline-flex min-h-12 items-center text-sm font-medium text-line underline-offset-4 hover:underline"
+                  onClick={() => scrollToSection(SECTION_IDS.problem)}
+                >
+                  {hero.ctaHow}
+                </button>
+              </div>
+              <p data-scroll-hint className="hero-scroll-hint">
+                {hero.scrollHint}
+              </p>
+            </div>
+            <QuoteFormMorph />
           </div>
-          <p className="mt-1 text-sm text-muted">{hero.headline}</p>
-          <h1 className="hero-offer-title mt-2 text-[1.5rem] font-semibold leading-[1.22] tracking-tight text-foreground md:mt-3 md:text-4xl md:leading-tight">
-            {hero.offerHeadline}
-          </h1>
-          <p className="hero-offer-lead mt-2 max-w-xl text-[15px] leading-snug text-muted md:mt-3 md:leading-relaxed">
-            {hero.offerLead}
-          </p>
-          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 md:mt-5">
-            <Button
-              data-hero-cta="primary"
-              className="w-auto"
-              onClick={() => scrollToSection(SECTION_IDS.contact)}
-            >
-              {content.services.cta.title}
-            </Button>
-            <a
-              data-hero-cta="secondary"
-              href={`#${SECTION_IDS.services}`}
-              className="inline-flex min-h-12 items-center text-sm font-medium text-line underline-offset-4 hover:underline"
-            >
-              {hero.pricesJump}
-            </a>
-          </div>
-          <p className="mt-3 text-sm">
-            <span className="font-mono text-xs text-line">{content.common.emailLabel}</span>{' '}
-            <a
-              data-hero-email
-              href={`mailto:${EMAIL}`}
-              className="break-all text-foreground underline-offset-2 hover:underline"
-            >
-              {EMAIL}
-            </a>
-          </p>
-        </div>
-        <div className="lg:col-span-7">
-          <QuoteFormMorph />
         </div>
       </div>
     </section>

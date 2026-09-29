@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { useMagnetic } from '@/hooks/useMagnetic'
 
 const variantStyles = {
   primary: 'bg-cta text-white hover:bg-[#9a3412]',
@@ -14,7 +15,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   href?: string
   external?: boolean
   children: ReactNode
+  magnetic?: boolean
   'data-cta'?: string
+  'data-hero-cta'?: string
+  'data-nav'?: string
 }
 
 export function Button({
@@ -24,9 +28,13 @@ export function Button({
   className = '',
   children,
   type = 'button',
+  magnetic = variant === 'primary',
   'data-cta': dataCta,
+  'data-hero-cta': dataHeroCta,
+  'data-nav': dataNav,
   ...props
 }: ButtonProps) {
+  const magRef = useMagnetic<HTMLAnchorElement & HTMLButtonElement>(magnetic)
   const classes = `inline-flex min-h-12 items-center justify-center gap-2 rounded-[6px] px-5 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${className}`
   const motionStyle = {
     transitionDuration: 'var(--motion-short)',
@@ -37,12 +45,15 @@ export function Button({
   if (href) {
     return (
       <a
+        ref={magRef}
         href={href}
         target={external ? '_blank' : undefined}
         rel={external ? 'noopener noreferrer' : undefined}
         className={classes}
         style={motionStyle}
         data-cta={dataCta}
+        data-hero-cta={dataHeroCta}
+        data-nav={dataNav}
       >
         {children}
       </a>
@@ -50,7 +61,16 @@ export function Button({
   }
 
   return (
-    <button type={type} className={classes} style={motionStyle} data-cta={dataCta} {...props}>
+    <button
+      ref={magRef}
+      type={type}
+      className={classes}
+      style={motionStyle}
+      data-cta={dataCta}
+      data-hero-cta={dataHeroCta}
+      data-nav={dataNav}
+      {...props}
+    >
       {children}
     </button>
   )

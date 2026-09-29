@@ -1,5 +1,6 @@
 import { useI18n } from '@/context/I18nContext'
 import { Chip } from '@/components/ui/Chip'
+import { Reveal } from '@/components/ui/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
 import { SchematicIcon, type SchematicKind } from '@/components/visuals/SchematicIcon'
@@ -19,7 +20,7 @@ export function Skills() {
       />
       <div className="grid gap-0 overflow-hidden rounded-[6px] border border-line/25 md:grid-cols-2">
         {content.skills.groups.map((group, index) => (
-          <div
+          <Reveal
             key={group.title}
             className="border-b border-line/20 p-5 last:border-b-0 md:border-r md:[&:nth-child(2n)]:border-r-0 md:[&:nth-last-child(-n+2)]:border-b-0"
           >
@@ -32,7 +33,7 @@ export function Skills() {
                 <Chip key={skill} label={skill} />
               ))}
             </div>
-          </div>
+          </Reveal>
         ))}
       </div>
     </SectionWrapper>
