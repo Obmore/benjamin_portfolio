@@ -62,7 +62,7 @@ function selectorFor(el: HTMLElement): string {
       parts.unshift(`#${CSS.escape(node.id)}`)
       break
     }
-    const parent = node.parentElement
+    const parent: HTMLElement | null = node.parentElement
     if (!parent) break
     const tag = node.tagName.toLowerCase()
     let index = 1
