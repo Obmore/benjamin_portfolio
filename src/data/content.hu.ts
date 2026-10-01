@@ -210,6 +210,7 @@ export const contentHu: SiteContent = {
     prompt: 'Írjon nekem e-mailt, és hamarosan válaszolok.',
     copyAddress: 'Cím másolása',
     copied: 'Kimásolva',
+    copiedAnnouncement: 'Az e-mail-cím a vágólapra került.',
   },
   footer: {
     text: '© 2026 Ott Benjámin, villamosmérnök és szoftverfejlesztő',
@@ -219,8 +220,6 @@ export const contentHu: SiteContent = {
     locationLabel: 'Helyszín',
     linkedInLabel: 'LinkedIn',
     menuToggle: 'Menü megnyitása',
-    themeToDark: 'Sötét mód',
-    themeToLight: 'Világos mód',
     langToEn: 'Váltás angolra',
     langToHu: 'Váltás magyarra',
   },

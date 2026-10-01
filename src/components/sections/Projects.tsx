@@ -9,6 +9,7 @@ export function Projects() {
 
   return (
     <SectionWrapper id={SECTION_IDS.projects}>
+      <span id="projektek" aria-hidden="true" />
       <SectionHeading title={content.projects.title} label={content.nav.projects} />
       <div className="grid gap-6 md:grid-cols-2">
         {content.projects.items.map((project, index) => (

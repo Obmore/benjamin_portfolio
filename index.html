@@ -1,9 +1,13 @@
 <!doctype html>
 <html lang="hu">
   <head>
+    <script>
+      document.documentElement.classList.add('js')
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
     <meta
       name="description"
       content="Ott Benjámin, villamosmérnök és szoftverfejlesztő. Python, full-stack fejlesztés, ipari rendszerek, energetika és telekommunikációs K+F."
@@ -15,22 +19,23 @@
       content="Mérnöki rendszerek és modern szoftveres megoldások összekapcsolása."
     />
     <meta property="og:type" content="website" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="canonical" href="https://ottbenjamin.hu/" />
+    <meta property="og:url" content="https://ottbenjamin.hu/" />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/fonts/dm-sans-400.woff2"
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/fonts/dm-sans-600.woff2"
     />
     <title>Ott Benjámin, villamosmérnök és szoftverfejlesztő</title>
-    <script>
-      ;(function () {
-        const stored = localStorage.getItem('portfolio-theme')
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        if (stored === 'dark' || (!stored && prefersDark)) {
-          document.documentElement.classList.add('dark')
-        }
-      })()
-    </script>
   </head>
   <body>
     <div id="root"></div>

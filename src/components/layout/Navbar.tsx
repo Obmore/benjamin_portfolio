@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import { useI18n } from '@/context/I18nContext'
 import { SECTION_IDS } from '@/lib/constants'
 import { scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
+import { navigateTo } from '@/lib/anchors'
 import { LangToggle } from '@/components/ui/LangToggle'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 const navItems = [
   { id: SECTION_IDS.about, key: 'about' as const },
@@ -15,19 +14,37 @@ const navItems = [
   { id: SECTION_IDS.contact, key: 'contact' as const },
 ]
 
+function useHeaderScrolled() {
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const sentinel = document.createElement('div')
+    sentinel.setAttribute('data-scroll-sentinel', '')
+    sentinel.setAttribute('aria-hidden', 'true')
+    sentinel.style.cssText =
+      'position:absolute;top:0;left:0;width:1px;height:20px;pointer-events:none;'
+    document.body.prepend(sentinel)
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setScrolled(!entry.isIntersecting)
+    })
+    observer.observe(sentinel)
+
+    return () => {
+      observer.disconnect()
+      sentinel.remove()
+    }
+  }, [])
+
+  return scrolled
+}
+
 export function Navbar() {
   const { content } = useI18n()
-  const [scrolled, setScrolled] = useState(false)
+  const scrolled = useHeaderScrolled()
   const [menuOpen, setMenuOpen] = useState(false)
   const [pendingScrollId, setPendingScrollId] = useState<string | null>(null)
   const activeId = useActiveSection(navItems.map((item) => item.id))
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   useEffect(() => {
     if (!menuOpen) return
@@ -59,16 +76,17 @@ export function Navbar() {
     if (menuOpen) {
       document.body.style.overflow = ''
       setMenuOpen(false)
+      history.replaceState(null, '', `#${id}`)
       setPendingScrollId(id)
       return
     }
 
-    scrollToSection(id)
+    navigateTo(id)
   }
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
         scrolled
           ? 'border-b border-border/60 bg-background/80 backdrop-blur-xl'
           : 'bg-transparent'
@@ -102,7 +120,6 @@ export function Navbar() {
 
         <div className="flex items-center gap-2">
           <LangToggle />
-          <ThemeToggle />
           <button
             type="button"
             className="rounded-lg border border-border/70 p-2 text-muted lg:hidden"
@@ -122,32 +139,28 @@ export function Navbar() {
         </div>
       </div>
 
-      <AnimatePresence>
-        {menuOpen ? (
-          <motion.nav
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden border-b border-border/60 bg-background/95 backdrop-blur-xl lg:hidden"
-            aria-label="Mobile navigation"
-          >
-            <div className="flex flex-col gap-1 px-5 py-4">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => handleNavClick(item.id)}
-                  className={`rounded-lg px-3 py-2 text-left text-sm ${
-                    activeId === item.id ? 'text-accent' : 'text-muted'
-                  }`}
-                >
-                  {content.nav[item.key]}
-                </button>
-              ))}
-            </div>
-          </motion.nav>
-        ) : null}
-      </AnimatePresence>
+      <nav
+        className={`mobile-nav border-b border-border/60 bg-background/95 backdrop-blur-xl lg:hidden ${menuOpen ? 'is-open' : ''}`}
+        aria-label="Mobile navigation"
+        aria-hidden={!menuOpen}
+        inert={!menuOpen}
+      >
+        <div className="flex flex-col gap-1 px-5 py-4">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              tabIndex={menuOpen ? 0 : -1}
+              onClick={() => handleNavClick(item.id)}
+              className={`rounded-lg px-3 py-2 text-left text-sm ${
+                activeId === item.id ? 'text-accent' : 'text-muted'
+              }`}
+            >
+              {content.nav[item.key]}
+            </button>
+          ))}
+        </div>
+      </nav>
     </header>
   )
 }
