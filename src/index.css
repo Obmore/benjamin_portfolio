@@ -14,7 +14,6 @@
   }
 
   html.js .draw-path,
-  html.js .hero-signal,
   html.js .munkaim-dimension-line {
     stroke-dashoffset: 0 !important;
   }
@@ -124,6 +123,8 @@
   --hero-t-cell: 200ms;
   --hero-d-cell: 800ms;
   --hero-cell-stagger: 60ms;
+  --line-ink: #0b2545;
+  --line-blueprint: #1f5fad;
 }
 
 @media (max-width: 899px), (pointer: coarse) {
@@ -281,6 +282,8 @@ html.js [data-reveal]:not([data-revealed]) {
 }
 
 .hero-copy {
+  position: relative;
+  z-index: 2;
   min-width: 0;
 }
 
@@ -367,7 +370,6 @@ html.js [data-reveal]:not([data-revealed]) {
 
 .hero-figure {
   width: 100%;
-  min-aspect-ratio: 5 / 2;
   margin: 0;
   color: var(--color-accent);
   pointer-events: none;
@@ -383,14 +385,50 @@ html.js [data-reveal]:not([data-revealed]) {
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
 }
 
-.hero-circuit {
-  display: none;
+.hero-c-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 96px);
+  justify-content: center;
+  align-content: center;
+  gap: 8px;
+  min-height: 96px;
+}
+
+.scene3d-box {
+  position: relative;
+  z-index: 0;
+  box-sizing: border-box;
+  width: 96px;
+  height: 96px;
+  color: var(--line-ink);
+  overflow: hidden;
+}
+
+.scene3d-poster {
+  display: block;
+  width: 96px;
+  height: 96px;
+}
+
+.scene3d-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
-  min-height: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition-property: opacity;
+  transition-duration: 300ms;
+}
+
+html.is-3d-ready .scene3d-canvas {
+  opacity: 1;
 }
 
 .hero-titleblock {
+  position: relative;
+  z-index: 2;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 6px 12px;
@@ -420,13 +458,11 @@ html.js [data-reveal]:not([data-revealed]) {
   color: var(--color-foreground);
 }
 
-html.js .hero-signal,
 html.js .munkaim-dimension-line {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
 }
 
-html.js.is-static-motion .hero-signal,
 html.js.is-static-motion .munkaim-dimension-line {
   stroke-dashoffset: 0;
 }
@@ -729,21 +765,6 @@ html.js.is-static-motion .munkaim-dimension-line {
     max-width: 640px;
   }
 
-  .hero-figure {
-    aspect-ratio: 16 / 5;
-    min-aspect-ratio: auto;
-  }
-
-  .hero-figure-inner {
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    align-items: stretch;
-  }
-
-  .hero-circuit {
-    display: block;
-  }
-
   .munkaim-title {
     font-size: 2.25rem;
   }
@@ -806,6 +827,21 @@ html.js.is-static-motion .munkaim-dimension-line {
   .hero-figure-inner {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr auto;
+  }
+
+  .hero-c-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    gap: 12px;
+  }
+
+  .scene3d-box,
+  .scene3d-poster {
+    width: min(100%, 160px);
+    height: auto;
+    aspect-ratio: 1;
   }
 
   .munkaim-section {
@@ -885,6 +921,13 @@ html.js.is-static-motion .munkaim-dimension-line {
   }
 }
 
+@media (min-width: 1280px) {
+  .scene3d-box,
+  .scene3d-poster {
+    width: min(100%, 200px);
+  }
+}
+
 @media (min-width: 1440px) {
   .hero-container,
   .munkaim-container {
@@ -916,10 +959,6 @@ html.js.is-static-motion .munkaim-dimension-line {
 
   html.js:not(.is-static-motion) .hero-chips {
     animation: fade-in var(--hero-t-chips) var(--motion-ink) var(--hero-d-chips) both;
-  }
-
-  html.js:not(.is-static-motion) .hero-signal {
-    animation: draw-line var(--hero-t-line) var(--motion-page) var(--hero-d-line) both;
   }
 
   html.js:not(.is-static-motion) .hero-titleblock-cell {

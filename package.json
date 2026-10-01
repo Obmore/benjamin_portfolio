@@ -4,20 +4,24 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "node scripts/3d-bake.mjs && vite",
+    "build": "node scripts/3d-bake.mjs && tsc -b && vite build",
+    "build:qa": "node scripts/3d-bake.mjs && tsc -b && VITE_3D_QA=true vite build",
     "lint": "oxlint",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist",
     "build:fonts": "node scripts/build-fonts.mjs",
+    "bake:3d": "node scripts/3d-bake.mjs",
     "check:size": "node scripts/check-budgets.mjs",
     "check:motion": "node scripts/check-motion.mjs",
     "check:cv": "node scripts/check-cv-size.mjs",
-    "check": "npm run lint && npm run build && npm run check:size && npm run check:motion && npm run check:cv"
+    "check:3d": "node scripts/check-3d.mjs",
+    "check": "npm run lint && npm run build && npm run check:size && npm run check:motion && npm run check:cv && npm run check:3d"
   },
   "dependencies": {
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "three": "0.186.1"
   },
   "devDependencies": {
     "@capsizecss/metrics": "^4.3.0",
