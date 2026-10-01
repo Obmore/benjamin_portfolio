@@ -28,9 +28,7 @@ export function SeoHead() {
       <meta property="og:title" content={content.meta.title} />
       <meta property="og:description" content={content.meta.description} />
       <meta property="og:type" content="website" />
-      <meta property="og:url" content={SITE_URL} />
       <meta name="twitter:card" content="summary" />
-      <link rel="canonical" href={SITE_URL} />
       <html lang={locale} className="js" />
       <script
         type="application/ld+json"
