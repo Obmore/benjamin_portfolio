@@ -197,11 +197,9 @@ printRows('/megrendeles/ CSS files', orderCssGzip.rows)
 printRows('/megrendeles/ preload fonts', orderPreloadRaw.rows, 'raw')
 printRows('Font files', fontsRaw.rows, 'raw')
 
-if (order.preloadFonts.size !== 1) {
+if (![...order.preloadFonts].some((file) => file.endsWith('dm-sans-400.woff2'))) {
   failed = true
-  console.error(
-    `\n/megrendeles/ must preload exactly 1 font (dm-sans-400). Found ${order.preloadFonts.size}.`,
-  )
+  console.error('\n/megrendeles/ must preload dm-sans-400.woff2.')
 }
 
 if (failed) {

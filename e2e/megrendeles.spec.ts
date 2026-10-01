@@ -59,6 +59,20 @@ test.describe('/megrendeles/', () => {
         `horizontal scroll at ${viewport.width}`,
       ).toBeLessThanOrEqual(overflow.clientWidth + 1)
 
+      const writeBox = await page.locator('#mg-write').boundingBox()
+      const copyBox = await page.locator('#mg-copy').boundingBox()
+      expect(writeBox).toBeTruthy()
+      expect(copyBox).toBeTruthy()
+      if (viewport.width >= 390) {
+        expect(copyBox!.y, `mail buttons in one row at ${viewport.width}`).toBeCloseTo(
+          writeBox!.y,
+          0,
+        )
+      } else {
+        expect(copyBox!.y).toBeGreaterThan(writeBox!.y + 40)
+        expect(Math.abs(copyBox!.width - writeBox!.width)).toBeLessThan(2)
+      }
+
       const axe = await new AxeBuilder({ page }).analyze()
       expect(axe.violations, JSON.stringify(axe.violations, null, 2)).toEqual([])
 
@@ -188,9 +202,9 @@ test.describe('/megrendeles/', () => {
   test('screenshots 1440 / 390 / 360', async ({ page }) => {
     fs.mkdirSync(ARTIFACTS, { recursive: true })
     const shots = [
-      { width: 1440, height: 900, name: 'megrendeles_1440.png' },
-      { width: 390, height: 844, name: 'megrendeles_390.png' },
-      { width: 360, height: 800, name: 'megrendeles_360.png' },
+      { width: 1440, height: 900, name: 'megrendeles_1440x900.png' },
+      { width: 390, height: 844, name: 'megrendeles_390x844.png' },
+      { width: 360, height: 800, name: 'megrendeles_360x800.png' },
     ] as const
 
     for (const shot of shots) {
