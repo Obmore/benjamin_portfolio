@@ -66,6 +66,9 @@ if (order) {
   mustNotInclude('megrendeles', order, '<input')
   mustNotInclude('megrendeles', order, '<textarea')
   mustNotInclude('megrendeles', order, '<select')
+  mustNotInclude('megrendeles', order, 'data-subject')
+  mustNotInclude('megrendeles', order, 'Aj%C3%A1nlatk%C3%A9r%C3%A9s')
+  mustInclude('megrendeles', order, 'Kimásolva')
 
   if (count(order, /rel="canonical"/g) !== 1) {
     errors.push('megrendeles: canonical must appear exactly once')
@@ -76,6 +79,18 @@ if (order) {
   if (/src\/main\.tsx/.test(order)) {
     errors.push('megrendeles: must not load the main React entry')
   }
+}
+
+const assetsDir = path.join(dist, 'assets')
+if (fs.existsSync(assetsDir)) {
+  const orderJs = fs
+    .readdirSync(assetsDir)
+    .filter((name) => name.startsWith('megrendeles-') && name.endsWith('.js'))
+    .map((name) => fs.readFileSync(path.join(assetsDir, name), 'utf8'))
+    .join('\n')
+  mustInclude('megrendeles js', orderJs, 'E-mail-cím a vágólapra másolva')
+  mustNotInclude('megrendeles js', orderJs, 'Az e-mail-cím a vágólapra került.')
+  mustNotInclude('megrendeles js', orderJs, 'Aj%C3%A1nlatk%C3%A9r%C3%A9s')
 }
 
 if (errors.length > 0) {

@@ -1,20 +1,17 @@
 import './styles.css'
 
 const EMAIL = 'bendzsiott1998@gmail.com'
-const COPIED_ANNOUNCEMENT = 'Az e-mail-cím a vágólapra került.'
+const COPIED_ANNOUNCEMENT = 'E-mail-cím a vágólapra másolva'
 
 const writeLink = document.querySelector<HTMLAnchorElement>('#mg-write')
 const copyBtn = document.querySelector<HTMLButtonElement>('#mg-copy')
 const addressEl = document.querySelector<HTMLElement>('#mg-email-text')
 const statusEl = document.querySelector<HTMLElement>('#mg-status')
+const copyIdle = document.querySelector<HTMLElement>('.mg-copy-idle')
+const copyDone = document.querySelector<HTMLElement>('.mg-copy-done')
 
 let copiedReset = 0
 let announceFrame = 0
-
-function setMailtoSubject(subject: string): void {
-  if (!writeLink) return
-  writeLink.href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}`
-}
 
 function selectAddress(): void {
   if (!addressEl) return
@@ -40,8 +37,14 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
+function setCopiedLabels(copied: boolean): void {
+  copyBtn?.classList.toggle('is-copied', copied)
+  copyIdle?.toggleAttribute('aria-hidden', copied)
+  copyDone?.toggleAttribute('aria-hidden', !copied)
+}
+
 function clearCopiedUi(): void {
-  copyBtn?.classList.remove('is-copied')
+  setCopiedLabels(false)
   if (statusEl) statusEl.textContent = ''
 }
 
@@ -56,7 +59,7 @@ function announceCopied(): void {
 }
 
 function showCopied(): void {
-  copyBtn?.classList.add('is-copied')
+  setCopiedLabels(true)
   announceCopied()
   window.clearTimeout(copiedReset)
   copiedReset = window.setTimeout(() => {
@@ -65,10 +68,8 @@ function showCopied(): void {
   }, 2000)
 }
 
-document.querySelectorAll<HTMLAnchorElement>('[data-subject]').forEach((link) => {
+document.querySelectorAll<HTMLAnchorElement>('.mg-plan-cta').forEach((link) => {
   link.addEventListener('click', () => {
-    const subject = link.getAttribute('data-subject')
-    if (subject) setMailtoSubject(subject)
     window.setTimeout(() => {
       writeLink?.focus()
     }, 0)

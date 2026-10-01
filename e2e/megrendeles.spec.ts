@@ -40,10 +40,11 @@ test.describe('/megrendeles/', () => {
       await gotoOrder(page)
 
       await expect(page.locator('form, input, textarea, select')).toHaveCount(0)
-      await expect(page.locator('#mg-write')).toHaveAttribute(
+      await expect(page.locator('a[href^="mailto:"]')).toHaveAttribute(
         'href',
         `mailto:${EMAIL}?subject=Megrendel%C3%A9s`,
       )
+      await expect(page.locator('a[href*="Aj%C3%A1nlatk%C3%A9r%C3%A9s"]')).toHaveCount(0)
       await expect(page.locator('#mg-email-text')).toHaveText(EMAIL)
       await expect(page.locator('#adatkezeles')).toHaveCount(0)
 
@@ -83,31 +84,32 @@ test.describe('/megrendeles/', () => {
     })
   }
 
-  test('keyboard order and mailto subjects', async ({ page }) => {
+  test('keyboard order and unified mailto subject', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await gotoOrder(page)
 
+    const planLinks = page.locator('.mg-plan-cta')
     await page.keyboard.press('Tab')
     await expect(page.locator('.mg-skip')).toBeFocused()
     await page.keyboard.press('Tab')
     await expect(page.locator('.mg-back')).toBeFocused()
     await page.keyboard.press('Tab')
-    await expect(page.locator('[data-subject="Megrendelés"]')).toBeFocused()
+    await expect(planLinks.nth(0)).toBeFocused()
     await page.keyboard.press('Tab')
-    await expect(page.locator('[data-subject="Ajánlatkérés"]')).toBeFocused()
+    await expect(planLinks.nth(1)).toBeFocused()
     await page.keyboard.press('Tab')
     await expect(page.locator('#mg-write')).toBeFocused()
     await page.keyboard.press('Tab')
     await expect(page.locator('#mg-copy')).toBeFocused()
 
-    await page.locator('[data-subject="Ajánlatkérés"]').click()
+    await planLinks.nth(1).click()
     await expect(page.locator('#mg-write')).toBeFocused()
     await expect(page.locator('#mg-write')).toHaveAttribute(
       'href',
-      `mailto:${EMAIL}?subject=Aj%C3%A1nlatk%C3%A9r%C3%A9s`,
+      `mailto:${EMAIL}?subject=Megrendel%C3%A9s`,
     )
 
-    await page.locator('[data-subject="Megrendelés"]').click()
+    await planLinks.nth(0).click()
     await expect(page.locator('#mg-write')).toHaveAttribute(
       'href',
       `mailto:${EMAIL}?subject=Megrendel%C3%A9s`,
@@ -137,20 +139,25 @@ test.describe('/megrendeles/', () => {
     await expect(canonical).toHaveAttribute('href', 'https://ottbenjamin.hu/')
   })
 
-  test('copy button announces with reserved status row', async ({ page, context, browserName }) => {
+  test('copy button shows Kimásolva without CLS', async ({ page, context, browserName }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     await page.setViewportSize({ width: 390, height: 844 })
     await gotoOrder(page)
 
-    const statusBox = page.locator('#mg-status')
-    const before = await statusBox.evaluate((el) => el.getBoundingClientRect().height)
-    expect(before).toBe(20)
+    const copy = page.locator('#mg-copy')
+    const before = await copy.boundingBox()
+    expect(before).toBeTruthy()
 
-    await page.locator('#mg-copy').click()
-    await expect(statusBox).toHaveText('Az e-mail-cím a vágólapra került.')
+    await copy.click()
+    await expect(page.locator('#mg-status')).toHaveText('E-mail-cím a vágólapra másolva')
+    await expect(page.getByRole('button', { name: 'Kimásolva' })).toBeVisible()
+    await expect(page.locator('.mg-copy-idle')).toBeHidden()
+    await expect(page.getByText('Az e-mail-cím a vágólapra került.')).toHaveCount(0)
 
-    const after = await statusBox.evaluate((el) => el.getBoundingClientRect().height)
-    expect(after).toBe(20)
+    const after = await copy.boundingBox()
+    expect(after).toBeTruthy()
+    expect(after!.width, 'copy button width stays fixed').toBeCloseTo(before!.width, 0)
+    expect(after!.height).toBeCloseTo(before!.height, 0)
 
     if (browserName === 'chromium') {
       const copied = await page.evaluate(() => navigator.clipboard.readText())
@@ -202,9 +209,9 @@ test.describe('/megrendeles/', () => {
   test('screenshots 1440 / 390 / 360', async ({ page }) => {
     fs.mkdirSync(ARTIFACTS, { recursive: true })
     const shots = [
-      { width: 1440, height: 900, name: 'megrendeles_1440x900.png' },
-      { width: 390, height: 844, name: 'megrendeles_390x844.png' },
-      { width: 360, height: 800, name: 'megrendeles_360x800.png' },
+      { width: 1440, height: 900, name: 'megrendeles_v141_1440.png' },
+      { width: 390, height: 844, name: 'megrendeles_v141_390.png' },
+      { width: 360, height: 800, name: 'megrendeles_v141_360.png' },
     ] as const
 
     for (const shot of shots) {
