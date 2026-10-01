@@ -10,6 +10,8 @@ const statusEl = document.querySelector<HTMLElement>('#mg-status')
 const copyIdle = document.querySelector<HTMLElement>('.mg-copy-idle')
 const copyDone = document.querySelector<HTMLElement>('.mg-copy-done')
 
+if (copyBtn) copyBtn.hidden = false
+
 let copiedReset = 0
 let announceFrame = 0
 
@@ -71,7 +73,7 @@ function showCopied(): void {
 document.querySelectorAll<HTMLAnchorElement>('.mg-plan-cta').forEach((link) => {
   link.addEventListener('click', () => {
     window.setTimeout(() => {
-      writeLink?.focus()
+      writeLink?.focus({ preventScroll: true })
     }, 0)
   })
 })

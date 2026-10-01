@@ -47,6 +47,10 @@ test.describe('/megrendeles/', () => {
       await expect(page.locator('a[href*="Aj%C3%A1nlatk%C3%A9r%C3%A9s"]')).toHaveCount(0)
       await expect(page.locator('#mg-email-text')).toHaveText(EMAIL)
       await expect(page.locator('#adatkezeles')).toHaveCount(0)
+      await expect(page.locator('.mg-kicker')).toHaveCount(0)
+      await expect(page.locator('.mg-list li').last()).toHaveText(
+        'a domain külön költség, és az Ön nevére szól',
+      )
 
       const overflow = await page.evaluate(() => {
         const root = document.documentElement
@@ -117,6 +121,7 @@ test.describe('/megrendeles/', () => {
   })
 
   test('readable without JavaScript', async ({ browser }) => {
+    fs.mkdirSync(ARTIFACTS, { recursive: true })
     const page = await browser.newPage({ javaScriptEnabled: false })
     await page.setViewportSize({ width: 390, height: 844 })
     const response = await page.goto(ORDER_PATH)
@@ -128,6 +133,13 @@ test.describe('/megrendeles/', () => {
       'href',
       `mailto:${EMAIL}?subject=Megrendel%C3%A9s`,
     )
+    await expect(page.locator('#mg-copy')).toBeHidden()
+    await expect(page.locator('.mg-kicker')).toHaveCount(0)
+    await page.screenshot({
+      path: path.join(ARTIFACTS, 'megrendeles_kor2_390_nojs.png'),
+      fullPage: true,
+      animations: 'disabled',
+    })
     await page.close()
   })
 
@@ -209,9 +221,9 @@ test.describe('/megrendeles/', () => {
   test('screenshots 1440 / 390 / 360', async ({ page }) => {
     fs.mkdirSync(ARTIFACTS, { recursive: true })
     const shots = [
-      { width: 1440, height: 900, name: 'megrendeles_v141_1440.png' },
-      { width: 390, height: 844, name: 'megrendeles_v141_390.png' },
-      { width: 360, height: 800, name: 'megrendeles_v141_360.png' },
+      { width: 1440, height: 900, name: 'megrendeles_kor2_1440.png' },
+      { width: 390, height: 844, name: 'megrendeles_kor2_390.png' },
+      { width: 360, height: 800, name: 'megrendeles_kor2_360.png' },
     ] as const
 
     for (const shot of shots) {

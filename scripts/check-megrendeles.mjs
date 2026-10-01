@@ -69,6 +69,13 @@ if (order) {
   mustNotInclude('megrendeles', order, 'data-subject')
   mustNotInclude('megrendeles', order, 'Aj%C3%A1nlatk%C3%A9r%C3%A9s')
   mustInclude('megrendeles', order, 'Kimásolva')
+  mustInclude('megrendeles', order, 'a domain külön költség, és az Ön nevére szól')
+  mustInclude('megrendeles', order, 'Írjon nekem e-mailt, és hamarosan válaszolok.')
+  mustNotInclude('megrendeles', order, 'mg-kicker')
+  mustNotInclude('megrendeles', order, 'A domain külön költség')
+  if (!/id="mg-copy"[^>]*\bhidden\b/.test(order) && !/<button[^>]*\bhidden\b[^>]*id="mg-copy"/.test(order)) {
+    errors.push('megrendeles: Másolás button must be hidden in the HTML')
+  }
 
   if (count(order, /rel="canonical"/g) !== 1) {
     errors.push('megrendeles: canonical must appear exactly once')
