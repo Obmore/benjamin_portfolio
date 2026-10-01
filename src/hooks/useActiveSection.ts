@@ -100,13 +100,53 @@ function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-let pendingSnap: { timer: number; onEnd: () => void } | null = null
+function sectionOffsetPx(element: Element) {
+  return Number.parseFloat(getComputedStyle(element).scrollMarginTop) || 0
+}
+
+function supportsScrollEnd() {
+  return 'onscrollend' in window
+}
+
+let pendingSnap: {
+  stillTimer: number
+  onEnd: () => void
+  onScroll: () => void
+} | null = null
 
 function clearPendingSnap() {
   if (!pendingSnap) return
-  window.clearTimeout(pendingSnap.timer)
+  window.clearTimeout(pendingSnap.stillTimer)
   window.removeEventListener('scrollend', pendingSnap.onEnd)
+  window.removeEventListener('scroll', pendingSnap.onScroll)
   pendingSnap = null
+}
+
+function alignToSection(element: HTMLElement) {
+  const root = document.documentElement
+  const prev = root.style.scrollBehavior
+  root.style.scrollBehavior = 'auto'
+
+  const apply = () => {
+    const delta = element.getBoundingClientRect().top - sectionOffsetPx(element)
+    if (Math.abs(delta) > 2) root.scrollTop += delta
+    return element.getBoundingClientRect().top - sectionOffsetPx(element)
+  }
+
+  apply()
+
+  let attempts = 0
+  const retry = () => {
+    const delta = element.getBoundingClientRect().top - sectionOffsetPx(element)
+    if (Math.abs(delta) > 2) apply()
+    attempts += 1
+    if (attempts < 3 && Math.abs(element.getBoundingClientRect().top - sectionOffsetPx(element)) > 2) {
+      requestAnimationFrame(retry)
+      return
+    }
+    root.style.scrollBehavior = prev
+  }
+  requestAnimationFrame(retry)
 }
 
 export function scrollToSection(id: string, behavior?: ScrollBehavior) {
@@ -116,34 +156,49 @@ export function scrollToSection(id: string, behavior?: ScrollBehavior) {
   clearPendingSnap()
 
   const instant = (behavior ?? (prefersReducedMotion() ? 'auto' : 'smooth')) === 'auto'
-  const top = Math.max(0, window.scrollY + element.getBoundingClientRect().top - HEADER_OFFSET_PX)
+  const offset = sectionOffsetPx(element)
+  const top = Math.max(0, window.scrollY + element.getBoundingClientRect().top - offset)
   const root = document.documentElement
-
-  const snap = () => {
-    const prev = root.style.scrollBehavior
-    root.style.scrollBehavior = 'auto'
-    const delta = element.getBoundingClientRect().top - HEADER_OFFSET_PX
-    if (Math.abs(delta) > 2) root.scrollTop += delta
-    root.style.scrollBehavior = prev
-  }
 
   if (instant) {
     const prev = root.style.scrollBehavior
     root.style.scrollBehavior = 'auto'
     root.scrollTop = top
-    snap()
     root.style.scrollBehavior = prev
-    window.dispatchEvent(new Event('resize'))
-  } else {
-    window.addEventListener('scrollend', snap)
-    window.scrollTo({ top, behavior: 'smooth' })
+    alignToSection(element)
+    return
   }
 
-  const timer = window.setTimeout(() => {
-    window.removeEventListener('scrollend', snap)
-    pendingSnap = null
-    snap()
-    window.dispatchEvent(new Event('resize'))
-  }, 1000)
-  pendingSnap = { timer, onEnd: snap }
+  let lastY = window.scrollY
+
+  const onEnd = () => {
+    clearPendingSnap()
+    alignToSection(element)
+  }
+
+  const onScroll = () => {
+    if (!pendingSnap) return
+    lastY = window.scrollY
+    window.clearTimeout(pendingSnap.stillTimer)
+    pendingSnap.stillTimer = window.setTimeout(() => {
+      if (window.scrollY === lastY) alignToSection(element)
+    }, 150)
+  }
+
+  window.addEventListener('scrollend', onEnd)
+
+  if (supportsScrollEnd()) {
+    pendingSnap = { stillTimer: 0, onEnd, onScroll }
+  } else {
+    window.addEventListener('scroll', onScroll, { passive: true })
+    pendingSnap = {
+      stillTimer: window.setTimeout(() => {
+        if (pendingSnap && window.scrollY === lastY) alignToSection(element)
+      }, 150),
+      onEnd,
+      onScroll,
+    }
+  }
+
+  window.scrollTo({ top, behavior: 'smooth' })
 }

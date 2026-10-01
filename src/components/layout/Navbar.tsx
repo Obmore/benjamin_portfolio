@@ -89,7 +89,7 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 h-16 ${
+      className={`site-header fixed inset-x-0 top-0 z-50 h-16 ${
         scrolled
           ? 'border-b border-border/60 bg-background/80 backdrop-blur-xl'
           : 'bg-transparent'

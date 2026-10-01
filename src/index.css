@@ -1091,7 +1091,7 @@ html.is-static-motion .work-index {
   }
 }
 
-html.is-lang-vt header {
+html.is-lang-vt header.site-header {
   view-transition-name: site-header;
 }
 
