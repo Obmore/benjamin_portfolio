@@ -100,13 +100,20 @@ function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
+let pendingSnap: { timer: number; onEnd: () => void } | null = null
+
+function clearPendingSnap() {
+  if (!pendingSnap) return
+  window.clearTimeout(pendingSnap.timer)
+  window.removeEventListener('scrollend', pendingSnap.onEnd)
+  pendingSnap = null
+}
+
 export function scrollToSection(id: string, behavior?: ScrollBehavior) {
   const element = document.getElementById(id)
   if (!element) return
 
-  document.querySelectorAll<HTMLElement>('main section').forEach((section) => {
-    section.style.contentVisibility = 'visible'
-  })
+  clearPendingSnap()
 
   const instant = (behavior ?? (prefersReducedMotion() ? 'auto' : 'smooth')) === 'auto'
   const top = Math.max(0, window.scrollY + element.getBoundingClientRect().top - HEADER_OFFSET_PX)
@@ -127,20 +134,16 @@ export function scrollToSection(id: string, behavior?: ScrollBehavior) {
     snap()
     root.style.scrollBehavior = prev
     window.dispatchEvent(new Event('resize'))
-    return
+  } else {
+    window.addEventListener('scrollend', snap)
+    window.scrollTo({ top, behavior: 'smooth' })
   }
 
-  let settled = false
-  let fallbackTimer = 0
-  const finish = () => {
-    if (settled) return
-    settled = true
-    window.clearTimeout(fallbackTimer)
-    window.removeEventListener('scrollend', finish)
+  const timer = window.setTimeout(() => {
+    window.removeEventListener('scrollend', snap)
+    pendingSnap = null
     snap()
-  }
-
-  window.addEventListener('scrollend', finish)
-  fallbackTimer = window.setTimeout(finish, 1000)
-  window.scrollTo({ top, behavior: 'smooth' })
+    window.dispatchEvent(new Event('resize'))
+  }, 1000)
+  pendingSnap = { timer, onEnd: snap }
 }
