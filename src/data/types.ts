@@ -81,6 +81,7 @@ export interface SiteContent {
     prompt: string
     copyAddress: string
     copied: string
+    copiedAnnouncement: string
   }
   footer: {
     text: string
@@ -90,8 +91,6 @@ export interface SiteContent {
     locationLabel: string
     linkedInLabel: string
     menuToggle: string
-    themeToDark: string
-    themeToLight: string
     langToEn: string
     langToHu: string
   }

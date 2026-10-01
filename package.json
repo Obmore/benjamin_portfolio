@@ -8,15 +8,20 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "deploy": "npm run build && gh-pages -d dist"
+    "deploy": "npm run build && gh-pages -d dist",
+    "build:fonts": "node scripts/build-fonts.mjs",
+    "check:size": "node scripts/check-budgets.mjs",
+    "check:motion": "node scripts/check-motion.mjs",
+    "check": "npm run lint && npm run build && npm run check:size && npm run check:motion"
   },
   "dependencies": {
-    "framer-motion": "^12.23.24",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "react-helmet-async": "^3.0.0"
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
+    "@capsizecss/metrics": "^4.3.0",
+    "@fontsource/dm-sans": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
     "@tailwindcss/vite": "^4.1.17",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",

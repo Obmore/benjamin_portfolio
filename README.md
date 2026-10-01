@@ -7,8 +7,6 @@ Premium minimal portfolio website for Ott Benjámin — Electrical Engineer & So
 - React 19 + TypeScript
 - Vite
 - Tailwind CSS v4
-- Framer Motion
-- react-helmet-async (SEO)
 
 ## Development
 
@@ -17,7 +15,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173/benjamin_portfolio/](http://localhost:5173/benjamin_portfolio/) (base path matches GitHub Pages).
+Open [http://localhost:5173/](http://localhost:5173/).
 
 ## Build
 
@@ -32,14 +30,14 @@ npm run preview
 npm run deploy
 ```
 
-Site URL: `https://obmore.github.io/benjamin_portfolio/`
+Site URL: `https://ottbenjamin.hu/`
 
 ## Project structure
 
 ```
 src/
 ├── components/   UI, layout, sections, visuals
-├── context/      Theme + i18n providers
+├── context/      i18n provider
 ├── data/         Hungarian and English content
 ├── hooks/
 └── lib/          Constants, clipboard helper
@@ -55,7 +53,7 @@ Place PDFs in `public/cv/`:
 ## Features
 
 - Hungarian (default) and English language toggle
-- Light / dark mode
+- Light theme
 - Smooth anchor navigation
 - Scroll animations
 - SEO meta tags and JSON-LD

@@ -210,6 +210,7 @@ export const contentEn: SiteContent = {
     prompt: "Write me an email and I'll get back to you soon.",
     copyAddress: 'Copy address',
     copied: 'Copied',
+    copiedAnnouncement: 'Email address copied to clipboard',
   },
   footer: {
     text: '© 2026 Ott Benjámin, electrical engineer and software developer',
@@ -219,8 +220,6 @@ export const contentEn: SiteContent = {
     locationLabel: 'Location',
     linkedInLabel: 'LinkedIn',
     menuToggle: 'Open menu',
-    themeToDark: 'Switch to dark mode',
-    themeToLight: 'Switch to light mode',
     langToEn: 'Switch to English',
     langToHu: 'Switch to Hungarian',
   },

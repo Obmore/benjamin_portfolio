@@ -7,7 +7,11 @@ export const SECTION_IDS = {
   about: 'rolam',
   experience: 'tapasztalat',
   skills: 'kompetenciak',
-  projects: 'projektek',
+  projects: 'munkaim',
   cv: 'oneletrajz',
   contact: 'kapcsolat',
 } as const
+
+export const ANCHOR_ALIASES: Record<string, string> = {
+  projektek: 'munkaim',
+}

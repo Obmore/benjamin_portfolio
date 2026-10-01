@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import type { CSSProperties } from 'react'
 
 const nodes = [
   { cx: 120, cy: 80, delay: 0 },
@@ -14,11 +14,7 @@ export function HeroVisual() {
   return (
     <div className="relative mx-auto aspect-square w-full max-w-lg">
       <div className="absolute inset-8 rounded-full bg-gradient-to-br from-accent/20 via-cyan/10 to-transparent blur-2xl" />
-      <motion.div
-        animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-        className="relative h-full w-full rounded-3xl border border-border/60 bg-surface/40 p-6 backdrop-blur-md"
-      >
+      <div className="hero-visual-float relative h-full w-full rounded-3xl border border-border/60 bg-surface/40 p-6 backdrop-blur-md">
         <svg viewBox="0 0 640 420" className="h-full w-full" aria-hidden="true">
           <defs>
             <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -27,63 +23,58 @@ export function HeroVisual() {
             </linearGradient>
           </defs>
 
-          <motion.path
+          <path
+            className="draw-path hero-line-1"
             d="M120 80 L280 160 L420 100 L560 200"
             fill="none"
             stroke="url(#heroGrad)"
             strokeWidth="1.5"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 2, ease: 'easeInOut' }}
+            pathLength="1"
           />
-          <motion.path
+          <path
+            className="hero-line-dashed"
             d="M120 80 L200 280 L380 320 L560 200"
             fill="none"
             stroke="url(#heroGrad)"
             strokeWidth="1"
             strokeDasharray="4 6"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 2.4, delay: 0.3, ease: 'easeInOut' }}
           />
-          <motion.path
+          <path
+            className="draw-path hero-line-3"
             d="M280 160 L380 320"
             fill="none"
             stroke="var(--color-cyan)"
             strokeWidth="1"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1.8, delay: 0.6, ease: 'easeInOut' }}
+            pathLength="1"
           />
 
           {nodes.map((node) => (
-            <motion.g key={`${node.cx}-${node.cy}`}>
-              <motion.circle
+            <g key={`${node.cx}-${node.cy}`}>
+              <circle
+                className="hero-node"
                 cx={node.cx}
                 cy={node.cy}
                 r="6"
                 fill="var(--color-surface)"
                 stroke="url(#heroGrad)"
                 strokeWidth="2"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: node.delay + 0.8, duration: 0.4 }}
+                style={{ '--node-delay': `${node.delay + 0.8}s` } as CSSProperties}
               />
-              <motion.circle
+              <circle
+                className="hero-pulse-ring"
                 cx={node.cx}
                 cy={node.cy}
                 r="12"
                 fill="none"
                 stroke="var(--color-accent)"
                 strokeWidth="1"
-                opacity="0.4"
-                animate={{ r: [12, 18, 12], opacity: [0.4, 0, 0.4] }}
-                transition={{ duration: 3, repeat: Infinity, delay: node.delay }}
+                style={{ '--pulse-delay': `${node.delay}s` } as CSSProperties}
               />
-            </motion.g>
+            </g>
           ))}
 
-          <motion.rect
+          <rect
+            className="hero-visual-label"
             x="460"
             y="40"
             width="140"
@@ -92,36 +83,32 @@ export function HeroVisual() {
             fill="var(--color-surface)"
             fillOpacity="0.5"
             stroke="var(--color-border)"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 0.6 }}
+            style={{ '--label-delay': '1.2s' } as CSSProperties}
           />
-          <motion.text
+          <text
+            className="hero-visual-text"
             x="480"
             y="68"
             fill="var(--color-muted)"
             fontSize="11"
             fontFamily="monospace"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.4 }}
+            style={{ '--text-delay': '1.4s' } as CSSProperties}
           >
             systems.connect()
-          </motion.text>
-          <motion.text
+          </text>
+          <text
+            className="hero-visual-text"
             x="480"
             y="92"
             fill="var(--color-accent)"
             fontSize="11"
             fontFamily="monospace"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.6 }}
+            style={{ '--text-delay': '1.6s' } as CSSProperties}
           >
             status: integrated
-          </motion.text>
+          </text>
         </svg>
-      </motion.div>
+      </div>
     </div>
   )
 }

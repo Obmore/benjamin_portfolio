@@ -9,22 +9,26 @@ import {
 } from 'react'
 import type { Locale, SiteContent } from '@/data/types'
 import { contentHu } from '@/data/content.hu'
-import { contentEn } from '@/data/content.en'
 
 const LOCALE_STORAGE_KEY = 'portfolio-locale'
 
 interface I18nContextValue {
   locale: Locale
   content: SiteContent
+  localeLoading: boolean
   setLocale: (locale: Locale) => void
   toggleLocale: () => void
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null)
 
-const contentMap: Record<Locale, SiteContent> = {
-  hu: contentHu,
-  en: contentEn,
+let enLoadPromise: Promise<SiteContent> | null = null
+
+function loadEnglishContent(): Promise<SiteContent> {
+  if (!enLoadPromise) {
+    enLoadPromise = import('@/data/content.en').then((module) => module.contentEn)
+  }
+  return enLoadPromise
 }
 
 function getInitialLocale(): Locale {
@@ -35,6 +39,8 @@ function getInitialLocale(): Locale {
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(getInitialLocale)
+  const [enContent, setEnContent] = useState<SiteContent | null>(null)
+  const [localeLoading, setLocaleLoading] = useState(() => getInitialLocale() === 'en')
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next)
@@ -49,14 +55,46 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = locale
   }, [locale])
 
+  useEffect(() => {
+    if (locale !== 'en') {
+      setLocaleLoading(false)
+      return
+    }
+
+    if (enContent) {
+      setLocaleLoading(false)
+      return
+    }
+
+    let cancelled = false
+    setLocaleLoading(true)
+    loadEnglishContent()
+      .then((content) => {
+        if (!cancelled) {
+          setEnContent(content)
+          setLocaleLoading(false)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLocaleLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [locale, enContent])
+
+  const content = locale === 'en' && enContent ? enContent : contentHu
+
   const value = useMemo(
     () => ({
       locale,
-      content: contentMap[locale],
+      content,
+      localeLoading,
       setLocale,
       toggleLocale,
     }),
-    [locale, setLocale, toggleLocale],
+    [locale, content, localeLoading, setLocale, toggleLocale],
   )
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>

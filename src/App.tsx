@@ -1,4 +1,3 @@
-import { HelmetProvider } from 'react-helmet-async'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { SeoHead } from '@/components/SeoHead'
@@ -11,29 +10,35 @@ import { Projects } from '@/components/sections/Projects'
 import { CvDownload } from '@/components/sections/CvDownload'
 import { Contact } from '@/components/sections/Contact'
 import { I18nProvider } from '@/context/I18nContext'
-import { ThemeProvider } from '@/context/ThemeContext'
+import { useInitialHash } from '@/hooks/useInitialHash'
+
+function AppShell() {
+  useInitialHash()
+
+  return (
+    <>
+      <SeoHead />
+      <GridBackground />
+      <Navbar />
+      <main>
+        <Hero />
+        <About />
+        <Experience />
+        <Skills />
+        <Projects />
+        <CvDownload />
+        <Contact />
+      </main>
+      <Footer />
+    </>
+  )
+}
 
 function App() {
   return (
-    <HelmetProvider>
-      <ThemeProvider>
-        <I18nProvider>
-          <SeoHead />
-          <GridBackground />
-          <Navbar />
-          <main>
-            <Hero />
-            <About />
-            <Experience />
-            <Skills />
-            <Projects />
-            <CvDownload />
-            <Contact />
-          </main>
-          <Footer />
-        </I18nProvider>
-      </ThemeProvider>
-    </HelmetProvider>
+    <I18nProvider>
+      <AppShell />
+    </I18nProvider>
   )
 }
 

@@ -39,13 +39,13 @@ function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-export function scrollToSection(id: string) {
+export function scrollToSection(id: string, behavior?: ScrollBehavior) {
   const element = document.getElementById(id)
   if (!element) return
 
   const top = window.scrollY + element.getBoundingClientRect().top - HEADER_OFFSET_PX
   window.scrollTo({
     top: Math.max(0, top),
-    behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+    behavior: behavior ?? (prefersReducedMotion() ? 'auto' : 'smooth'),
   })
 }
