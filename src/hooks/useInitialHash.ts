@@ -63,11 +63,18 @@ export function useInitialHash() {
     if (hadHash) document.documentElement.style.scrollBehavior = 'auto'
     scrollToHashSync()
     markViewportRevealsInstant()
-    if (hadHash) document.documentElement.style.scrollBehavior = ''
   }, [])
 
   useEffect(() => {
     let cancelled = false
+    const retryTimers: number[] = []
+    const hadHash = Boolean(window.location.hash) || /#$/.test(window.location.href)
+
+    const restoreSmooth = () => {
+      requestAnimationFrame(() => {
+        if (!cancelled) document.documentElement.style.scrollBehavior = ''
+      })
+    }
 
     const onHashChange = () => {
       applyHash()
@@ -76,19 +83,32 @@ export function useInitialHash() {
 
     const raw = rawLocationHash()
     const id = raw ? resolveAnchor(raw) : ''
-    if (id) {
-      void (async () => {
-        try {
-          if (document.fonts?.ready) await document.fonts.ready
-        } catch {
-          // Ignore font loading errors; still realign to the hash.
+
+    void (async () => {
+      try {
+        if (document.fonts?.ready) await document.fonts.ready
+      } catch {
+        // Ignore font loading errors; still realign to the hash.
+      }
+      if (cancelled) return
+      if (id) {
+        realignHash(id)
+        for (const ms of [50, 200, 500]) {
+          retryTimers.push(
+            window.setTimeout(() => {
+              if (!cancelled) realignHash(id)
+            }, ms),
+          )
         }
-        if (!cancelled) realignHash(id)
-      })()
-    }
+      }
+      if (hadHash) {
+        retryTimers.push(window.setTimeout(restoreSmooth, id ? 520 : 0))
+      }
+    })()
 
     return () => {
       cancelled = true
+      for (const timer of retryTimers) window.clearTimeout(timer)
       window.removeEventListener('hashchange', onHashChange)
     }
   }, [])

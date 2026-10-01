@@ -87,6 +87,22 @@ async function assertNoJunkHrefs(page: Page) {
   expect(hrefs.filter((href) => href === '#' || href === '#root' || href === '#top')).toEqual([])
 }
 
+async function waitLangSettled(page: Page, lang: 'en' | 'hu') {
+  await page.waitForFunction(
+    (expected) => {
+      const root = document.documentElement
+      const main = document.querySelector('main')
+      if (root.lang !== expected) return false
+      if (root.classList.contains('is-lang-vt')) return false
+      if (main?.classList.contains('is-lang-out')) return false
+      if (main?.classList.contains('is-lang-hold')) return false
+      if (main?.classList.contains('is-lang-in')) return false
+      return true
+    },
+    lang,
+  )
+}
+
 test.describe('hash-fix PR7', () => {
   test('SeoHead hydrate keeps html.js, dark theme, and below-fold reveal', async ({ page }) => {
     const errors = collectConsoleErrors(page)
@@ -513,65 +529,42 @@ test.describe('hash-fix PR7', () => {
             probe = document.elementFromPoint(x, 76)
           }
           if (!(probe instanceof Element)) return null
-          const target = probe.closest<HTMLElement>('article, [data-reveal], section[id], [id]')
-          if (!target || target.id === 'root' || target.id === 'main') return null
-          const sel = target.id
-            ? `#${CSS.escape(target.id)}`
-            : (() => {
-                const parts: string[] = []
-                let node: HTMLElement | null = target
-                while (node && node !== document.body) {
-                  if (node.id) {
-                    parts.unshift(`#${CSS.escape(node.id)}`)
-                    break
-                  }
-                  const parent = node.parentElement
-                  if (!parent) break
-                  const tag = node.tagName.toLowerCase()
-                  let index = 1
-                  let pred = node.previousElementSibling
-                  while (pred) {
-                    if (pred.tagName === node.tagName) index += 1
-                    pred = pred.previousElementSibling
-                  }
-                  parts.unshift(`${tag}:nth-of-type(${index})`)
-                  node = parent
-                }
-                return parts.join('>')
-              })()
+          const section = probe.closest<HTMLElement>('main section[id]')
+          if (!section) return null
           return {
-            sel,
-            top: target.getBoundingClientRect().top,
+            id: section.id,
+            top: section.getBoundingClientRect().top,
             hash: location.hash,
             history: history.length,
           }
         })
         expect(before, `${id} viewport anchor`).toBeTruthy()
+        expect(before!.id, `${id} section under viewport`).toBe(id)
 
         await page.getByRole('button', { name: /^EN/ }).click()
-        await page.waitForFunction(() => document.documentElement.lang === 'en')
-        const afterEn = await page.evaluate((sel) => {
-          const el = document.querySelector(sel)
+        await waitLangSettled(page, 'en')
+        const afterEn = await page.evaluate((sectionId) => {
+          const el = document.getElementById(sectionId)
           return {
-            top: el instanceof HTMLElement ? el.getBoundingClientRect().top : 9999,
+            top: el ? el.getBoundingClientRect().top : 9999,
             hash: location.hash,
             history: history.length,
           }
-        }, before!.sel)
+        }, before!.id)
         expect(Math.abs(afterEn.top - before!.top), `${id} HU→EN ${viewport.width}`).toBeLessThanOrEqual(2)
         expect(afterEn.hash).toBe(before!.hash)
         expect(afterEn.history).toBe(before!.history)
 
         await page.getByRole('button', { name: /^HU/ }).click()
-        await page.waitForFunction(() => document.documentElement.lang === 'hu')
-        const afterHu = await page.evaluate((sel) => {
-          const el = document.querySelector(sel)
+        await waitLangSettled(page, 'hu')
+        const afterHu = await page.evaluate((sectionId) => {
+          const el = document.getElementById(sectionId)
           return {
-            top: el instanceof HTMLElement ? el.getBoundingClientRect().top : 9999,
+            top: el ? el.getBoundingClientRect().top : 9999,
             hash: location.hash,
             history: history.length,
           }
-        }, before!.sel)
+        }, before!.id)
         expect(Math.abs(afterHu.top - before!.top), `${id} EN→HU ${viewport.width}`).toBeLessThanOrEqual(2)
         expect(afterHu.hash).toBe(before!.hash)
         expect(afterHu.history).toBe(before!.history)

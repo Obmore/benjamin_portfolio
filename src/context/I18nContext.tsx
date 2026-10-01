@@ -22,7 +22,7 @@ import {
 const LOCALE_STORAGE_KEY = 'portfolio-locale'
 const HEADER_OFFSET_PX = 64
 
-type ViewportAnchor = { sel: string; top: number }
+type ViewportAnchor = { id: string; top: number }
 
 interface I18nContextValue {
   locale: Locale
@@ -53,30 +53,6 @@ function getInitialLocale(): Locale {
   return 'hu'
 }
 
-function selectorFor(el: HTMLElement): string {
-  if (el.id) return `#${CSS.escape(el.id)}`
-  const parts: string[] = []
-  let node: HTMLElement | null = el
-  while (node && node !== document.body) {
-    if (node.id) {
-      parts.unshift(`#${CSS.escape(node.id)}`)
-      break
-    }
-    const parent: HTMLElement | null = node.parentElement
-    if (!parent) break
-    const tag = node.tagName.toLowerCase()
-    let index = 1
-    let pred = node.previousElementSibling
-    while (pred) {
-      if (pred.tagName === node.tagName) index += 1
-      pred = pred.previousElementSibling
-    }
-    parts.unshift(`${tag}:nth-of-type(${index})`)
-    node = parent
-  }
-  return parts.join('>')
-}
-
 function captureViewportAnchor(): ViewportAnchor | null {
   const x = Math.min(Math.max(24, window.innerWidth / 2), window.innerWidth - 24)
   let probe = document.elementFromPoint(x, HEADER_OFFSET_PX + 2)
@@ -84,9 +60,18 @@ function captureViewportAnchor(): ViewportAnchor | null {
     probe = document.elementFromPoint(x, HEADER_OFFSET_PX + 12)
   }
   if (!(probe instanceof Element)) return null
-  const target = probe.closest<HTMLElement>('article, [data-reveal], section[id], [id]')
-  if (!target || target.id === 'root' || target.id === 'main') return null
-  return { sel: selectorFor(target), top: target.getBoundingClientRect().top }
+  const section = probe.closest<HTMLElement>('main section[id]')
+  if (!section) return null
+  return { id: section.id, top: section.getBoundingClientRect().top }
+}
+
+function restoreViewportAnchor(anchor: ViewportAnchor | null) {
+  if (!anchor) return
+  const el = document.getElementById(anchor.id)
+  if (!el) return
+  const delta = el.getBoundingClientRect().top - anchor.top
+  if (Math.abs(delta) < 0.5) return
+  window.scrollTo({ top: window.scrollY + delta, behavior: 'instant' })
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
@@ -134,7 +119,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
           })
         }
 
-        pendingAnchorRef.current = captureViewportAnchor()
+        const anchor = captureViewportAnchor()
+        pendingAnchorRef.current = anchor
         const swap = () => {
           document.documentElement.lang = next
           flushSync(() => {
@@ -150,6 +136,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         } else {
           await runLangCssFallback(swap)
         }
+        restoreViewportAnchor(anchor)
       } finally {
         if (busyTimer !== undefined) window.clearTimeout(busyTimer)
         setLocaleLoading(false)
@@ -163,11 +150,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     const anchor = pendingAnchorRef.current
     if (!anchor) return
     pendingAnchorRef.current = null
-    const el = document.querySelector(anchor.sel)
-    if (!(el instanceof HTMLElement)) return
-    const delta = el.getBoundingClientRect().top - anchor.top
-    if (Math.abs(delta) < 0.5) return
-    window.scrollTo({ top: window.scrollY + delta, behavior: 'instant' })
+    restoreViewportAnchor(anchor)
   }, [locale])
 
   useEffect(() => {
