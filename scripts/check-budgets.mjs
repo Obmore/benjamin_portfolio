@@ -5,13 +5,20 @@ import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dist = path.join(root, 'dist')
-const htmlPath = path.join(dist, 'index.html')
+const mainHtmlPath = path.join(dist, 'index.html')
+const orderHtmlPath = path.join(dist, 'megrendeles/index.html')
 
-const BUDGETS = {
-  entryJs: 90 * 1024,
+const MAIN_BUDGETS = {
+  entryJs: 72 * 1024,
   allJs: 160 * 1024,
-  css: 15 * 1024,
+  css: Math.round(9.2 * 1024),
   fonts: 120 * 1024,
+  preloadFonts: 60 * 1024,
+}
+
+const ORDER_BUDGETS = {
+  js: 15 * 1024,
+  css: 10 * 1024,
   preloadFonts: 60 * 1024,
 }
 
@@ -32,10 +39,34 @@ function attrs(tag) {
   return out
 }
 
-function resolveFromDist(href) {
-  const clean = href.split('?')[0].split('#')[0]
-  if (clean.startsWith('/')) return path.join(dist, clean.slice(1))
-  return path.join(dist, clean)
+function collectFromHtml(html, htmlFilePath) {
+  const htmlDir = path.dirname(htmlFilePath)
+  const entryJs = new Set()
+  const cssFiles = new Set()
+  const preloadFonts = new Set()
+
+  const resolveHref = (href) => {
+    const clean = href.split('?')[0].split('#')[0]
+    if (clean.startsWith('/')) return path.join(dist, clean.slice(1))
+    return path.join(htmlDir, clean)
+  }
+
+  for (const match of html.matchAll(/<script\b[^>]*>/gi)) {
+    const a = attrs(match[0])
+    if (a.src) entryJs.add(path.normalize(resolveHref(a.src)))
+  }
+
+  for (const match of html.matchAll(/<link\b[^>]*>/gi)) {
+    const a = attrs(match[0])
+    const rel = (a.rel ?? '').toLowerCase()
+    if (rel === 'modulepreload' && a.href) entryJs.add(path.normalize(resolveHref(a.href)))
+    if (rel === 'stylesheet' && a.href) cssFiles.add(path.normalize(resolveHref(a.href)))
+    if (rel === 'preload' && a.as === 'font' && a.href) {
+      preloadFonts.add(path.normalize(resolveHref(a.href)))
+    }
+  }
+
+  return { entryJs, cssFiles, preloadFonts }
 }
 
 function walk(dir, predicate) {
@@ -48,35 +79,6 @@ function walk(dir, predicate) {
   }
   return out
 }
-
-if (!fs.existsSync(htmlPath)) {
-  console.error('dist/index.html missing. Run npm run build first.')
-  process.exit(1)
-}
-
-const html = fs.readFileSync(htmlPath, 'utf8')
-const entryJs = new Set()
-const cssFiles = new Set()
-const preloadFonts = new Set()
-
-for (const match of html.matchAll(/<script\b[^>]*>/gi)) {
-  const a = attrs(match[0])
-  if (a.src) entryJs.add(resolveFromDist(a.src))
-}
-
-for (const match of html.matchAll(/<link\b[^>]*>/gi)) {
-  const a = attrs(match[0])
-  const rel = (a.rel ?? '').toLowerCase()
-  if (rel === 'modulepreload' && a.href) entryJs.add(resolveFromDist(a.href))
-  if (rel === 'stylesheet' && a.href) cssFiles.add(resolveFromDist(a.href))
-  if (rel === 'preload' && a.as === 'font' && a.href) preloadFonts.add(resolveFromDist(a.href))
-}
-
-const allJs = walk(path.join(dist, 'assets'), (file) => file.endsWith('.js'))
-const allCss = cssFiles.size
-  ? [...cssFiles]
-  : walk(dist, (file) => file.endsWith('.css'))
-const fontFiles = walk(path.join(dist, 'fonts'), (file) => file.endsWith('.woff2'))
 
 function sum(files, measurer) {
   let total = 0
@@ -93,49 +95,114 @@ function sum(files, measurer) {
   return { total, rows }
 }
 
-const entryJsGzip = sum([...entryJs], gzipSize)
-const allJsGzip = sum(allJs, gzipSize)
-const cssGzip = sum(allCss, gzipSize)
-const fontsRaw = sum(fontFiles, fileSize)
-const preloadRaw = sum([...preloadFonts], fileSize)
-
 function kb(bytes) {
   return `${(bytes / 1024).toFixed(2)} KB`
 }
 
-const checks = [
-  ['Entry JS (gzip)', entryJsGzip.total, BUDGETS.entryJs],
-  ['All JS (gzip)', allJsGzip.total, BUDGETS.allJs],
-  ['CSS (gzip)', cssGzip.total, BUDGETS.css],
-  ['Fonts total (raw)', fontsRaw.total, BUDGETS.fonts],
-  ['Preload fonts (raw)', preloadRaw.total, BUDGETS.preloadFonts],
-]
+function printRows(title, rows, unit = 'gzip') {
+  console.log(`${title}:`)
+  if (rows.length === 0) {
+    console.log('  (none)')
+    return
+  }
+  for (const row of rows) console.log(`  ${row.file}: ${kb(row.size)} ${unit}`)
+}
 
-console.log('\nBudget check (gzip level 9 for JS/CSS, raw bytes for fonts)\n')
-console.log(
-  '| Asset | Size | Budget | Status |',
+if (!fs.existsSync(mainHtmlPath)) {
+  console.error('dist/index.html missing. Run npm run build first.')
+  process.exit(1)
+}
+
+if (!fs.existsSync(orderHtmlPath)) {
+  console.error('dist/megrendeles/index.html missing. Run npm run build first.')
+  process.exit(1)
+}
+
+const mainHtml = fs.readFileSync(mainHtmlPath, 'utf8')
+const orderHtml = fs.readFileSync(orderHtmlPath, 'utf8')
+const main = collectFromHtml(mainHtml, mainHtmlPath)
+const order = collectFromHtml(orderHtml, orderHtmlPath)
+
+const mainJsGzip = sum([...main.entryJs], gzipSize)
+const mainCssGzip = sum([...main.cssFiles], gzipSize)
+const orderJsGzip = sum([...order.entryJs], gzipSize)
+const orderCssGzip = sum([...order.cssFiles], gzipSize)
+
+const allMainJsFiles = walk(path.join(dist, 'assets'), (file) => {
+  if (!file.endsWith('.js')) return false
+  const base = path.basename(file)
+  return !base.startsWith('megrendeles-')
+})
+const mainAllJsGzip = sum(allMainJsFiles, gzipSize)
+
+const fontFiles = walk(path.join(dist, 'fonts'), (file) => file.endsWith('.woff2'))
+const fontsRaw = sum(fontFiles, fileSize)
+const mainPreloadRaw = sum([...main.preloadFonts], fileSize)
+const orderPreloadRaw = sum([...order.preloadFonts], fileSize)
+
+const sharedJs = [...main.entryJs].filter((file) => order.entryJs.has(file))
+const sharedCss = [...main.cssFiles].filter((file) => order.cssFiles.has(file))
+const unexpectedSharedJs = sharedJs.filter(
+  (file) => !path.basename(file).startsWith('modulepreload-polyfill'),
 )
-console.log('| --- | ---: | ---: | --- |')
 
 let failed = false
-for (const [label, size, budget] of checks) {
-  const ok = size <= budget
-  if (!ok) failed = true
-  console.log(
-    `| ${label} | ${kb(size)} (${size} B) | ${kb(budget)} | ${ok ? 'OK' : 'FAIL'} |`,
+
+if (unexpectedSharedJs.length > 0) {
+  failed = true
+  console.error(
+    `Shared JS chunks between main and /megrendeles/: ${unexpectedSharedJs
+      .map((file) => path.relative(dist, file))
+      .join(', ')}`,
   )
 }
 
-console.log('\nEntry JS files:')
-for (const row of entryJsGzip.rows) console.log(`  ${row.file}: ${kb(row.size)} gzip`)
-console.log('All JS files:')
-for (const row of allJsGzip.rows) console.log(`  ${row.file}: ${kb(row.size)} gzip`)
-console.log('CSS files:')
-for (const row of cssGzip.rows) console.log(`  ${row.file}: ${kb(row.size)} gzip`)
-console.log('Font files:')
-for (const row of fontsRaw.rows) console.log(`  ${row.file}: ${kb(row.size)}`)
-console.log('Preload fonts:')
-for (const row of preloadRaw.rows) console.log(`  ${row.file}: ${kb(row.size)}`)
+if (sharedCss.length > 0) {
+  failed = true
+  console.error(
+    `Shared CSS chunks between main and /megrendeles/: ${sharedCss
+      .map((file) => path.relative(dist, file))
+      .join(', ')}`,
+  )
+}
+
+const checks = [
+  ['Main entry JS (gzip)', mainJsGzip.total, MAIN_BUDGETS.entryJs],
+  ['Main all JS except /megrendeles/ (gzip)', mainAllJsGzip.total, MAIN_BUDGETS.allJs],
+  ['Main CSS (gzip)', mainCssGzip.total, MAIN_BUDGETS.css],
+  ['Fonts total (raw)', fontsRaw.total, MAIN_BUDGETS.fonts],
+  ['Main preload fonts (raw)', mainPreloadRaw.total, MAIN_BUDGETS.preloadFonts],
+  ['/megrendeles/ JS (gzip)', orderJsGzip.total, ORDER_BUDGETS.js],
+  ['/megrendeles/ CSS (gzip)', orderCssGzip.total, ORDER_BUDGETS.css],
+  ['/megrendeles/ preload fonts (raw)', orderPreloadRaw.total, ORDER_BUDGETS.preloadFonts],
+]
+
+console.log('\nBudget check (gzip level 9 for JS/CSS, raw bytes for fonts)\n')
+console.log('| Asset | Size | Budget | Status |')
+console.log('| --- | ---: | ---: | --- |')
+
+for (const [label, size, budget] of checks) {
+  const ok = size <= budget
+  if (!ok) failed = true
+  console.log(`| ${label} | ${kb(size)} (${size} B) | ${kb(budget)} | ${ok ? 'OK' : 'FAIL'} |`)
+}
+
+console.log('')
+printRows('Main entry JS files', mainJsGzip.rows)
+printRows('Main all JS files (excluding megrendeles-*)', mainAllJsGzip.rows)
+printRows('Main CSS files', mainCssGzip.rows)
+printRows('Main preload fonts', mainPreloadRaw.rows, 'raw')
+printRows('/megrendeles/ JS files', orderJsGzip.rows)
+printRows('/megrendeles/ CSS files', orderCssGzip.rows)
+printRows('/megrendeles/ preload fonts', orderPreloadRaw.rows, 'raw')
+printRows('Font files', fontsRaw.rows, 'raw')
+
+if (order.preloadFonts.size !== 1) {
+  failed = true
+  console.error(
+    `\n/megrendeles/ must preload exactly 1 font (dm-sans-400). Found ${order.preloadFonts.size}.`,
+  )
+}
 
 if (failed) {
   console.error('\nBudget check failed.')
