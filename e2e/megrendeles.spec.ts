@@ -143,11 +143,34 @@ test.describe('/megrendeles/', () => {
     await page.close()
   })
 
-  test('main page canonical stays on the homepage', async ({ page }) => {
-    const response = await page.goto('/', { waitUntil: 'domcontentloaded' })
+  test('main page has five /megrendeles/ links including one in #kapcsolat', async ({ page }) => {
+    const response = await page.goto('/', { waitUntil: 'networkidle' })
     expect(response?.status()).toBe(200)
     const canonical = page.locator('link[rel="canonical"]')
     await expect(canonical).toHaveAttribute('href', 'https://ottbenjamin.hu/')
+
+    async function assertOrderEntryPoints() {
+      const all = page.locator('a[href="/megrendeles/"]')
+      await expect(all).toHaveCount(5)
+      await expect(page.locator('#kapcsolat a[href="/megrendeles/"]')).toHaveCount(1)
+      await expect(page.locator('header a[href="/megrendeles/"]')).toHaveCount(2)
+      await expect(page.locator('.hero-actions a[href="/megrendeles/"]')).toHaveCount(1)
+      await expect(page.locator('footer a[href="/megrendeles/"]')).toHaveCount(1)
+      const contact = page.locator('#kapcsolat a[href="/megrendeles/"]')
+      await expect(contact).toHaveAttribute('lang', 'hu')
+      const htmlLang = await page.locator('html').getAttribute('lang')
+      await expect(contact).toHaveText(htmlLang === 'en' ? 'Order' : 'Megrendelés')
+      const bodyText = await page.locator('body').innerText()
+      expect([...bodyText.matchAll(/ajánlat/gi)].length, 'S1 ajánlat count').toBe(0)
+    }
+
+    await assertOrderEntryPoints()
+    await page.getByRole('button', { name: /^EN/ }).click()
+    await page.waitForTimeout(400)
+    await assertOrderEntryPoints()
+    await page.getByRole('button', { name: /^HU/ }).click()
+    await page.waitForTimeout(400)
+    await assertOrderEntryPoints()
   })
 
   test('copy button shows Kimásolva without CLS', async ({ page, context, browserName }) => {

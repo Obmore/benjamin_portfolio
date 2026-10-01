@@ -52,7 +52,6 @@ export interface SiteContent {
     projects: string
     cv: string
     contact: string
-    order: string
   }
   hero: {
     headline: string
@@ -109,6 +108,8 @@ export interface SiteContent {
     menuToggle: string
     langToEn: string
     langToHu: string
+    themeDark: string
+    orderLink: string
     navMain: string
     navMobile: string
   }

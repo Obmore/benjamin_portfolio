@@ -4,6 +4,7 @@ import { SECTION_IDS } from '@/lib/constants'
 import { scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
 import { navigateTo } from '@/lib/anchors'
 import { LangToggle } from '@/components/ui/LangToggle'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { OrderLink } from '@/components/ui/OrderLink'
 
 const navItems = [
@@ -14,6 +15,8 @@ const navItems = [
   { id: SECTION_IDS.cv, key: 'cv' as const },
   { id: SECTION_IDS.contact, key: 'contact' as const },
 ]
+
+const navSectionIds = navItems.map((item) => item.id)
 
 function useHeaderScrolled() {
   const [scrolled, setScrolled] = useState(false)
@@ -45,7 +48,7 @@ export function Navbar() {
   const scrolled = useHeaderScrolled()
   const [menuOpen, setMenuOpen] = useState(false)
   const [pendingScrollId, setPendingScrollId] = useState<string | null>(null)
-  const activeId = useActiveSection(navItems.map((item) => item.id))
+  const activeId = useActiveSection(navSectionIds)
 
   useEffect(() => {
     if (!menuOpen) return
@@ -87,7 +90,7 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 h-16 transition-colors duration-300 ${
+      className={`site-header fixed inset-x-0 top-0 z-50 h-16 ${
         scrolled
           ? 'border-b border-border/60 bg-background/80 backdrop-blur-xl'
           : 'bg-transparent'
@@ -96,7 +99,7 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-6xl flex-nowrap items-center justify-between gap-3 px-5 md:px-8">
         <button
           type="button"
-          onClick={() => scrollToSection('hero')}
+          onClick={() => scrollToSection('hero', 'auto')}
           className="font-mono text-sm font-semibold tracking-wide text-foreground"
         >
           OB<span className="text-accent">.</span>
@@ -111,11 +114,12 @@ export function Navbar() {
               key={item.id}
               type="button"
               onClick={() => handleNavClick(item.id)}
-              className={`shrink-0 rounded-lg px-2.5 py-2 text-sm transition-colors xl:px-3 ${
+              className={`shrink-0 rounded-lg px-2.5 py-2 text-sm xl:px-3 ${
                 activeId === item.id
                   ? 'text-accent'
                   : 'text-muted hover:text-foreground'
               }`}
+              aria-current={activeId === item.id ? 'true' : undefined}
             >
               {content.nav[item.key]}
             </button>
@@ -124,10 +128,11 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <LangToggle />
           <button
             type="button"
-            className="rounded-lg border border-border/70 p-2 text-muted lg:hidden"
+            className="inline-flex h-11 min-h-11 w-11 min-w-11 items-center justify-center rounded-lg border border-border/70 text-muted lg:hidden"
             aria-label={content.common.menuToggle}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((open) => !open)}
@@ -160,6 +165,7 @@ export function Navbar() {
               className={`rounded-lg px-3 py-2 text-left text-sm ${
                 activeId === item.id ? 'text-accent' : 'text-muted'
               }`}
+              aria-current={activeId === item.id ? 'true' : undefined}
             >
               {content.nav[item.key]}
             </button>

@@ -5,8 +5,6 @@ export const CV_EN_PATH = `${import.meta.env.BASE_URL}cv/Ott_Benjamin_CV_EN.pdf`
 export const CV_HU_FILENAME = 'Ott_Benjamin_CV_HU.pdf'
 export const CV_EN_FILENAME = 'Ott_Benjamin_CV_EN.pdf'
 
-export const ORDER_HREF = '/megrendeles/'
-
 export const SECTION_IDS = {
   about: 'rolam',
   experience: 'tapasztalat',

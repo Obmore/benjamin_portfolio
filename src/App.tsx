@@ -10,6 +10,7 @@ import { Projects } from '@/components/sections/Projects'
 import { CvDownload } from '@/components/sections/CvDownload'
 import { Contact } from '@/components/sections/Contact'
 import { I18nProvider } from '@/context/I18nContext'
+import { ThemeProvider } from '@/context/ThemeContext'
 import { useInitialHash } from '@/hooks/useInitialHash'
 
 function AppShell() {
@@ -37,7 +38,9 @@ function AppShell() {
 function App() {
   return (
     <I18nProvider>
-      <AppShell />
+      <ThemeProvider>
+        <AppShell />
+      </ThemeProvider>
     </I18nProvider>
   )
 }

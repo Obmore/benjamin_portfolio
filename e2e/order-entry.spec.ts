@@ -107,7 +107,7 @@ test.describe('homepage /megrendeles/ entry points', () => {
     await expect(orderLinks(page)).toHaveCount(5)
 
     const headerNav = page.getByRole('navigation', { name: 'Fő navigáció' }).locator(`a[href="${ORDER_HREF}"]`)
-    const mobileNav = page.getByRole('navigation', { name: 'Mobil navigáció' }).locator(`a[href="${ORDER_HREF}"]`)
+    const mobileNav = page.locator('nav[aria-label="Mobil navigáció"]').locator(`a[href="${ORDER_HREF}"]`)
     const hero = page.locator('.hero-actions').locator(`a[href="${ORDER_HREF}"]`)
     const contact = page.locator('#kapcsolat').locator(`a[href="${ORDER_HREF}"]`)
     const footer = page.locator('footer').locator(`a[href="${ORDER_HREF}"]`)
@@ -210,6 +210,8 @@ test.describe('homepage /megrendeles/ entry points', () => {
     await expect(hero).toHaveText('Order')
     await expect(contact).toHaveText('Order')
     await expect(footer).toHaveText('Order')
+    await expect(headerNav).toHaveAttribute('lang', 'hu')
+    await expect(contact).toHaveAttribute('lang', 'hu')
     await expect(orderLinks(page)).toHaveCount(5)
   })
 

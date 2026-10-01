@@ -13,7 +13,6 @@ export const contentEn: SiteContent = {
     projects: 'My work',
     cv: 'Resume',
     contact: 'Contact',
-    order: 'Order',
   },
   hero: {
     headline:
@@ -262,6 +261,8 @@ export const contentEn: SiteContent = {
     menuToggle: 'Open menu',
     langToEn: ', switch to English',
     langToHu: ', switch to Hungarian',
+    themeDark: 'Dark mode',
+    orderLink: 'Order',
     navMain: 'Main navigation',
     navMobile: 'Mobile navigation',
   },

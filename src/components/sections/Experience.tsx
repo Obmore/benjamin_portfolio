@@ -49,7 +49,7 @@ function ExperienceArticle({ item, isEven }: { item: ExperienceItem; isEven: boo
         className="absolute left-4 top-6 z-10 h-3 w-3 -translate-x-1/2 rounded-full border-2 border-accent bg-background md:left-1/2"
       />
       <div
-        className={`ml-10 rounded-2xl border border-[#d7e2ef] bg-surface/90 p-6 md:ml-0 md:w-[calc(50%-2rem)] ${
+        className={`ml-10 rounded-2xl border border-line bg-surface/90 p-6 md:ml-0 md:w-[calc(50%-2rem)] ${
           isEven ? 'md:mr-auto' : 'md:ml-auto'
         }`}
       >
