@@ -8,11 +8,17 @@ const dist = path.join(root, 'dist')
 const htmlPath = path.join(dist, 'index.html')
 
 const BUDGETS = {
-  entryJs: 90 * 1024,
+  entryJs: 72 * 1024,
   allJs: 160 * 1024,
-  css: 15 * 1024,
+  css: 9.2 * 1024,
   fonts: 120 * 1024,
   preloadFonts: 60 * 1024,
+  three: 140 * 1024,
+  viewManager: 6 * 1024,
+  cCode: 3 * 1024,
+  cDataEach: 8 * 1024,
+  cDataTotal: 24 * 1024,
+  total3d: 240 * 1024,
 }
 
 function gzipSize(filePath) {
@@ -49,6 +55,22 @@ function walk(dir, predicate) {
   return out
 }
 
+function is3dJs(file) {
+  return /(^|\/)three[^/]*\.js$/.test(file.replaceAll('\\', '/'))
+}
+
+function chunkKind(file) {
+  const base = path.basename(file)
+  if (base.startsWith('three-view-')) return 'view'
+  if (base.startsWith('three-c-pi-')) return 'c-pi'
+  if (base.startsWith('three-c-pcb-')) return 'c-pcb'
+  if (base.startsWith('three-c-sw-')) return 'c-sw'
+  if (base.startsWith('three-c-')) return 'c'
+  if (base.startsWith('three-boot-')) return 'boot'
+  if (base.startsWith('three-')) return 'three'
+  return 'other'
+}
+
 if (!fs.existsSync(htmlPath)) {
   console.error('dist/index.html missing. Run npm run build first.')
   process.exit(1)
@@ -73,9 +95,9 @@ for (const match of html.matchAll(/<link\b[^>]*>/gi)) {
 }
 
 const allJs = walk(path.join(dist, 'assets'), (file) => file.endsWith('.js'))
-const allCss = cssFiles.size
-  ? [...cssFiles]
-  : walk(dist, (file) => file.endsWith('.css'))
+const pageJs = allJs.filter((file) => !is3dJs(file))
+const threeJs = allJs.filter(is3dJs)
+const allCss = cssFiles.size ? [...cssFiles] : walk(dist, (file) => file.endsWith('.css'))
 const fontFiles = walk(path.join(dist, 'fonts'), (file) => file.endsWith('.woff2'))
 
 function sum(files, measurer) {
@@ -94,10 +116,17 @@ function sum(files, measurer) {
 }
 
 const entryJsGzip = sum([...entryJs], gzipSize)
-const allJsGzip = sum(allJs, gzipSize)
+const pageJsGzip = sum(pageJs, gzipSize)
+const threeJsGzip = sum(threeJs, gzipSize)
 const cssGzip = sum(allCss, gzipSize)
 const fontsRaw = sum(fontFiles, fileSize)
 const preloadRaw = sum([...preloadFonts], fileSize)
+
+const byKind = {}
+for (const row of threeJsGzip.rows) {
+  const kind = chunkKind(row.file)
+  byKind[kind] = (byKind[kind] ?? 0) + row.size
+}
 
 function kb(bytes) {
   return `${(bytes / 1024).toFixed(2)} KB`
@@ -105,37 +134,55 @@ function kb(bytes) {
 
 const checks = [
   ['Entry JS (gzip)', entryJsGzip.total, BUDGETS.entryJs],
-  ['All JS (gzip)', allJsGzip.total, BUDGETS.allJs],
+  ['Page JS without 3D (gzip)', pageJsGzip.total, BUDGETS.allJs],
   ['CSS (gzip)', cssGzip.total, BUDGETS.css],
   ['Fonts total (raw)', fontsRaw.total, BUDGETS.fonts],
   ['Preload fonts (raw)', preloadRaw.total, BUDGETS.preloadFonts],
 ]
 
+if (threeJs.length > 0) {
+  checks.push(['three chunk (gzip)', byKind.three ?? 0, BUDGETS.three])
+  checks.push(['view manager (gzip)', byKind.view ?? 0, BUDGETS.viewManager])
+  checks.push(['C code (gzip)', byKind.c ?? 0, BUDGETS.cCode])
+  checks.push(['C data pi (gzip)', byKind['c-pi'] ?? 0, BUDGETS.cDataEach])
+  checks.push(['C data pcb (gzip)', byKind['c-pcb'] ?? 0, BUDGETS.cDataEach])
+  checks.push(['C data sw (gzip)', byKind['c-sw'] ?? 0, BUDGETS.cDataEach])
+  const cDataTotal = (byKind['c-pi'] ?? 0) + (byKind['c-pcb'] ?? 0) + (byKind['c-sw'] ?? 0)
+  checks.push(['C data total (gzip)', cDataTotal, BUDGETS.cDataTotal])
+  checks.push(['3D total (gzip)', threeJsGzip.total, BUDGETS.total3d])
+}
+
 console.log('\nBudget check (gzip level 9 for JS/CSS, raw bytes for fonts)\n')
-console.log(
-  '| Asset | Size | Budget | Status |',
-)
+console.log('| Asset | Size | Budget | Status |')
 console.log('| --- | ---: | ---: | --- |')
 
 let failed = false
 for (const [label, size, budget] of checks) {
   const ok = size <= budget
   if (!ok) failed = true
-  console.log(
-    `| ${label} | ${kb(size)} (${size} B) | ${kb(budget)} | ${ok ? 'OK' : 'FAIL'} |`,
-  )
+  console.log(`| ${label} | ${kb(size)} (${size} B) | ${kb(budget)} | ${ok ? 'OK' : 'FAIL'} |`)
 }
 
 console.log('\nEntry JS files:')
 for (const row of entryJsGzip.rows) console.log(`  ${row.file}: ${kb(row.size)} gzip`)
-console.log('All JS files:')
-for (const row of allJsGzip.rows) console.log(`  ${row.file}: ${kb(row.size)} gzip`)
+console.log('Page JS files (no 3D):')
+for (const row of pageJsGzip.rows) console.log(`  ${row.file}: ${kb(row.size)} gzip`)
+console.log('3D JS files:')
+for (const row of threeJsGzip.rows) console.log(`  ${row.file}: ${kb(row.size)} gzip (${chunkKind(row.file)})`)
 console.log('CSS files:')
 for (const row of cssGzip.rows) console.log(`  ${row.file}: ${kb(row.size)} gzip`)
 console.log('Font files:')
 for (const row of fontsRaw.rows) console.log(`  ${row.file}: ${kb(row.size)}`)
 console.log('Preload fonts:')
 for (const row of preloadRaw.rows) console.log(`  ${row.file}: ${kb(row.size)}`)
+
+for (const file of entryJs) {
+  const text = fs.readFileSync(file, 'utf8')
+  if (text.includes('WebGLRenderer') || /from["']three["']/.test(text)) {
+    console.error(`\nEntry chunk contains three: ${path.relative(dist, file)}`)
+    failed = true
+  }
+}
 
 if (failed) {
   console.error('\nBudget check failed.')

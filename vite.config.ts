@@ -14,6 +14,19 @@ function cvStats(fileName: string) {
 
 const cvHu = cvStats('Ott_Benjamin_CV_HU.pdf')
 const cvEn = cvStats('Ott_Benjamin_CV_EN.pdf')
+const threeQa = process.env.VITE_3D_QA === 'true'
+
+function isThreeChunk(id: string) {
+  const n = id.replaceAll('\\', '/')
+  if (n.includes('node_modules/three')) return 'three'
+  if (n.includes('/src/three/view-manager')) return 'three-view'
+  if (n.includes('/src/three/scene-c') || n.includes('/src/three/decode')) return 'three-c'
+  if (n.includes('/src/three/generated/c-pi')) return 'three-c-pi'
+  if (n.includes('/src/three/generated/c-pcb')) return 'three-c-pcb'
+  if (n.includes('/src/three/generated/c-sw')) return 'three-c-sw'
+  if (n.includes('/src/three/boot')) return 'three-boot'
+  return undefined
+}
 
 export default defineConfig({
   base: '/',
@@ -23,10 +36,25 @@ export default defineConfig({
     __CV_EN_KB__: JSON.stringify(cvEn.kb),
     __CV_HU_LABEL__: JSON.stringify(`PDF · ${cvHu.kb} KB`),
     __CV_EN_LABEL__: JSON.stringify(`PDF · ${cvEn.kb} KB`),
+    __3D_QA__: JSON.stringify(threeQa),
   },
   resolve: {
     alias: {
       '@': path.resolve(root, './src'),
+    },
+  },
+  build: {
+    modulePreload: {
+      resolveDependencies(_filename, deps) {
+        return deps.filter((dep) => !/(?:^|\/)three/.test(dep))
+      },
+    },
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          return isThreeChunk(id)
+        },
+      },
     },
   },
 })
