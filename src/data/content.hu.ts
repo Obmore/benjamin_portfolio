@@ -263,5 +263,7 @@ export const contentHu: SiteContent = {
     orderLink: 'Megrendelés',
     navMain: 'Fő navigáció',
     navMobile: 'Mobil navigáció',
+    skipToContent: 'Ugrás a tartalomra',
+    backToTop: 'Ugrás az oldal tetejére',
   },
 }

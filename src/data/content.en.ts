@@ -265,5 +265,7 @@ export const contentEn: SiteContent = {
     orderLink: 'Megrendelés',
     navMain: 'Main navigation',
     navMobile: 'Mobile navigation',
+    skipToContent: 'Skip to content',
+    backToTop: 'Back to top',
   },
 }

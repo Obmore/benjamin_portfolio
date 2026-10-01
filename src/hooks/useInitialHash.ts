@@ -1,23 +1,29 @@
 import { useEffect } from 'react'
-import { resolveAnchor } from '@/lib/anchors'
+import { resolveAnchor, replaceLocationHash, stripJunkHash } from '@/lib/hash'
 import { scrollToSection } from '@/hooks/useActiveSection'
 
 function applyHash(behavior?: ScrollBehavior) {
-  const raw = window.location.hash.replace(/^#/, '')
+  const raw = stripJunkHash()
   if (!raw) return
 
   const id = resolveAnchor(raw)
-  if (id !== raw) {
-    history.replaceState(null, '', `#${id}`)
-  }
+  if (id !== raw) replaceLocationHash(id)
+  if (!document.getElementById(id)) return
   scrollToSection(id, behavior)
 }
 
 export function useInitialHash() {
   useEffect(() => {
     let cancelled = false
-    if (window.location.hash) {
+    const hadHash = Boolean(window.location.hash)
+    if (hadHash) {
       document.documentElement.style.scrollBehavior = 'auto'
+    }
+
+    const restoreSmooth = () => {
+      requestAnimationFrame(() => {
+        if (!cancelled) document.documentElement.style.scrollBehavior = ''
+      })
     }
 
     const run = async () => {
@@ -28,7 +34,9 @@ export function useInitialHash() {
       }
       if (cancelled) return
       requestAnimationFrame(() => {
-        if (!cancelled) applyHash('auto')
+        if (cancelled) return
+        applyHash('auto')
+        if (hadHash) restoreSmooth()
       })
     }
 

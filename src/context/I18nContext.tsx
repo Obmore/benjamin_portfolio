@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -17,6 +18,8 @@ import {
   runLangCssFallback,
   startThemedViewTransition,
 } from '@/lib/motion'
+import { FORBIDDEN_HASH_IDS, rawLocationHash, resolveAnchor } from '@/lib/hash'
+import { scrollToSection } from '@/hooks/useActiveSection'
 
 const LOCALE_STORAGE_KEY = 'portfolio-locale'
 const HEADER_OFFSET_PX = 64
@@ -50,15 +53,23 @@ function getInitialLocale(): Locale {
   return 'hu'
 }
 
+function currentSectionHash() {
+  const raw = rawLocationHash()
+  if (!raw || FORBIDDEN_HASH_IDS.has(raw)) return ''
+  const id = resolveAnchor(raw)
+  return document.getElementById(id) ? id : ''
+}
+
 function captureVisibleSectionAnchor() {
   const sections = document.querySelectorAll<HTMLElement>('main section[id]')
+  let best: { id: string; top: number; dist: number } | null = null
   for (const section of sections) {
     const rect = section.getBoundingClientRect()
-    if (rect.bottom > HEADER_OFFSET_PX && rect.top < window.innerHeight) {
-      return { id: section.id, top: rect.top }
-    }
+    if (rect.bottom <= HEADER_OFFSET_PX || rect.top >= window.innerHeight) continue
+    const dist = Math.abs(rect.top - HEADER_OFFSET_PX)
+    if (!best || dist < best.dist) best = { id: section.id, top: rect.top, dist }
   }
-  return null
+  return best ? { id: best.id, top: best.top } : null
 }
 
 function restoreSectionAnchor(anchor: { id: string; top: number } | null) {
@@ -115,22 +126,29 @@ export function I18nProvider({ children }: { children: ReactNode }) {
           })
         }
 
-        const anchor = captureVisibleSectionAnchor()
+        const hashId = currentSectionHash()
+        const anchor = hashId ? null : captureVisibleSectionAnchor()
+        const settlePosition = () => {
+          if (hashId) scrollToSection(hashId, 'auto')
+          else restoreSectionAnchor(anchor)
+        }
         const swap = () => {
           document.documentElement.lang = next
           flushSync(() => {
             setLocaleState(next)
           })
           persistLocale(next)
-          restoreSectionAnchor(anchor)
+          settlePosition()
         }
 
         if (prefersReducedMotion()) {
           swap()
         } else if (canViewTransition()) {
           await startThemedViewTransition('lang', swap)
+          settlePosition()
         } else {
           await runLangCssFallback(swap)
+          settlePosition()
         }
       } finally {
         if (busyTimer !== undefined) window.clearTimeout(busyTimer)
@@ -139,6 +157,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       }
     })()
   }, [persistLocale])
+
+  useLayoutEffect(() => {
+    document.documentElement.lang = locale
+  }, [locale])
 
   useEffect(() => {
     if (locale !== 'en') {

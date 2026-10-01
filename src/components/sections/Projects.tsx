@@ -1,9 +1,10 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useRef, type MouseEvent } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { Icon } from '@/components/ui/Icon'
 import { SECTION_IDS, SECTION_SHEETS } from '@/lib/constants'
 import { useRevealOnce } from '@/hooks/useRevealOnce'
 import { useWorkIndex } from '@/hooks/useWorkIndex'
+import { onResolvedHashClick } from '@/lib/anchors'
 import type { WorkProject } from '@/data/types'
 
 function padSheet(index: number) {
@@ -70,7 +71,13 @@ export function Projects() {
                     data-work-id={item.id}
                     data-active={item.id === activeId ? 'true' : undefined}
                   >
-                    <a href={`#munka-${item.id}`} className="work-index-link">
+                    <a
+                      href={`/#munka-${item.id}`}
+                      className="work-index-link"
+                      onClick={(event: MouseEvent<HTMLAnchorElement>) =>
+                        onResolvedHashClick(event, `munka-${item.id}`)
+                      }
+                    >
                       <span className="work-index-num">{padSheet(index)}</span>
                       <span className="work-index-label">
                         {item.title}

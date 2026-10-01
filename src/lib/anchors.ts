@@ -1,14 +1,39 @@
-import { ANCHOR_ALIASES } from '@/lib/constants'
+import { FORBIDDEN_HASH_IDS, replaceLocationHash, resolveAnchor } from '@/lib/hash'
 import { scrollToSection } from '@/hooks/useActiveSection'
+import { prefersReducedMotion } from '@/lib/motion'
+import type { MouseEvent } from 'react'
 
-export function resolveAnchor(hash: string): string {
-  const id = hash.replace(/^#/, '')
-  if (!id) return id
-  return ANCHOR_ALIASES[id] ?? id
-}
+export { resolveAnchor } from '@/lib/hash'
 
 export function navigateTo(id: string) {
   const resolved = resolveAnchor(id)
-  history.replaceState(null, '', `#${resolved}`)
+  if (!resolved || FORBIDDEN_HASH_IDS.has(resolved)) {
+    replaceLocationHash(null)
+    return
+  }
+  replaceLocationHash(resolved)
   scrollToSection(resolved)
+}
+
+export function goToPageTop() {
+  replaceLocationHash(null)
+  window.scrollTo({
+    top: 0,
+    behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+  })
+}
+
+export function onResolvedHashClick(event: MouseEvent<HTMLAnchorElement>, id: string) {
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  ) {
+    return
+  }
+  event.preventDefault()
+  navigateTo(id)
 }
