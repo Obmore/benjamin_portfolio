@@ -29,4 +29,12 @@ export default defineConfig({
       '@': path.resolve(root, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(root, 'index.html'),
+        megrendeles: path.resolve(root, 'megrendeles/index.html'),
+      },
+    },
+  },
 })
