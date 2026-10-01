@@ -14,8 +14,10 @@ export function locationWithoutHash() {
 
 export function replaceLocationHash(id: string | null) {
   const next = id ? `${locationWithoutHash()}#${id}` : locationWithoutHash()
-  const current = `${locationWithoutHash()}${window.location.hash}`
-  if (current === next) return
+  const displayed = `${locationWithoutHash()}${
+    window.location.hash || (/#$/.test(window.location.href) ? '#' : '')
+  }`
+  if (displayed === next) return
   history.replaceState(null, '', next)
 }
 
@@ -30,9 +32,10 @@ export function rawLocationHash() {
 }
 
 export function stripJunkHash() {
-  const { hash } = window.location
+  const { hash, href } = window.location
   const raw = rawLocationHash()
-  if (hash === '#' || FORBIDDEN_HASH_IDS.has(raw)) {
+  const bareHash = hash === '#' || (!raw && /#$/.test(href))
+  if (bareHash || FORBIDDEN_HASH_IDS.has(raw)) {
     replaceLocationHash(null)
     return ''
   }

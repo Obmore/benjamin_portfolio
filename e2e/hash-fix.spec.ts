@@ -29,7 +29,7 @@ function collectConsoleErrors(page: Page) {
 
 async function gotoHome(page: Page, path = '/') {
   const response = await page.goto(path, { waitUntil: 'networkidle' })
-  expect(response?.status()).toBe(200)
+  if (response) expect(response.status()).toBe(200)
   await page.evaluate(() => document.fonts.ready)
 }
 
@@ -106,16 +106,16 @@ test.describe('hash-fix PR7', () => {
     })
     expect(Number(heroOpacity), `hero opacity ${heroOpacity}`).toBeGreaterThan(0)
 
-    const below = page.locator('#kapcsolat [data-reveal]').first()
-    await expect(below).toHaveCount(1)
-    const hiddenOpacity = await below.evaluate((el) => getComputedStyle(el).opacity)
+    const hidden = page.locator('#oneletrajz [data-reveal]').first()
+    await expect(hidden).toHaveCount(1)
+    const hiddenOpacity = await hidden.evaluate((el) => getComputedStyle(el).opacity)
     expect(Number(hiddenOpacity), `below-fold opacity ${hiddenOpacity}`).toBe(0)
-    expect(await below.getAttribute('data-revealed')).toBeNull()
+    expect(await hidden.getAttribute('data-revealed')).toBeNull()
 
-    await below.scrollIntoViewIfNeeded()
-    await expect(below).toHaveAttribute('data-revealed', 'true')
+    await hidden.scrollIntoViewIfNeeded()
+    await expect(hidden).toHaveAttribute('data-revealed', 'true')
     await expect
-      .poll(async () => below.evaluate((el) => getComputedStyle(el).opacity))
+      .poll(async () => hidden.evaluate((el) => getComputedStyle(el).opacity))
       .toBe('1')
 
     await page.reload({ waitUntil: 'networkidle' })
@@ -201,8 +201,8 @@ test.describe('hash-fix PR7', () => {
     await page.waitForFunction(() => document.documentElement.lang === 'hu')
 
     await gotoHome(page, '/#')
-    await page.waitForFunction(() => location.hash === '')
-    expect(page.url().endsWith('#')).toBe(false)
+    await page.waitForFunction(() => !location.href.includes('#'))
+    expect(page.url()).not.toContain('#')
 
     await gotoHome(page)
     const afterHome = await page.evaluate(() => history.length)

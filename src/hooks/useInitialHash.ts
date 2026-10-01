@@ -4,18 +4,33 @@ import { scrollToSection } from '@/hooks/useActiveSection'
 
 function applyHash(behavior?: ScrollBehavior) {
   const raw = stripJunkHash()
-  if (!raw) return
+  if (!raw) return ''
 
   const id = resolveAnchor(raw)
   if (id !== raw) replaceLocationHash(id)
-  if (!document.getElementById(id)) return
+  if (!document.getElementById(id)) return ''
   scrollToSection(id, behavior)
+  return id
+}
+
+function realignHash(id: string) {
+  const element = document.getElementById(id)
+  if (!element) return
+  const offset = Number.parseFloat(getComputedStyle(element).scrollMarginTop) || 0
+  const delta = element.getBoundingClientRect().top - offset
+  if (Math.abs(delta) <= 2) return
+  const root = document.documentElement
+  const prev = root.style.scrollBehavior
+  root.style.scrollBehavior = 'auto'
+  root.scrollTop += delta
+  root.style.scrollBehavior = prev
 }
 
 export function useInitialHash() {
   useEffect(() => {
     let cancelled = false
-    const hadHash = Boolean(window.location.hash)
+    const retryTimers: number[] = []
+    const hadHash = Boolean(window.location.hash) || /#$/.test(window.location.href)
     if (hadHash) {
       document.documentElement.style.scrollBehavior = 'auto'
     }
@@ -35,8 +50,17 @@ export function useInitialHash() {
       if (cancelled) return
       requestAnimationFrame(() => {
         if (cancelled) return
-        applyHash('auto')
+        const id = applyHash('auto')
         if (hadHash) restoreSmooth()
+        if (id) {
+          for (const ms of [50, 200, 500]) {
+            retryTimers.push(
+              window.setTimeout(() => {
+                if (!cancelled) realignHash(id)
+              }, ms),
+            )
+          }
+        }
       })
     }
 
@@ -49,6 +73,7 @@ export function useInitialHash() {
     window.addEventListener('hashchange', onHashChange)
     return () => {
       cancelled = true
+      for (const timer of retryTimers) window.clearTimeout(timer)
       window.removeEventListener('hashchange', onHashChange)
     }
   }, [])

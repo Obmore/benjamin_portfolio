@@ -211,8 +211,8 @@ export function scrollToSection(id: string, behavior?: ScrollBehavior) {
     window.scrollTo({ top, behavior: 'smooth' })
   }
 
+  lastY = window.scrollY
   pendingSnap.stillTimer = window.setTimeout(() => {
-    if (!pendingSnap) return
-    if (Math.abs(window.scrollY - lastY) <= 1) onEnd()
+    if (pendingSnap) onEnd()
   }, 150)
 }
