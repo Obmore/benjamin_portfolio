@@ -10,7 +10,7 @@ export function LangToggle() {
       type="button"
       onClick={toggleLocale}
       aria-busy={localeLoading || undefined}
-      className="rounded-lg border border-border/70 bg-surface/70 px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"
+      className="inline-flex h-11 min-h-11 min-w-11 items-center justify-center rounded-lg border border-border/70 bg-surface/70 px-2 font-mono text-xs text-muted hover:border-accent/40 hover:text-accent"
     >
       {nextCode}
       <span className="sr-only">{srText}</span>

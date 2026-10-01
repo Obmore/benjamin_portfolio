@@ -99,10 +99,17 @@
   --color-border: #e2e8f0;
   --color-accent: #1e3a5f;
   --color-cyan: #06b6d4;
+  --color-ink-2: #4b5563;
+  --color-line: #d7e2ef;
+  --color-highlight: #dde2e4;
+  --color-on-foreground: #ffffff;
 }
 
 :root {
   color-scheme: light;
+  --shadow-ink: 0 16px 40px color-mix(in srgb, var(--color-foreground) 12%, transparent);
+  --shadow-card: 0 1px 2px color-mix(in srgb, var(--color-foreground) 12%, transparent);
+  --color-domain: #475569;
   --motion-ink: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-pen: cubic-bezier(0.16, 1, 0.3, 1);
   --motion-page: cubic-bezier(0.65, 0, 0.35, 1);
@@ -124,6 +131,24 @@
   --hero-t-cell: 200ms;
   --hero-d-cell: 800ms;
   --hero-cell-stagger: 60ms;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-background: #0B1A2E;
+  --color-foreground: #E6EDF5;
+  --color-muted: #A3B3C7;
+  --color-surface: #10233B;
+  --color-border: #2E4A6B;
+  --color-accent: #8CC4F0;
+  --color-cyan: #22D3EE;
+  --color-ink-2: #C2CEDC;
+  --color-line: #5D7FA6;
+  --color-highlight: #1A3352;
+  --color-on-foreground: #0B1A2E;
+  --shadow-ink: 0 16px 40px rgb(0 0 0 / 0.4);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+  --color-domain: var(--color-muted);
 }
 
 @media (max-width: 899px), (pointer: coarse) {
@@ -313,7 +338,7 @@ html.js [data-reveal]:not([data-revealed]) {
   font-size: 17px;
   font-weight: 400;
   line-height: 1.55;
-  color: #4b5563;
+  color: var(--color-ink-2);
 }
 
 .hero-actions {
@@ -379,7 +404,7 @@ html.js [data-reveal]:not([data-revealed]) {
   min-height: 100%;
   padding: 16px;
   overflow: clip;
-  border: 1px solid #d7e2ef;
+  border: 1px solid var(--color-line);
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
 }
 
@@ -392,10 +417,11 @@ html.js [data-reveal]:not([data-revealed]) {
 
 .hero-titleblock {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 6px 12px;
   margin: 0;
   align-content: center;
+  min-width: 0;
 }
 
 .hero-titleblock-cell {
@@ -418,6 +444,8 @@ html.js [data-reveal]:not([data-revealed]) {
   font-size: 13px;
   line-height: 1.3;
   color: var(--color-foreground);
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 
 html.js .hero-signal,
@@ -526,7 +554,7 @@ html.js.is-static-motion .munkaim-dimension-line {
   inset: 0;
   pointer-events: none;
   opacity: 0;
-  box-shadow: 0 16px 40px color-mix(in srgb, var(--color-foreground) 12%, transparent);
+  box-shadow: var(--shadow-ink);
   transition-property: opacity;
   transition-duration: 200ms;
   transition-timing-function: var(--motion-micro);
@@ -535,7 +563,7 @@ html.js.is-static-motion .munkaim-dimension-line {
 .work-card-inner {
   position: relative;
   padding: 20px;
-  border: 1px solid #d7e2ef;
+  border: 1px solid var(--color-line);
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
 }
 
@@ -560,24 +588,29 @@ html.js.is-static-motion .munkaim-dimension-line {
 }
 
 .work-shot {
+  min-width: 0;
   margin-bottom: 20px;
 }
 
 .work-shot-chrome {
   display: flex;
   align-items: center;
+  min-width: 0;
   height: 28px;
   padding: 0 12px;
-  border: 1px solid #d7e2ef;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
   border-bottom: 0;
   background: color-mix(in srgb, var(--color-surface) 96%, var(--color-accent));
 }
 
 .work-shot-domain {
+  min-width: 0;
+  flex: 1 1 0;
   overflow: hidden;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--color-muted);
+  color: var(--color-domain);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -585,7 +618,7 @@ html.js.is-static-motion .munkaim-dimension-line {
 .work-shot-frame {
   overflow: clip;
   aspect-ratio: 16 / 10;
-  border: 1px solid #d7e2ef;
+  border: 1px solid var(--color-line);
 }
 
 .work-shot-frame img,
@@ -613,17 +646,16 @@ html.js.is-static-motion .munkaim-dimension-line {
 .work-card-sub {
   margin: 4px 0 0;
   font-size: 16px;
-  color: #4b5563;
+  color: var(--color-ink-2);
 }
 
 .work-card-link {
   margin: 8px 0 0;
+  min-width: 0;
 }
 
 .work-live-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  display: inline;
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--color-accent);
@@ -632,7 +664,10 @@ html.js.is-static-motion .munkaim-dimension-line {
 }
 
 .work-link-icon {
+  display: inline-block;
   flex-shrink: 0;
+  margin-left: 4px;
+  vertical-align: -0.15em;
   transition-property: transform;
   transition-duration: 200ms;
   transition-timing-function: var(--motion-micro);
@@ -663,7 +698,7 @@ html.js.is-static-motion .munkaim-dimension-line {
   width: 8px;
   height: 8px;
   color: var(--color-accent);
-  transition-property: transform, color;
+  transition-property: transform;
   transition-duration: 200ms;
   transition-timing-function: var(--motion-micro);
 }
@@ -841,7 +876,7 @@ html.js.is-static-motion .munkaim-dimension-line {
     top: 0;
     width: 100%;
     height: var(--active-h, 44px);
-    background: #dde2e4;
+    background: var(--color-highlight);
     transform: translateY(var(--active-y, 0px));
     transform-origin: top;
     transition-property: transform;
@@ -938,7 +973,7 @@ html.is-static-motion .work-index {
 
 @media (hover: hover) and (pointer: fine) {
   .ui-pressable {
-    transition-property: transform, color, background-color, border-color;
+    transition-property: transform;
     transition-duration: 150ms;
   }
 
@@ -963,7 +998,7 @@ html.is-static-motion .work-index {
   }
 
   .ui-chip {
-    transition-property: transform, color, background-color, border-color;
+    transition-property: transform;
     transition-duration: 150ms;
   }
 
@@ -1026,4 +1061,70 @@ html.is-static-motion .work-index {
   .work-card:hover .work-corner-br {
     transform: translate(4px, 4px);
   }
+}
+
+.card-elev {
+  box-shadow: var(--shadow-card);
+}
+
+.munkaim-section,
+#rolam,
+#tapasztalat,
+#kompetenciak,
+#oneletrajz,
+#kapcsolat {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 720px;
+}
+
+.munkaim-section {
+  contain-intrinsic-size: auto 2400px;
+}
+
+.work-card-link {
+  min-width: 0;
+}
+
+@media (max-width: 1023px) {
+  .work-corners {
+    inset: 0;
+  }
+}
+
+html.is-lang-vt header.site-header {
+  view-transition-name: site-header;
+}
+
+::view-transition-old(site-header),
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+html.is-theme-vt::view-transition-old(root),
+html.is-theme-vt::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: var(--motion-micro);
+}
+
+html.is-lang-vt::view-transition-old(root) {
+  animation-duration: 150ms;
+  animation-timing-function: var(--motion-ink);
+}
+
+html.is-lang-vt::view-transition-new(root) {
+  animation-duration: 200ms;
+  animation-timing-function: var(--motion-ink);
+}
+
+main.is-lang-out {
+  opacity: 0;
+  transition: opacity 150ms var(--motion-ink);
+}
+
+main.is-lang-hold {
+  opacity: 0;
+}
+
+main.is-lang-in {
+  animation: fade-in 200ms var(--motion-ink);
 }

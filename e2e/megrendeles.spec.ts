@@ -143,12 +143,31 @@ test.describe('/megrendeles/', () => {
     await page.close()
   })
 
-  test('main page stays isolated', async ({ page }) => {
-    const response = await page.goto('/', { waitUntil: 'domcontentloaded' })
+  test('main page has a single Megrendelés link in #kapcsolat', async ({ page }) => {
+    const response = await page.goto('/', { waitUntil: 'networkidle' })
     expect(response?.status()).toBe(200)
-    await expect(page.locator('a[href="/megrendeles/"], a[href="/megrendeles"]')).toHaveCount(0)
     const canonical = page.locator('link[rel="canonical"]')
     await expect(canonical).toHaveAttribute('href', 'https://ottbenjamin.hu/')
+
+    async function assertSingleOrderLink() {
+      const all = page.locator('a[href="/megrendeles/"], a[href="/megrendeles"]')
+      await expect(all).toHaveCount(1)
+      await expect(page.locator('#kapcsolat a[href="/megrendeles/"], #kapcsolat a[href="/megrendeles"]')).toHaveCount(1)
+      await expect(page.locator('header a[href="/megrendeles/"], header a[href="/megrendeles"]')).toHaveCount(0)
+      const link = page.locator('#kapcsolat a[href="/megrendeles/"]')
+      await expect(link).toHaveAttribute('lang', 'hu')
+      await expect(link).toHaveText('Megrendelés')
+      const bodyText = await page.locator('body').innerText()
+      expect([...bodyText.matchAll(/ajánlat/gi)].length, 'S1 ajánlat count').toBe(0)
+    }
+
+    await assertSingleOrderLink()
+    await page.getByRole('button', { name: /^EN/ }).click()
+    await page.waitForTimeout(400)
+    await assertSingleOrderLink()
+    await page.getByRole('button', { name: /^HU/ }).click()
+    await page.waitForTimeout(400)
+    await assertSingleOrderLink()
   })
 
   test('copy button shows Kimásolva without CLS', async ({ page, context, browserName }) => {

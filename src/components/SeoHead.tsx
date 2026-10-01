@@ -28,7 +28,7 @@ export function SeoHead() {
       <meta property="og:title" content={content.meta.title} />
       <meta property="og:description" content={content.meta.description} />
       <meta name="twitter:card" content="summary" />
-      <html lang={locale} className="js" />
+      <html lang={locale} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -261,6 +261,8 @@ export const contentEn: SiteContent = {
     menuToggle: 'Open menu',
     langToEn: ', switch to English',
     langToHu: ', switch to Hungarian',
+    themeDark: 'Dark mode',
+    orderLink: 'Megrendelés',
     navMain: 'Main navigation',
     navMobile: 'Mobile navigation',
   },

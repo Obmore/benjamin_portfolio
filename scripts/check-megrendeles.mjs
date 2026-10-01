@@ -36,7 +36,6 @@ if (main) {
   mustInclude('main', main, '<link rel="canonical" href="https://ottbenjamin.hu/" />')
   mustInclude('main', main, '<meta property="og:url" content="https://ottbenjamin.hu/" />')
   mustInclude('main', main, '<title>Ott Benjámin, villamosmérnök és szoftverfejlesztő</title>')
-  mustNotInclude('main', main, '/megrendeles/')
   mustNotInclude('main', main, 'VITE_SHOW_ORDER_LINK')
 }
 
@@ -98,6 +97,19 @@ if (fs.existsSync(assetsDir)) {
   mustInclude('megrendeles js', orderJs, 'E-mail-cím a vágólapra másolva')
   mustNotInclude('megrendeles js', orderJs, 'Az e-mail-cím a vágólapra került.')
   mustNotInclude('megrendeles js', orderJs, 'Aj%C3%A1nlatk%C3%A9r%C3%A9s')
+
+  const mainJs = fs
+    .readdirSync(assetsDir)
+    .filter((name) => name.endsWith('.js') && !name.startsWith('megrendeles-'))
+    .map((name) => fs.readFileSync(path.join(assetsDir, name), 'utf8'))
+    .join('\n')
+  const ajanlatOnHome = [...mainJs.matchAll(/ajánlat/gi)].length
+  if (ajanlatOnHome !== 0) {
+    errors.push(`S1: főoldal JS „ajánlat” találat ${ajanlatOnHome}, elvárt 0`)
+  }
+  if (!mainJs.includes('/megrendeles/')) {
+    errors.push('main js: a production bundle-nek tartalmaznia kell a /megrendeles/ href-et')
+  }
 }
 
 if (errors.length > 0) {
