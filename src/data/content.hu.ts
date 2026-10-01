@@ -146,7 +146,7 @@ export const contentHu: SiteContent = {
         ],
       },
       {
-        title: 'Fejlesztési eszközök és üzemeltetés',
+        title: 'Fejlesztőeszközök és DevOps',
         skills: [
           'Azure DevOps',
           'Git',

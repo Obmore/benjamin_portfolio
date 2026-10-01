@@ -54,7 +54,7 @@ export function Projects() {
               x2="100"
               y2="12"
               pathLength="1"
-              vectorEffect="nonScalingStroke"
+              vectorEffect="non-scaling-stroke"
             />
           </svg>
         </header>

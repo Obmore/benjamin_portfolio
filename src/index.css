@@ -560,7 +560,7 @@ html.js.is-static-motion .munkaim-dimension-line {
 }
 
 .work-shot {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .work-shot-chrome {
@@ -750,6 +750,10 @@ html.js.is-static-motion .munkaim-dimension-line {
 
   .munkaim-layout {
     gap: 32px;
+  }
+
+  .work-shot {
+    margin-bottom: 24px;
   }
 
   .work-card-inner {

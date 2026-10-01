@@ -29,26 +29,26 @@ export function HeroVisual() {
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <circle cx="28" cy="48" r="7" vectorEffect="nonScalingStroke" />
+            <circle cx="28" cy="48" r="7" vectorEffect="non-scaling-stroke" />
             <circle cx="28" cy="48" r="2.5" fill="currentColor" stroke="none" />
-            <path d="M35 48 H78" vectorEffect="nonScalingStroke" />
+            <path d="M35 48 H78" vectorEffect="non-scaling-stroke" />
             <path
               d="M78 48 l10 -12 l14 24 l14 -24 l14 24 l14 -24 l10 12"
-              vectorEffect="nonScalingStroke"
+              vectorEffect="non-scaling-stroke"
             />
             <path
               className="hero-signal"
               pathLength="1"
               d="M154 48 H196 V112 H88 V168"
-              vectorEffect="nonScalingStroke"
+              vectorEffect="non-scaling-stroke"
             />
             <path
               d="M72 168 C60 168 60 192 72 192 C60 192 60 216 72 216"
-              vectorEffect="nonScalingStroke"
+              vectorEffect="non-scaling-stroke"
             />
             <path
               d="M104 168 C116 168 116 192 104 192 C116 192 116 216 104 216"
-              vectorEffect="nonScalingStroke"
+              vectorEffect="non-scaling-stroke"
             />
           </g>
         </svg>

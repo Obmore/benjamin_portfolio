@@ -15,12 +15,17 @@ export function Experience() {
       <div className="relative mx-auto max-w-3xl">
         <div
           aria-hidden="true"
+          data-timeline-line
           className="absolute left-4 top-0 h-full w-px bg-gradient-to-b from-accent/50 via-cyan/30 to-transparent md:left-1/2 md:w-[2px] md:-translate-x-1/2"
         />
 
         <div className="space-y-10">
           {content.experience.items.map((item, index) => (
-            <ExperienceArticle key={`${item.title}-${item.period}`} item={item} isEven={index % 2 === 0} />
+            <ExperienceArticle
+              key={`${item.title}-${item.period}`}
+              item={item}
+              isEven={index % 2 === 0}
+            />
           ))}
         </div>
       </div>
@@ -36,12 +41,18 @@ function ExperienceArticle({ item, isEven }: { item: ExperienceItem; isEven: boo
       ref={ref}
       data-reveal
       style={{ '--reveal-duration': '0.6s' } as CSSProperties}
-      className={`relative md:w-[calc(50%-2rem)] ${
-        isEven ? 'md:mr-auto md:pr-8' : 'md:ml-auto md:pl-8'
-      }`}
+      className="relative"
     >
-      <div className="absolute left-4 top-6 h-3 w-3 -translate-x-1/2 rounded-full border-2 border-accent bg-background md:left-1/2" />
-      <div className="ml-10 rounded-2xl border border-[#d7e2ef] bg-surface/90 p-6 md:ml-0">
+      <div
+        aria-hidden="true"
+        data-timeline-dot
+        className="absolute left-4 top-6 z-10 h-3 w-3 -translate-x-1/2 rounded-full border-2 border-accent bg-background md:left-1/2"
+      />
+      <div
+        className={`ml-10 rounded-2xl border border-[#d7e2ef] bg-surface/90 p-6 md:ml-0 md:w-[calc(50%-2rem)] ${
+          isEven ? 'md:mr-auto' : 'md:ml-auto'
+        }`}
+      >
         <p className="font-mono text-xs text-accent">{item.period}</p>
         <h3 className="mt-2 text-lg font-medium text-foreground">{item.title}</h3>
         {item.company ? (
