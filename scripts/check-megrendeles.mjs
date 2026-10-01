@@ -96,6 +96,15 @@ if (fs.existsSync(assetsDir)) {
     .join('\n')
   mustInclude('main js', mainJs, '/megrendeles/')
   mustNotInclude('main js', mainJs, 'VITE_SHOW_ORDER_LINK')
+  mustNotInclude('main js', mainJs, 'SHOW_ORDER_LINK')
+  mustNotInclude('main js', mainJs, 'ajánlat')
+  mustNotInclude('main js', mainJs, 'Ajánlat')
+  mustNotInclude('main js', mainJs, '59 000')
+  mustNotInclude('main js', mainJs, '59000')
+  mustNotInclude('main js', mainJs, '4 900')
+  mustNotInclude('main js', mainJs, '4900')
+  mustNotInclude('main js', mainJs, 'Egyedi webes megoldás')
+  mustNotInclude('main js', mainJs, 'Bemutatkozó oldal vállalkozásoknak')
 
   const orderJs = fs
     .readdirSync(assetsDir)

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useI18n } from '@/context/I18nContext'
-import { ORDER_HREF, SECTION_IDS, SHOW_ORDER_LINK } from '@/lib/constants'
+import { SECTION_IDS } from '@/lib/constants'
 import { scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
 import { navigateTo } from '@/lib/anchors'
 import { LangToggle } from '@/components/ui/LangToggle'
+import { OrderLink } from '@/components/ui/OrderLink'
 
 const navItems = [
   { id: SECTION_IDS.projects, key: 'projects' as const },
@@ -92,7 +93,7 @@ export function Navbar() {
           : 'bg-transparent'
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 md:px-8">
+      <div className="mx-auto flex h-16 max-w-6xl flex-nowrap items-center justify-between gap-3 px-5 md:px-8">
         <button
           type="button"
           onClick={() => scrollToSection('hero')}
@@ -101,13 +102,16 @@ export function Navbar() {
           OB<span className="text-accent">.</span>
         </button>
 
-        <nav className="hidden items-center gap-1 whitespace-nowrap lg:flex" aria-label={content.common.navMain}>
+        <nav
+          className="hidden flex-nowrap items-center gap-0.5 whitespace-nowrap lg:flex xl:gap-1"
+          aria-label={content.common.navMain}
+        >
           {navItems.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => handleNavClick(item.id)}
-              className={`rounded-lg px-3 py-2 text-sm transition-colors ${
+              className={`shrink-0 rounded-lg px-2.5 py-2 text-sm transition-colors xl:px-3 ${
                 activeId === item.id
                   ? 'text-accent'
                   : 'text-muted hover:text-foreground'
@@ -116,15 +120,7 @@ export function Navbar() {
               {content.nav[item.key]}
             </button>
           ))}
-          {SHOW_ORDER_LINK ? (
-            <a
-              href={ORDER_HREF}
-              hrefLang="hu"
-              className="rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:text-foreground"
-            >
-              {content.nav.order}
-            </a>
-          ) : null}
+          <OrderLink className="nav-order-link shrink-0" />
         </nav>
 
         <div className="flex items-center gap-2">
@@ -168,16 +164,10 @@ export function Navbar() {
               {content.nav[item.key]}
             </button>
           ))}
-          {SHOW_ORDER_LINK ? (
-            <a
-              href={ORDER_HREF}
-              hrefLang="hu"
-              tabIndex={menuOpen ? 0 : -1}
-              className="rounded-lg px-3 py-2 text-left text-sm text-muted"
-            >
-              {content.nav.order}
-            </a>
-          ) : null}
+          <OrderLink
+            className="nav-order-link nav-order-link-mobile"
+            tabIndex={menuOpen ? 0 : -1}
+          />
         </div>
       </nav>
     </header>
