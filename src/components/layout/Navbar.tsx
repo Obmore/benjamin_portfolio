@@ -4,6 +4,9 @@ import { SECTION_IDS } from '@/lib/constants'
 import { scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
 import { navigateTo } from '@/lib/anchors'
 import { LangToggle } from '@/components/ui/LangToggle'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { OrderLink } from '@/components/ui/OrderLink'
+import { SHOW_ORDER_LINK } from '@/lib/flags'
 
 const navItems = [
   { id: SECTION_IDS.projects, key: 'projects' as const },
@@ -13,6 +16,8 @@ const navItems = [
   { id: SECTION_IDS.cv, key: 'cv' as const },
   { id: SECTION_IDS.contact, key: 'contact' as const },
 ]
+
+const navSectionIds = navItems.map((item) => item.id)
 
 function useHeaderScrolled() {
   const [scrolled, setScrolled] = useState(false)
@@ -44,7 +49,7 @@ export function Navbar() {
   const scrolled = useHeaderScrolled()
   const [menuOpen, setMenuOpen] = useState(false)
   const [pendingScrollId, setPendingScrollId] = useState<string | null>(null)
-  const activeId = useActiveSection(navItems.map((item) => item.id))
+  const activeId = useActiveSection(navSectionIds)
 
   useEffect(() => {
     if (!menuOpen) return
@@ -86,7 +91,7 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 h-16 transition-colors duration-300 ${
+      className={`fixed inset-x-0 top-0 z-50 h-16 ${
         scrolled
           ? 'border-b border-border/60 bg-background/80 backdrop-blur-xl'
           : 'bg-transparent'
@@ -107,7 +112,7 @@ export function Navbar() {
               key={item.id}
               type="button"
               onClick={() => handleNavClick(item.id)}
-              className={`rounded-lg px-3 py-2 text-sm transition-colors ${
+              className={`rounded-lg px-3 py-2 text-sm ${
                 activeId === item.id
                   ? 'text-accent'
                   : 'text-muted hover:text-foreground'
@@ -116,13 +121,17 @@ export function Navbar() {
               {content.nav[item.key]}
             </button>
           ))}
+          {SHOW_ORDER_LINK ? (
+            <OrderLink className="rounded-lg px-3 py-2 text-sm text-muted hover:text-foreground" />
+          ) : null}
         </nav>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <LangToggle />
           <button
             type="button"
-            className="rounded-lg border border-border/70 p-2 text-muted lg:hidden"
+            className="inline-flex h-11 min-h-11 w-11 min-w-11 items-center justify-center rounded-lg border border-border/70 text-muted lg:hidden"
             aria-label={content.common.menuToggle}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((open) => !open)}
@@ -159,6 +168,9 @@ export function Navbar() {
               {content.nav[item.key]}
             </button>
           ))}
+          {SHOW_ORDER_LINK ? (
+            <OrderLink className="rounded-lg px-3 py-2 text-sm text-muted hover:text-foreground" />
+          ) : null}
         </div>
       </nav>
     </header>
