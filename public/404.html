@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Az oldal nem található</title>
+    <script>
+      (function () {
+        var path = location.pathname
+        var decoded = path
+        try {
+          decoded = decodeURIComponent(path)
+        } catch (e) {}
+        var key = decoded.replace(/\/+$/, '').toLowerCase()
+        if (key === '/megrendelo' || key === '/megrendelés' || key === '/rendeles') {
+          location.replace('/megrendeles/' + location.search + location.hash)
+        }
+      })()
+    </script>
+    <style>
+      :root {
+        color-scheme: light only;
+        --paper: #fafbfc;
+        --ink: #0f172a;
+        --muted: #64748b;
+        --surface: #ffffff;
+        --line: #d7e2ef;
+        --accent: #1e3a5f;
+        --cyan: #06b6d4;
+        --sans: "DM Sans", Arial, ui-sans-serif, system-ui, sans-serif;
+        --mono: "JetBrains Mono", "Courier New", ui-monospace, monospace;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: light only;
+        }
+        html,
+        body {
+          background: var(--paper);
+          color: var(--ink);
+        }
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--sans);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body {
+        min-height: 100svh;
+      }
+
+      .grid {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background:
+          radial-gradient(24rem 24rem at 100% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+          radial-gradient(20rem 20rem at 0% 100%, color-mix(in srgb, var(--cyan) 10%, transparent), transparent 60%),
+          linear-gradient(to bottom right, var(--paper), var(--paper), color-mix(in srgb, var(--accent) 5%, var(--paper)));
+      }
+
+      .grid::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0.35;
+        background-image:
+          linear-gradient(to right, color-mix(in srgb, var(--accent) 8%, transparent) 1px, transparent 1px),
+          linear-gradient(to bottom, color-mix(in srgb, var(--accent) 8%, transparent) 1px, transparent 1px);
+        background-size: 48px 48px;
+      }
+
+      main {
+        display: grid;
+        place-items: center;
+        min-height: 100svh;
+        padding: 24px 20px;
+      }
+
+      .sheet {
+        position: relative;
+        width: min(36rem, 100%);
+        padding: 32px 24px;
+        background: color-mix(in srgb, var(--surface) 90%, transparent);
+        border: 1px solid var(--line);
+      }
+
+      .corners {
+        position: absolute;
+        inset: -6px;
+        pointer-events: none;
+      }
+
+      .corner {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        color: var(--accent);
+      }
+
+      .corner-tl {
+        top: 0;
+        left: 0;
+        border-top: 1.5px solid currentColor;
+        border-left: 1.5px solid currentColor;
+      }
+
+      .corner-tr {
+        top: 0;
+        right: 0;
+        border-top: 1.5px solid currentColor;
+        border-right: 1.5px solid currentColor;
+      }
+
+      .corner-bl {
+        bottom: 0;
+        left: 0;
+        border-bottom: 1.5px solid currentColor;
+        border-left: 1.5px solid currentColor;
+      }
+
+      .corner-br {
+        bottom: 0;
+        right: 0;
+        border-bottom: 1.5px solid currentColor;
+        border-right: 1.5px solid currentColor;
+      }
+
+      .mark {
+        margin: 0 0 24px;
+        font-family: var(--mono);
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: var(--accent);
+      }
+
+      .kicker {
+        margin: 0 0 8px;
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.75rem, 1rem + 2.4vw, 2.5rem);
+        font-weight: 600;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+      }
+
+      .en {
+        margin: 12px 0 0;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--muted);
+      }
+
+      .home {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        margin-top: 28px;
+        padding: 0 20px;
+        border-radius: 12px;
+        background: var(--ink);
+        color: #fff;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        text-decoration: none;
+      }
+
+      .home:hover,
+      .home:focus-visible {
+        background: color-mix(in srgb, var(--ink) 90%, #fff);
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+
+      @media (min-width: 900px) {
+        main {
+          padding: 48px 32px;
+        }
+        .sheet {
+          padding: 48px 40px;
+        }
+        .corner {
+          width: 16px;
+          height: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid" aria-hidden="true"></div>
+    <main>
+      <article class="sheet">
+        <div class="corners" aria-hidden="true">
+          <span class="corner corner-tl"></span>
+          <span class="corner corner-tr"></span>
+          <span class="corner corner-bl"></span>
+          <span class="corner corner-br"></span>
+        </div>
+        <p class="mark">OB.</p>
+        <p class="kicker">Hiba 404</p>
+        <h1>Ez az oldal nem található.</h1>
+        <p class="en">This page could not be found.</p>
+        <a class="home" href="/">Vissza a főoldalra</a>
+      </article>
+    </main>
+  </body>
+</html>
