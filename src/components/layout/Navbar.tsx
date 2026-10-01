@@ -5,8 +5,6 @@ import { scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
 import { navigateTo } from '@/lib/anchors'
 import { LangToggle } from '@/components/ui/LangToggle'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { OrderLink } from '@/components/ui/OrderLink'
-import { SHOW_ORDER_LINK } from '@/lib/flags'
 
 const navItems = [
   { id: SECTION_IDS.projects, key: 'projects' as const },
@@ -122,9 +120,6 @@ export function Navbar() {
               {content.nav[item.key]}
             </button>
           ))}
-          {SHOW_ORDER_LINK ? (
-            <OrderLink className="rounded-lg px-3 py-2 text-sm text-muted hover:text-foreground" />
-          ) : null}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -170,9 +165,6 @@ export function Navbar() {
               {content.nav[item.key]}
             </button>
           ))}
-          {SHOW_ORDER_LINK ? (
-            <OrderLink className="rounded-lg px-3 py-2 text-sm text-muted hover:text-foreground" />
-          ) : null}
         </div>
       </nav>
     </header>
