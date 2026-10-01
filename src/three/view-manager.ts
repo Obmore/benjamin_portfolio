@@ -1,9 +1,10 @@
 import { Color, Scene, WebGLRenderer } from 'three'
 import type { OrthographicCamera } from 'three'
-import { C_OBJECTS } from '@/lib/c-objects'
-import { mark3dWatchdog } from '@/lib/three-gate'
 import { createCObject, disposeObject, makeCCamera } from './scene-c'
 import type { BakedObject } from './types'
+import piData from './generated/c-pi.data'
+import pcbData from './generated/c-pcb.data'
+import swData from './generated/c-sw.data'
 
 type Slot = {
   id: string
@@ -15,10 +16,10 @@ type Slot = {
   explode: number
 }
 
-const DATA: Record<string, () => Promise<{ default: BakedObject }>> = {
-  'c-pi': () => import('./generated/c-pi.data'),
-  'c-pcb': () => import('./generated/c-pcb.data'),
-  'c-sw': () => import('./generated/c-sw.data'),
+const DATA: Record<string, BakedObject> = {
+  'c-pi': piData,
+  'c-pcb': pcbData,
+  'c-sw': swData,
 }
 
 let renderer: WebGLRenderer | null = null
@@ -33,6 +34,14 @@ let debugEl: HTMLElement | null = null
 let scissorMax = 0
 let scissorWindowMax = 0
 let scissorWindowAt = 0
+
+function markWatchdog() {
+  try {
+    sessionStorage.setItem('ob-3d-off', '1')
+  } catch {
+    /* ignore */
+  }
+}
 
 function qaParam(): 'force' | 'debug' | null {
   if (!__3D_QA__) return null
@@ -67,7 +76,7 @@ function ensureCanvas() {
 
 function onLost(event: Event) {
   event.preventDefault()
-  mark3dWatchdog()
+  markWatchdog()
   stopView()
 }
 
@@ -98,7 +107,7 @@ function tick(now: number) {
     const sorted = [...frameMs].sort((a, b) => a - b)
     const p95 = sorted[Math.floor(sorted.length * 0.95)] ?? dt
     if (p95 > 22) {
-      mark3dWatchdog()
+      markWatchdog()
       stopView()
       return
     }
@@ -183,19 +192,17 @@ async function attachSlots(my: number) {
   const first = document.querySelector<HTMLElement>('[data-scene3d]')
   const { ink, blue } = first ? readColors(first) : { ink: new Color('#0b2545'), blue: new Color('#1f5fad') }
 
-  for (const spec of C_OBJECTS) {
+  for (const id of Object.keys(DATA)) {
     if (my !== gen) break
-    const el = document.querySelector<HTMLElement>(`[data-scene3d="${spec.id}"]`)
+    const el = document.querySelector<HTMLElement>(`[data-scene3d="${id}"]`)
     if (!el) continue
-    const loader = DATA[spec.id]
-    if (!loader) continue
-    const { default: data } = await loader()
-    if (my !== gen) break
+    const data = DATA[id]
+    if (!data) continue
     const { root, layers } = createCObject(data, ink, blue)
     const scene = new Scene()
     scene.add(root)
     next.push({
-      id: spec.id,
+      id,
       el,
       scene,
       camera: makeCCamera(),

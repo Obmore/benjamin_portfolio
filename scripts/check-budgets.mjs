@@ -149,6 +149,16 @@ if (threeJs.length > 0) {
   checks.push(['C data sw (gzip)', byKind['c-sw'] ?? 0, BUDGETS.cDataEach])
   const cDataTotal = (byKind['c-pi'] ?? 0) + (byKind['c-pcb'] ?? 0) + (byKind['c-sw'] ?? 0)
   checks.push(['C data total (gzip)', cDataTotal, BUDGETS.cDataTotal])
+  const app3d =
+    threeJsGzip.total -
+    (byKind.three ?? 0)
+  checks.push(
+    [
+      '3D app without vendor (gzip)',
+      app3d,
+      BUDGETS.viewManager + BUDGETS.cCode + BUDGETS.cDataTotal,
+    ],
+  )
   checks.push(['3D total (gzip)', threeJsGzip.total, BUDGETS.total3d])
 }
 
@@ -180,6 +190,10 @@ for (const file of entryJs) {
   const text = fs.readFileSync(file, 'utf8')
   if (text.includes('WebGLRenderer') || /from["']three["']/.test(text)) {
     console.error(`\nEntry chunk contains three: ${path.relative(dist, file)}`)
+    failed = true
+  }
+  if (/from\s*["']\.\/three-/.test(text) || /from\s*["'][^"']*three-view/.test(text)) {
+    console.error(`\nEntry chunk statically imports a 3D chunk: ${path.relative(dist, file)}`)
     failed = true
   }
 }

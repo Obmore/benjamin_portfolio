@@ -1,10 +1,31 @@
-import { canLoad3dEngine } from '@/lib/three-gate'
-
-type BootApi = typeof import('./view-manager')
+import { startView, stopView } from './view-manager'
 
 let alive = false
-let api: BootApi | null = null
 let media: MediaQueryList | null = null
+let started = false
+
+function qaForce(): boolean {
+  if (!__3D_QA__) return false
+  const v = new URLSearchParams(location.search).get('3d')
+  return v === 'force'
+}
+
+function stillOk(): boolean {
+  if (!alive) return false
+  if (qaForce()) return hasWebGL()
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false
+  if (window.matchMedia('(max-width: 1023px), (pointer: coarse)').matches) return false
+  const n = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } }
+  if (n.connection?.saveData) return false
+  if (typeof n.deviceMemory === 'number' && n.deviceMemory <= 2) return false
+  if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) return false
+  try {
+    if (sessionStorage.getItem('ob-3d-off')) return false
+  } catch {
+    /* ignore */
+  }
+  return hasWebGL()
+}
 
 function hasWebGL(): boolean {
   try {
@@ -49,22 +70,10 @@ function nearBox(): Promise<void> {
   })
 }
 
-function stillAllowed(): boolean {
-  return alive && canLoad3dEngine() && hasWebGL()
-}
-
-async function loadEngine(): Promise<BootApi | null> {
-  await afterLoad()
-  await afterIdle()
-  await nearBox()
-  if (!stillAllowed()) return null
-  const mod = await import('./view-manager')
-  return mod
-}
-
 function onMedia() {
-  if (!stillAllowed()) {
-    api?.stopView()
+  if (!stillOk()) {
+    stopView()
+    started = false
   }
 }
 
@@ -73,17 +82,20 @@ export function boot3d() {
   alive = true
   media = window.matchMedia('(max-width: 1023px), (pointer: coarse), (prefers-reduced-motion: reduce)')
   media.addEventListener('change', onMedia)
-  void loadEngine().then((mod) => {
-    api = mod
-    if (mod && stillAllowed()) void mod.startView()
-    else mod?.stopView()
-  })
+  void (async () => {
+    await afterLoad()
+    await afterIdle()
+    await nearBox()
+    if (!stillOk()) return
+    started = true
+    await startView()
+  })()
 }
 
 export function stop3d() {
   alive = false
   media?.removeEventListener('change', onMedia)
   media = null
-  api?.stopView()
-  api = null
+  if (started) stopView()
+  started = false
 }

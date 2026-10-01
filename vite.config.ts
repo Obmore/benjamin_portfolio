@@ -45,6 +45,7 @@ export default defineConfig({
   },
   build: {
     modulePreload: {
+      polyfill: false,
       resolveDependencies(_filename, deps) {
         return deps.filter((dep) => !/(?:^|\/)three/.test(dep))
       },
