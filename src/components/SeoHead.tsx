@@ -31,7 +31,7 @@ export function SeoHead() {
       <meta property="og:url" content={SITE_URL} />
       <meta name="twitter:card" content="summary" />
       <link rel="canonical" href={SITE_URL} />
-      <html lang={locale} />
+      <html lang={locale} className="js" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

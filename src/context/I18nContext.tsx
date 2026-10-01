@@ -53,6 +53,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.lang = locale
+    document.documentElement.classList.add('js')
   }, [locale])
 
   useEffect(() => {
