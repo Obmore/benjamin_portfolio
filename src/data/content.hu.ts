@@ -10,12 +10,13 @@ export const contentHu: SiteContent = {
     about: 'Rólam',
     experience: 'Tapasztalat',
     skills: 'Kompetenciák',
-    projects: 'Projektek',
+    projects: 'Munkáim',
     cv: 'Önéletrajz',
     contact: 'Kapcsolat',
   },
   hero: {
-    headline: 'villamosmérnök és szoftverfejlesztő',
+    headline:
+      'Villamosmérnök és szoftverfejlesztő, aki mérnöki rendszereket köt össze modern szoftveres megoldásokkal.',
     subheadline:
       'Python, full-stack fejlesztés, ipari kommunikáció, energetikai rendszerek, telekommunikációs K+F és műszaki projektmenedzsment egy kézben.',
     ctaContact: 'Kapcsolatfelvétel',
@@ -29,10 +30,10 @@ export const contentHu: SiteContent = {
       'Docker',
       'Linux',
       'TCP/IP',
-      'Industrial Systems',
-      'Energy',
-      'Telecom',
-      'R&D',
+      'Ipari rendszerek',
+      'Energetika',
+      'Távközlés',
+      'Kutatás és fejlesztés',
     ],
   },
   about: {
@@ -118,7 +119,7 @@ export const contentHu: SiteContent = {
     title: 'Technológiák és kompetenciák',
     groups: [
       {
-        title: 'Software Development',
+        title: 'Szoftverfejlesztés',
         skills: [
           'Python',
           'JavaScript',
@@ -132,7 +133,7 @@ export const contentHu: SiteContent = {
         ],
       },
       {
-        title: 'Engineering & Systems',
+        title: 'Mérnöki munka és rendszerek',
         skills: [
           'Electrical Engineering',
           'Industrial Systems',
@@ -145,7 +146,7 @@ export const contentHu: SiteContent = {
         ],
       },
       {
-        title: 'DevOps & Tools',
+        title: 'Fejlesztőeszközök és DevOps',
         skills: [
           'Azure DevOps',
           'Git',
@@ -157,7 +158,7 @@ export const contentHu: SiteContent = {
         ],
       },
       {
-        title: 'Project & Communication',
+        title: 'Projektvezetés és kommunikáció',
         skills: [
           'Technical Project Management',
           'Documentation',
@@ -170,27 +171,65 @@ export const contentHu: SiteContent = {
     ],
   },
   projects: {
-    title: 'Kiemelt szakmai irányok',
+    title: 'Munkáim',
+    indexLabel: 'Munkajegyzék',
+    sampleBadge: 'Minta',
     items: [
       {
-        title: 'Ipari rendszerek és távfelügyelet',
-        description:
-          'Ipari és energetikai rendszerek kommunikációs, adatgyűjtési és integrációs feladatainak támogatása.',
+        id: 'anettesvendi',
+        title: 'Anett & Vendi',
+        subtitle: 'Esküvői meghívó és visszajelző oldal',
+        site: { label: 'anettesvendi.hu', href: 'https://anettesvendi.hu' },
+        paragraphs: [
+          'Egy pár vendégeinek készült, magyar és angol nyelvű weboldal. A vendég a meghívóján lévő kóddal lép be. Visszajelezhet a részvételről, megadhatja a létszámot, az étkezési és a szállásigényét, és zenét is kérhet. A beérkező válaszok egy szervezői felületen gyűlnek, ahol a vendéglista, az ültetési rend és a költségvetés is kezelhető. Az adatok táblázatként letölthetők, így például az étkezési igények mehetnek a vendéglátónak, a zenekérések pedig a DJ-nek.',
+        ],
+        tech: 'Technológia: Vite, TypeScript, saját API, Cloudflare. Tervezés és fejlesztés: Ott Benjámin.',
+        image: 'work/anettesvendi.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Anett & Vendi esküvői oldal: tengerparti kezdőképernyő meghívókódos belépéssel',
       },
       {
-        title: 'Python-alapú mérnöki fejlesztések',
-        description:
-          'Mérési, adatfeldolgozási és kísérleti feladatokat támogató Python-alapú megoldások.',
+        id: 'lelkiter',
+        title: 'Életrendező',
+        subtitle: 'Bemutatkozó oldal',
+        site: { label: 'lelkiter.hu', href: 'https://lelkiter.hu' },
+        paragraphs: [
+          'Bemutatkozó oldal egy budapesti segítő szakembernek, aki családállítással, rajzvizsgálattal, álomfejtéssel, masszázzsal és homeopátiával foglalkozik. Magyarul és angolul olvasható, és külön oldalokon mutatja be a szakembert, a szolgáltatásokat és a blogbejegyzéseket. Mobilon is jól kezelhető, a látogató pedig e-mailben vagy telefonon közvetlenül felveheti a kapcsolatot.',
+        ],
+        tech: 'Technológia: React, Vite, Cloudflare. Tervezés és fejlesztés: Ott Benjámin.',
+        image: 'work/lelkiter.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Életrendező bemutatkozó oldal kezdőképernyője kapcsolatfelvétel gombokkal',
       },
       {
-        title: 'Full-stack webfejlesztés',
-        description:
-          'Frontend és backend fejlesztési tapasztalat modern webes technológiákkal.',
+        id: 'hotel-rental',
+        title: 'Szállodai járműbérlő rendszer',
+        subtitle: 'Elektromos rollerek és kerékpárok automatizált bérlése szállodáknak',
+        tag: 'Csapatmunka',
+        paragraphs: [
+          'A szállodai bérlés webes felületén, a szerveroldali rendszeren, az elektromos kerékpárok távoli vezérlésén és a töltőállomások szoftverén dolgoztam.',
+        ],
+        tech: 'Technológia: React, TypeScript, .NET, Azure, Raspberry Pi, Python.',
       },
       {
-        title: 'Telekommunikációs K+F',
-        description:
-          'Kvantumkommunikációs és QKD rendszerekhez kapcsolódó kutatás-fejlesztési mérnöki tapasztalat.',
+        id: 'lelek-es-nyelv',
+        title: 'Lélek & Nyelv',
+        subtitle: 'Bemutatkozó oldal minta',
+        sample: true,
+        site: {
+          label: 'obmore.github.io/lelek-es-nyelv-portfolio',
+          href: 'https://obmore.github.io/lelek-es-nyelv-portfolio',
+        },
+        paragraphs: [
+          'Mintaoldal egy mentálhigiénés segítő és angoltanár számára, a szolgáltatásokkal, a közös munka menetével és a gyakori kérdésekkel. Bemutató céllal készült, nem ügyfélmunka.',
+        ],
+        tech: 'Technológia: Next.js, React, Tailwind CSS.',
+        image: 'work/lelek-es-nyelv.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Lélek & Nyelv mintaoldal kezdőképernyője: Biztos tér, bátrabb hang',
       },
     ],
   },
@@ -220,7 +259,9 @@ export const contentHu: SiteContent = {
     locationLabel: 'Helyszín',
     linkedInLabel: 'LinkedIn',
     menuToggle: 'Menü megnyitása',
-    langToEn: 'Váltás angolra',
-    langToHu: 'Váltás magyarra',
+    langToEn: ', váltás angolra',
+    langToHu: ', váltás magyarra',
+    navMain: 'Fő navigáció',
+    navMobile: 'Mobil navigáció',
   },
 }

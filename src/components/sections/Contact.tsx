@@ -3,17 +3,18 @@ import { useI18n } from '@/context/I18nContext'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
 import { Button } from '@/components/ui/Button'
+import { Icon } from '@/components/ui/Icon'
 import { copyTextWithClipboardApi, isClipboardWriteAvailable } from '@/lib/contact'
-import { LINKEDIN_URL, SECTION_IDS } from '@/lib/constants'
+import { LINKEDIN_URL, SECTION_IDS, SECTION_SHEETS } from '@/lib/constants'
 
 export function Contact() {
   const { content } = useI18n()
 
   return (
     <SectionWrapper id={SECTION_IDS.contact}>
-      <SectionHeading title={content.contact.title} label={content.nav.contact} />
+      <SectionHeading title={content.contact.title} label={content.nav.contact} sheet={SECTION_SHEETS.contact} />
       <p className="mb-10 max-w-2xl text-muted leading-relaxed">{content.contact.text}</p>
-      <div className="rounded-2xl border border-border/70 bg-surface/50 p-6 backdrop-blur-md md:p-8">
+      <div className="rounded-2xl border border-[#d7e2ef] bg-surface/90 p-6 md:p-8">
         <p className="mb-8 max-w-2xl text-muted leading-relaxed">{content.contact.prompt}</p>
         <ContactInfo
           email={content.contact.email}
@@ -150,6 +151,7 @@ function CopyEmailButton({
   return (
     <>
       <Button type="button" variant="outline" className="shrink-0" onClick={handleCopy}>
+        {copied ? <Icon name="check" /> : null}
         {label}
       </Button>
       <span className="sr-only" aria-live="polite" aria-atomic="true">

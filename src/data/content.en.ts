@@ -10,12 +10,13 @@ export const contentEn: SiteContent = {
     about: 'About',
     experience: 'Experience',
     skills: 'Skills',
-    projects: 'Projects',
+    projects: 'My work',
     cv: 'Resume',
     contact: 'Contact',
   },
   hero: {
-    headline: 'electrical engineer and software developer',
+    headline:
+      'Electrical engineer and software developer connecting engineering systems with modern software solutions.',
     subheadline:
       'Python, full-stack development, industrial communication, energy systems, telecommunications R&D and technical project management in one profile.',
     ctaContact: 'Get in touch',
@@ -170,27 +171,65 @@ export const contentEn: SiteContent = {
     ],
   },
   projects: {
-    title: 'Key professional areas',
+    title: 'My work',
+    indexLabel: 'My work',
+    sampleBadge: 'Sample',
     items: [
       {
-        title: 'Industrial systems & remote monitoring',
-        description:
-          'Support for communication, data acquisition and integration tasks in industrial and energy systems.',
+        id: 'anettesvendi',
+        title: 'Anett & Vendi',
+        subtitle: 'Wedding invitation and RSVP site',
+        site: { label: 'anettesvendi.hu', href: 'https://anettesvendi.hu' },
+        paragraphs: [
+          'A Hungarian and English site made for a couple’s guests. The guest signs in with the code on their invitation. They can RSVP, give the headcount, meal and accommodation needs, and request a song. Incoming replies collect on an organiser view, where the guest list, seating plan and budget can also be managed. The data can be downloaded as a spreadsheet, so meal needs can go to the caterer and song requests to the DJ.',
+        ],
+        tech: 'Technology: Vite, TypeScript, custom API, Cloudflare. Design and development: Ott Benjámin.',
+        image: 'work/anettesvendi.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Anett & Vendi wedding site: beach landing screen with invitation-code entry',
       },
       {
-        title: 'Python-based engineering development',
-        description:
-          'Python solutions supporting measurement, data processing and experimental tasks.',
+        id: 'lelkiter',
+        title: 'Életrendező',
+        subtitle: 'Introduction site',
+        site: { label: 'lelkiter.hu', href: 'https://lelkiter.hu' },
+        paragraphs: [
+          'An introduction site for a Budapest helper who works with family constellation, drawing analysis, dream interpretation, massage and homeopathy. It can be read in Hungarian and English, and it presents the practitioner, the services and the blog posts on separate pages. It works well on a phone, and the visitor can get in touch directly by email or phone.',
+        ],
+        tech: 'Technology: React, Vite, Cloudflare. Design and development: Ott Benjámin.',
+        image: 'work/lelkiter.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Életrendező introduction site landing screen with contact buttons',
       },
       {
-        title: 'Full-stack web development',
-        description:
-          'Frontend and backend development experience with modern web technologies.',
+        id: 'hotel-rental',
+        title: 'Hotel vehicle rental system',
+        subtitle: 'Automated rental of electric scooters and bikes for hotels',
+        tag: 'Team project',
+        paragraphs: [
+          'I worked on the hotel rental web interface, the server-side system, remote control of the e-bikes and the charging station software.',
+        ],
+        tech: 'Technology: React, TypeScript, .NET, Azure, Raspberry Pi, Python.',
       },
       {
-        title: 'Telecommunications R&D',
-        description:
-          'Research and development engineering experience related to quantum communication and QKD systems.',
+        id: 'lelek-es-nyelv',
+        title: 'Lélek & Nyelv',
+        subtitle: 'Sample introduction site',
+        sample: true,
+        site: {
+          label: 'obmore.github.io/lelek-es-nyelv-portfolio',
+          href: 'https://obmore.github.io/lelek-es-nyelv-portfolio',
+        },
+        paragraphs: [
+          'A sample site for a mental-health helper and English teacher, with the services, how the work together goes, and frequent questions. It was made as a demonstration, not client work.',
+        ],
+        tech: 'Technology: Next.js, React, Tailwind CSS.',
+        image: 'work/lelek-es-nyelv.webp',
+        imageWidth: 1280,
+        imageHeight: 800,
+        alt: 'Lélek & Nyelv sample site landing screen: a sure space, a braver voice',
       },
     ],
   },
@@ -220,7 +259,9 @@ export const contentEn: SiteContent = {
     locationLabel: 'Location',
     linkedInLabel: 'LinkedIn',
     menuToggle: 'Open menu',
-    langToEn: 'Switch to English',
-    langToHu: 'Switch to Hungarian',
+    langToEn: ', switch to English',
+    langToHu: ', switch to Hungarian',
+    navMain: 'Main navigation',
+    navMobile: 'Mobile navigation',
   },
 }
