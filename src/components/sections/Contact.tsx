@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type RefObject } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
@@ -33,6 +33,7 @@ interface ContactInfoProps {
 
 function ContactInfo({ email, location, linkedIn }: ContactInfoProps) {
   const { content } = useI18n()
+  const linkRef = useRef<HTMLAnchorElement>(null)
 
   return (
     <div className="space-y-5">
@@ -42,12 +43,13 @@ function ContactInfo({ email, location, linkedIn }: ContactInfoProps) {
         </p>
         <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
           <a
+            ref={linkRef}
             href={`mailto:${email}`}
             className="select-text min-w-0 break-all text-foreground hover:text-accent"
           >
             {email}
           </a>
-          <CopyEmailButton email={email} />
+          <CopyEmailButton email={email} linkRef={linkRef} />
         </div>
       </div>
       <div>
@@ -73,7 +75,13 @@ function ContactInfo({ email, location, linkedIn }: ContactInfoProps) {
   )
 }
 
-function CopyEmailButton({ email }: { email: string }) {
+function CopyEmailButton({
+  email,
+  linkRef,
+}: {
+  email: string
+  linkRef: RefObject<HTMLAnchorElement | null>
+}) {
   const { content } = useI18n()
   const [visible, setVisible] = useState(isClipboardWriteAvailable)
   const [copied, setCopied] = useState(false)
@@ -99,6 +107,7 @@ function CopyEmailButton({ email }: { email: string }) {
     const ok = await copyTextWithClipboardApi(email)
     if (!ok) {
       setCopied(false)
+      linkRef.current?.focus()
       setVisible(false)
       return
     }

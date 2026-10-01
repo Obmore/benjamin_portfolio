@@ -205,7 +205,7 @@ export const contentHu: SiteContent = {
     title: 'Kapcsolat',
     text: 'Nyitott vagyok szoftverfejlesztői, műszaki projektmérnöki, ipari/energetikai rendszerekkel és K+F-fel kapcsolatos lehetőségekre.',
     email: 'bendzsiott1998@gmail.com',
-    location: 'Budapest, Hungary',
+    location: 'Budapest',
     linkedIn: 'linkedin.com/in/benjaminottee',
     prompt: 'Írjon nekem e-mailt, és hamarosan válaszolok.',
     copyAddress: 'Cím másolása',
