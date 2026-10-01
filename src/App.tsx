@@ -22,10 +22,10 @@ function AppShell() {
       <Navbar />
       <main>
         <Hero />
+        <Projects />
         <About />
         <Experience />
         <Skills />
-        <Projects />
         <CvDownload />
         <Contact />
       </main>

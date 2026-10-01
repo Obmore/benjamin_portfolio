@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
-import { SECTION_IDS } from '@/lib/constants'
+import { SECTION_IDS, SECTION_SHEETS } from '@/lib/constants'
 import { useRevealOnce } from '@/hooks/useRevealOnce'
 import type { ExperienceItem } from '@/data/types'
 
@@ -11,7 +11,7 @@ export function Experience() {
 
   return (
     <SectionWrapper id={SECTION_IDS.experience}>
-      <SectionHeading title={content.experience.title} label={content.nav.experience} />
+      <SectionHeading title={content.experience.title} label={content.nav.experience} sheet={SECTION_SHEETS.experience} />
       <div className="relative mx-auto max-w-3xl">
         <div
           aria-hidden="true"
@@ -41,7 +41,7 @@ function ExperienceArticle({ item, isEven }: { item: ExperienceItem; isEven: boo
       }`}
     >
       <div className="absolute left-4 top-6 h-3 w-3 -translate-x-1/2 rounded-full border-2 border-accent bg-background md:left-1/2" />
-      <div className="ml-10 rounded-2xl border border-border/70 bg-surface/70 p-6 backdrop-blur-md md:ml-0">
+      <div className="ml-10 rounded-2xl border border-[#d7e2ef] bg-surface/90 p-6 md:ml-0">
         <p className="font-mono text-xs text-accent">{item.period}</p>
         <h3 className="mt-2 text-lg font-medium text-foreground">{item.title}</h3>
         {item.company ? (

@@ -3,6 +3,12 @@
   <head>
     <script>
       document.documentElement.classList.add('js')
+      try {
+        var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+        if ((connection && connection.saveData) || (navigator.deviceMemory && navigator.deviceMemory <= 2)) {
+          document.documentElement.classList.add('is-static-motion')
+        }
+      } catch (e) {}
     </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

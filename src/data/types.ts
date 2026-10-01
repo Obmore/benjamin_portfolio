@@ -17,9 +17,22 @@ export interface SkillGroup {
   skills: string[]
 }
 
-export interface ProjectCard {
+export interface WorkProject {
+  id: string
   title: string
-  description: string
+  subtitle?: string
+  sample?: boolean
+  tag?: string
+  site?: {
+    label: string
+    href: string
+  }
+  paragraphs: string[]
+  tech: string
+  image?: string
+  imageWidth?: number
+  imageHeight?: number
+  alt?: string
 }
 
 export interface HighlightCard {
@@ -63,7 +76,9 @@ export interface SiteContent {
   }
   projects: {
     title: string
-    items: ProjectCard[]
+    indexLabel: string
+    sampleBadge: string
+    items: WorkProject[]
   }
   cv: {
     title: string
@@ -93,5 +108,7 @@ export interface SiteContent {
     menuToggle: string
     langToEn: string
     langToHu: string
+    navMain: string
+    navMobile: string
   }
 }

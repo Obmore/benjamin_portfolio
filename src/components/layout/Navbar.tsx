@@ -6,10 +6,10 @@ import { navigateTo } from '@/lib/anchors'
 import { LangToggle } from '@/components/ui/LangToggle'
 
 const navItems = [
+  { id: SECTION_IDS.projects, key: 'projects' as const },
   { id: SECTION_IDS.about, key: 'about' as const },
   { id: SECTION_IDS.experience, key: 'experience' as const },
   { id: SECTION_IDS.skills, key: 'skills' as const },
-  { id: SECTION_IDS.projects, key: 'projects' as const },
   { id: SECTION_IDS.cv, key: 'cv' as const },
   { id: SECTION_IDS.contact, key: 'contact' as const },
 ]
@@ -86,13 +86,13 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
+      className={`fixed inset-x-0 top-0 z-50 h-16 transition-colors duration-300 ${
         scrolled
           ? 'border-b border-border/60 bg-background/80 backdrop-blur-xl'
           : 'bg-transparent'
       }`}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 md:px-8">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 md:px-8">
         <button
           type="button"
           onClick={() => scrollToSection('hero')}
@@ -101,7 +101,7 @@ export function Navbar() {
           OB<span className="text-accent">.</span>
         </button>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Main navigation">
+        <nav className="hidden items-center gap-1 lg:flex" aria-label={content.common.navMain}>
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -141,7 +141,7 @@ export function Navbar() {
 
       <nav
         className={`mobile-nav border-b border-border/60 bg-background/95 backdrop-blur-xl lg:hidden ${menuOpen ? 'is-open' : ''}`}
-        aria-label="Mobile navigation"
+        aria-label={content.common.navMobile}
         aria-hidden={!menuOpen}
         inert={!menuOpen}
       >

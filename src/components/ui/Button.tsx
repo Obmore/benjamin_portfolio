@@ -2,9 +2,9 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'reac
 
 const variantStyles = {
   primary:
-    'bg-accent text-white shadow-lg shadow-accent/20 hover:shadow-accent/35 hover:bg-accent/90',
+    'bg-foreground text-white shadow-lg shadow-accent/20 hover:bg-foreground/90',
   outline:
-    'border border-accent/30 bg-surface/60 text-foreground hover:border-accent hover:bg-accent/5',
+    'border-[1.5px] border-accent bg-surface/60 text-foreground hover:bg-accent/5',
   ghost: 'text-foreground hover:bg-accent/10',
 } as const
 
@@ -37,16 +37,18 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const classes = `ui-pressable inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${className}`
+  const classes = `ui-pressable inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${className}`
 
   if (href) {
+    const linkProps = props as AnchorHTMLAttributes<HTMLAnchorElement>
+    const isDownload = Boolean(linkProps.download)
     return (
       <a
         href={href}
-        target={external ? '_blank' : undefined}
-        rel={external ? 'noopener noreferrer' : undefined}
+        target={external && !isDownload ? '_blank' : undefined}
+        rel={external && !isDownload ? 'noopener noreferrer' : undefined}
         className={classes}
-        {...(props as AnchorHTMLAttributes<HTMLAnchorElement>)}
+        {...linkProps}
       >
         {children}
       </a>

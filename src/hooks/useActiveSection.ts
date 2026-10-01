@@ -33,7 +33,7 @@ export function useActiveSection(sectionIds: string[]) {
   return activeId
 }
 
-const HEADER_OFFSET_PX = 96
+const HEADER_OFFSET_PX = 64
 
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches

@@ -2,7 +2,7 @@ import { useI18n } from '@/context/I18nContext'
 import { Card } from '@/components/ui/Card'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
-import { SECTION_IDS } from '@/lib/constants'
+import { SECTION_IDS, SECTION_SHEETS } from '@/lib/constants'
 
 const icons = [
   <svg key="1" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -25,7 +25,7 @@ export function About() {
 
   return (
     <SectionWrapper id={SECTION_IDS.about}>
-      <SectionHeading title={content.about.title} label={content.nav.about} />
+      <SectionHeading title={content.about.title} label={content.nav.about} sheet={SECTION_SHEETS.about} />
       <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
         <div className="space-y-4 text-muted leading-relaxed">
           {paragraphs.map((paragraph) => (

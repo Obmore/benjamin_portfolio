@@ -12,7 +12,8 @@
     "build:fonts": "node scripts/build-fonts.mjs",
     "check:size": "node scripts/check-budgets.mjs",
     "check:motion": "node scripts/check-motion.mjs",
-    "check": "npm run lint && npm run build && npm run check:size && npm run check:motion"
+    "check:cv": "node scripts/check-cv-size.mjs",
+    "check": "npm run lint && npm run build && npm run check:size && npm run check:motion && npm run check:cv"
   },
   "dependencies": {
     "react": "^19.2.7",
