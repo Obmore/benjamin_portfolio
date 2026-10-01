@@ -52,6 +52,7 @@ export interface SiteContent {
     projects: string
     cv: string
     contact: string
+    order: string
   }
   hero: {
     headline: string

@@ -7,7 +7,9 @@ import {
   CV_EN_PATH,
   CV_HU_FILENAME,
   CV_HU_PATH,
+  ORDER_HREF,
   SECTION_IDS,
+  SHOW_ORDER_LINK,
 } from '@/lib/constants'
 import { CV_SIZE_LABEL } from '@/lib/cv-size'
 import { navigateTo } from '@/lib/anchors'
@@ -51,6 +53,16 @@ export function Hero() {
                   <span className="hero-cv-meta">{CV_SIZE_LABEL[locale]}</span>
                 </span>
               </Button>
+              {SHOW_ORDER_LINK ? (
+                <Button
+                  variant="outline"
+                  href={ORDER_HREF}
+                  hrefLang="hu"
+                  className="hero-btn hero-btn-order"
+                >
+                  {content.nav.order}
+                </Button>
+              ) : null}
             </div>
             <ul className="hero-chips">
               {content.hero.chips.map((chip) => (

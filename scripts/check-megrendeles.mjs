@@ -36,7 +36,6 @@ if (main) {
   mustInclude('main', main, '<link rel="canonical" href="https://ottbenjamin.hu/" />')
   mustInclude('main', main, '<meta property="og:url" content="https://ottbenjamin.hu/" />')
   mustInclude('main', main, '<title>Ott Benjámin, villamosmérnök és szoftverfejlesztő</title>')
-  mustNotInclude('main', main, '/megrendeles/')
   mustNotInclude('main', main, 'VITE_SHOW_ORDER_LINK')
 }
 
@@ -90,6 +89,14 @@ if (order) {
 
 const assetsDir = path.join(dist, 'assets')
 if (fs.existsSync(assetsDir)) {
+  const mainJs = fs
+    .readdirSync(assetsDir)
+    .filter((name) => name.endsWith('.js') && !name.startsWith('megrendeles-'))
+    .map((name) => fs.readFileSync(path.join(assetsDir, name), 'utf8'))
+    .join('\n')
+  mustInclude('main js', mainJs, '/megrendeles/')
+  mustNotInclude('main js', mainJs, 'VITE_SHOW_ORDER_LINK')
+
   const orderJs = fs
     .readdirSync(assetsDir)
     .filter((name) => name.startsWith('megrendeles-') && name.endsWith('.js'))

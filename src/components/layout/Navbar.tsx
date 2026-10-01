@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useI18n } from '@/context/I18nContext'
-import { SECTION_IDS } from '@/lib/constants'
+import { ORDER_HREF, SECTION_IDS, SHOW_ORDER_LINK } from '@/lib/constants'
 import { scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
 import { navigateTo } from '@/lib/anchors'
 import { LangToggle } from '@/components/ui/LangToggle'
@@ -101,7 +101,7 @@ export function Navbar() {
           OB<span className="text-accent">.</span>
         </button>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label={content.common.navMain}>
+        <nav className="hidden items-center gap-1 whitespace-nowrap lg:flex" aria-label={content.common.navMain}>
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -116,6 +116,15 @@ export function Navbar() {
               {content.nav[item.key]}
             </button>
           ))}
+          {SHOW_ORDER_LINK ? (
+            <a
+              href={ORDER_HREF}
+              hrefLang="hu"
+              className="rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:text-foreground"
+            >
+              {content.nav.order}
+            </a>
+          ) : null}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -159,6 +168,16 @@ export function Navbar() {
               {content.nav[item.key]}
             </button>
           ))}
+          {SHOW_ORDER_LINK ? (
+            <a
+              href={ORDER_HREF}
+              hrefLang="hu"
+              tabIndex={menuOpen ? 0 : -1}
+              className="rounded-lg px-3 py-2 text-left text-sm text-muted"
+            >
+              {content.nav.order}
+            </a>
+          ) : null}
         </div>
       </nav>
     </header>

@@ -13,6 +13,7 @@ export const contentEn: SiteContent = {
     projects: 'My work',
     cv: 'Resume',
     contact: 'Contact',
+    order: 'Order',
   },
   hero: {
     headline:

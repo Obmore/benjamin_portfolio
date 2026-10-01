@@ -117,6 +117,7 @@
   --hero-t-btn: 320ms;
   --hero-d-btn1: 360ms;
   --hero-d-btn2: 420ms;
+  --hero-d-btn3: 450ms;
   --hero-t-chips: 200ms;
   --hero-d-chips: 480ms;
   --hero-t-line: 900ms;
@@ -137,6 +138,7 @@
     --hero-t-btn: 256ms;
     --hero-d-btn1: 288ms;
     --hero-d-btn2: 336ms;
+    --hero-d-btn3: 360ms;
     --hero-t-chips: 160ms;
     --hero-d-chips: 384ms;
     --hero-t-line: 600ms;
@@ -912,6 +914,10 @@ html.js.is-static-motion .munkaim-dimension-line {
 
   html.js:not(.is-static-motion) .hero-btn-cv {
     animation: fade-up-16 var(--hero-t-btn) var(--motion-ink) var(--hero-d-btn2) both;
+  }
+
+  html.js:not(.is-static-motion) .hero-btn-order {
+    animation: fade-up-16 var(--hero-t-btn) var(--motion-ink) var(--hero-d-btn3) both;
   }
 
   html.js:not(.is-static-motion) .hero-chips {

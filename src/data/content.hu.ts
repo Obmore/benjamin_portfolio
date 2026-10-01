@@ -13,6 +13,7 @@ export const contentHu: SiteContent = {
     projects: 'Munkáim',
     cv: 'Önéletrajz',
     contact: 'Kapcsolat',
+    order: 'Megrendelés',
   },
   hero: {
     headline:

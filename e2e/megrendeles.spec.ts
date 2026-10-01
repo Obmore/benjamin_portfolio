@@ -143,10 +143,9 @@ test.describe('/megrendeles/', () => {
     await page.close()
   })
 
-  test('main page stays isolated', async ({ page }) => {
+  test('main page canonical stays on the homepage', async ({ page }) => {
     const response = await page.goto('/', { waitUntil: 'domcontentloaded' })
     expect(response?.status()).toBe(200)
-    await expect(page.locator('a[href="/megrendeles/"], a[href="/megrendeles"]')).toHaveCount(0)
     const canonical = page.locator('link[rel="canonical"]')
     await expect(canonical).toHaveAttribute('href', 'https://ottbenjamin.hu/')
   })
