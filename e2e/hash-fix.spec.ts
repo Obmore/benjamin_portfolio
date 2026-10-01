@@ -131,7 +131,12 @@ test.describe('hash-fix PR7', () => {
     })
     await gotoHome(page)
     await page.waitForFunction(() => document.documentElement.lang === 'en')
-    await expect(page.getByRole('link', { name: 'Back to top' })).toBeVisible()
+    await expect(
+      page.getByRole('link', { name: 'OB. – Ott Benjámin, back to top' }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole('link', { name: 'OB. – Ott Benjámin, back to top' }),
+    ).toHaveText('OB.')
     await expect(page.getByRole('link', { name: 'Skip to content' })).toHaveCount(1)
   })
 
@@ -161,11 +166,15 @@ test.describe('hash-fix PR7', () => {
     await page.goto('about:blank')
     await gotoHome(page)
 
-    const logo = page.getByRole('link', { name: 'Ugrás az oldal tetejére' })
+    const logo = page.getByRole('link', { name: 'OB. – Ott Benjámin, ugrás az oldal tetejére' })
     await expect(logo).toHaveAttribute('href', '/')
-    await expect(logo).toHaveText('Ott Benjámin')
+    await expect(logo).toHaveText('OB.')
+    await expect(logo.locator('.text-accent')).toHaveText('.')
     const logoBox = await logo.boundingBox()
     expect(logoBox?.height ?? 0).toBeGreaterThanOrEqual(44)
+    expect(logoBox?.width ?? 0).toBeGreaterThanOrEqual(44)
+    const headerBox = await page.locator('header.site-header').boundingBox()
+    expect(headerBox?.height ?? 0).toBe(64)
     await expect(page.locator('header [aria-current="true"]')).toHaveCount(0)
     await assertNoJunkHrefs(page)
 
@@ -249,10 +258,13 @@ test.describe('hash-fix PR7', () => {
       await expect(page.locator('html')).toHaveClass(/\bjs\b/)
       await expect(page.locator('html')).toHaveAttribute('lang', 'hu')
 
-      const logo = page.getByRole('link', { name: 'Ugrás az oldal tetejére' })
-      await expect(logo).toHaveText('Ott Benjámin')
+      const logo = page.getByRole('link', { name: 'OB. – Ott Benjámin, ugrás az oldal tetejére' })
+      await expect(logo).toHaveText('OB.')
       const box = await logo.boundingBox()
       expect(box?.height ?? 0, `logo height ${viewport.width}`).toBeGreaterThanOrEqual(44)
+      expect(box?.width ?? 0, `logo width ${viewport.width}`).toBeGreaterThanOrEqual(44)
+      const headerBox = await page.locator('header.site-header').boundingBox()
+      expect(headerBox?.height ?? 0, `header height ${viewport.width}`).toBe(64)
 
       if (viewport.width < 1024) {
         await clickMobileNav(page, 'Kapcsolat')
@@ -274,6 +286,30 @@ test.describe('hash-fix PR7', () => {
       expect(errors, errors.join('\n')).toEqual([])
     })
   }
+
+  test('desktop nav stays on one row at 1025–1280 with OB. logo', async ({ page }) => {
+    for (const width of [1025, 1100, 1280] as const) {
+      await page.setViewportSize({ width, height: 800 })
+      await gotoHome(page)
+      const headerBox = await page.locator('header.site-header').boundingBox()
+      expect(headerBox?.height ?? 0, `header height ${width}`).toBe(64)
+      const logo = page.getByRole('link', { name: 'OB. – Ott Benjámin, ugrás az oldal tetejére' })
+      await expect(logo).toHaveText('OB.')
+      const logoBox = await logo.boundingBox()
+      expect(logoBox?.height ?? 0, `logo height ${width}`).toBeGreaterThanOrEqual(44)
+      expect(logoBox?.width ?? 0, `logo width ${width}`).toBeGreaterThanOrEqual(44)
+
+      const nav = page.getByRole('navigation', { name: 'Fő navigáció' })
+      await expect(nav).toBeVisible()
+      const buttons = nav.getByRole('button')
+      await expect(buttons).toHaveCount(6)
+      const tops = await buttons.evaluateAll((els) =>
+        els.map((el) => Math.round(el.getBoundingClientRect().top)),
+      )
+      expect(new Set(tops).size, `nav wrap at ${width}: ${tops.join(',')}`).toBe(1)
+      await assertNoHorizontalScroll(page, String(width))
+    }
+  })
 
   test('390 language switch at #tapasztalat stays ±2px', async ({ page }) => {
     const errors = collectConsoleErrors(page)

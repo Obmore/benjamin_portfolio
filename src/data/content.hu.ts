@@ -264,6 +264,6 @@ export const contentHu: SiteContent = {
     navMain: 'Fő navigáció',
     navMobile: 'Mobil navigáció',
     skipToContent: 'Ugrás a tartalomra',
-    backToTop: 'Ugrás az oldal tetejére',
+    backToTop: 'OB. – Ott Benjámin, ugrás az oldal tetejére',
   },
 }

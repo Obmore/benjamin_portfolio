@@ -109,9 +109,9 @@ export function Navbar() {
           href="/"
           aria-label={content.common.backToTop}
           onClick={handleNameClick}
-          className="site-name inline-flex min-h-11 items-center font-mono text-sm font-semibold tracking-wide text-foreground"
+          className="site-name inline-flex h-11 min-h-11 w-11 min-w-11 shrink-0 items-center font-mono text-sm font-semibold tracking-wide text-foreground"
         >
-          Ott Benjámin
+          OB<span className="text-accent">.</span>
         </a>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label={content.common.navMain}>
