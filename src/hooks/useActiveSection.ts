@@ -45,10 +45,33 @@ export function scrollToSection(id: string, behavior?: ScrollBehavior) {
   const element = document.getElementById(id)
   if (!element) return
 
-  element.style.contentVisibility = 'visible'
-  const top = window.scrollY + element.getBoundingClientRect().top - HEADER_OFFSET_PX
-  window.scrollTo({
-    top: Math.max(0, top),
-    behavior: behavior ?? (prefersReducedMotion() ? 'auto' : 'smooth'),
+  document.querySelectorAll<HTMLElement>('main section').forEach((section) => {
+    section.style.contentVisibility = 'visible'
   })
+
+  const instant = (behavior ?? (prefersReducedMotion() ? 'auto' : 'smooth')) === 'auto'
+  const top = Math.max(0, window.scrollY + element.getBoundingClientRect().top - HEADER_OFFSET_PX)
+  const root = document.documentElement
+
+  const snap = () => {
+    const delta = element.getBoundingClientRect().top - HEADER_OFFSET_PX
+    if (Math.abs(delta) > 2) root.scrollTop += delta
+  }
+
+  if (instant) {
+    const prev = root.style.scrollBehavior
+    root.style.scrollBehavior = 'auto'
+    root.scrollTop = top
+    snap()
+    root.style.scrollBehavior = prev
+    return
+  }
+
+  window.scrollTo({ top, behavior: 'smooth' })
+  window.setTimeout(() => {
+    const prev = root.style.scrollBehavior
+    root.style.scrollBehavior = 'auto'
+    snap()
+    root.style.scrollBehavior = prev
+  }, 500)
 }

@@ -2,12 +2,13 @@ import {
   createContext,
   useCallback,
   useContext,
+  useLayoutEffect,
   useState,
   type ReactNode,
 } from 'react'
 import { flushSync } from 'react-dom'
 import { applyTheme, getDocumentTheme, type ThemeName } from '@/lib/theme'
-import { canViewTransition, prefersReducedMotion, startThemedViewTransition } from '@/lib/motion'
+import { startThemedViewTransition } from '@/lib/motion'
 
 interface ThemeContextValue {
   theme: ThemeName
@@ -20,21 +21,16 @@ const ThemeContext = createContext<ThemeContextValue | null>(null)
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<ThemeName>(() => getDocumentTheme())
 
+  useLayoutEffect(() => {
+    applyTheme(theme)
+  }, [theme])
+
   const toggleTheme = useCallback(() => {
     const next: ThemeName = theme === 'dark' ? 'light' : 'dark'
-    const update = () => {
-      flushSync(() => {
-        applyTheme(next)
-        setTheme(next)
-      })
-    }
-
-    if (prefersReducedMotion() || !canViewTransition()) {
-      update()
-      return
-    }
-
-    void startThemedViewTransition('theme', update)
+    void startThemedViewTransition('theme', () => {
+      applyTheme(next)
+      flushSync(() => setTheme(next))
+    })
   }, [theme])
 
   return (
