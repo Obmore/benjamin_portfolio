@@ -24,9 +24,23 @@ async function gotoHome(page: Page) {
 async function scrollToTop(page: Page) {
   await page.evaluate(() => {
     const root = document.documentElement
-    root.style.scrollBehavior = 'auto'
-    window.scrollTo(0, 0)
-    root.style.scrollBehavior = ''
+    return new Promise<void>((resolve) => {
+      if (window.scrollY < 1) {
+        resolve()
+        return
+      }
+      let settled = false
+      const done = () => {
+        if (settled) return
+        settled = true
+        resolve()
+      }
+      window.addEventListener('scrollend', done, { once: true })
+      root.style.scrollBehavior = 'auto'
+      window.scrollTo({ top: 0, behavior: 'instant' })
+      root.style.scrollBehavior = ''
+      window.setTimeout(done, 800)
+    })
   })
   await page.waitForFunction(() => Math.abs(window.scrollY) < 1)
 }
@@ -39,17 +53,21 @@ async function armLandingMeasure(page: Page, id: string) {
       const offset = Number.parseFloat(getComputedStyle(el).scrollMarginTop) || 0
       return el.getBoundingClientRect().top - offset
     }
-    const state = { atEnd: null as number | null, at700: null as number | null, done: false }
+    const state = {
+      armed: false,
+      atEnd: null as number | null,
+      at700: null as number | null,
+      done: false,
+    }
     ;(window as unknown as { __navLanding: typeof state }).__navLanding = state
-    const onEnd = () => {
-      if (state.atEnd !== null) return
+    window.addEventListener('scrollend', () => {
+      if (!state.armed || state.atEnd !== null) return
       state.atEnd = measure()
       window.setTimeout(() => {
         state.at700 = measure()
         state.done = true
       }, 700)
-    }
-    window.addEventListener('scrollend', onEnd, { once: true })
+    })
   }, id)
 }
 
@@ -99,6 +117,9 @@ test.describe('warm nav landing from the top', () => {
     for (const item of NAV_ITEMS) {
       await scrollToTop(page)
       await armLandingMeasure(page, item.id)
+      await page.evaluate(() => {
+        ;(window as unknown as { __navLanding: { armed: boolean } }).__navLanding.armed = true
+      })
       await clickDesktopNav(page, item.name)
       const landing = await readLanding(page)
       results[item.id] = landing
@@ -127,6 +148,9 @@ test.describe('warm nav landing from the top', () => {
     for (const item of NAV_ITEMS) {
       await scrollToTop(page)
       await armLandingMeasure(page, item.id)
+      await page.evaluate(() => {
+        ;(window as unknown as { __navLanding: { armed: boolean } }).__navLanding.armed = true
+      })
       await clickMobileNav(page, item.name)
       const landing = await readLanding(page)
       results[item.id] = landing
@@ -147,6 +171,43 @@ test.describe('warm nav landing from the top', () => {
     )
   })
 
+  test('cold hash 1440 and 390: ±2px at +700ms', async ({ page }) => {
+    const viewports = [
+      { width: 1440, height: 900 },
+      { width: 390, height: 844 },
+    ] as const
+    const results: Record<string, Record<string, number>> = {}
+
+    for (const viewport of viewports) {
+      results[String(viewport.width)] = {}
+      for (const item of NAV_ITEMS) {
+        await page.setViewportSize(viewport)
+        await page.goto(`/?cold=${viewport.width}-${item.id}#${item.id}`, {
+          waitUntil: 'networkidle',
+        })
+        await page.evaluate(() => document.fonts.ready)
+        await page.waitForTimeout(700)
+        const delta = await page.evaluate((sectionId) => {
+          const el = document.getElementById(sectionId)
+          if (!el) return 9999
+          const offset = Number.parseFloat(getComputedStyle(el).scrollMarginTop) || 0
+          return el.getBoundingClientRect().top - offset
+        }, item.id)
+        results[String(viewport.width)][item.id] = delta
+        expect(
+          Math.abs(delta),
+          `cold #${item.id} ${viewport.width} delta ${delta}`,
+        ).toBeLessThanOrEqual(2)
+      }
+    }
+
+    fs.mkdirSync(ARTIFACTS, { recursive: true })
+    fs.writeFileSync(
+      path.join(ARTIFACTS, 'nav-landing-cold.json'),
+      `${JSON.stringify(results, null, 2)}\n`,
+    )
+  })
+
   test('reduced-motion 1440: ±2px at scrollend and +700ms', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.setViewportSize({ width: 1440, height: 900 })
@@ -155,6 +216,9 @@ test.describe('warm nav landing from the top', () => {
     for (const item of NAV_ITEMS) {
       await scrollToTop(page)
       await armLandingMeasure(page, item.id)
+      await page.evaluate(() => {
+        ;(window as unknown as { __navLanding: { armed: boolean } }).__navLanding.armed = true
+      })
       await clickDesktopNav(page, item.name)
       const landing = await readLanding(page)
       expect(Math.abs(landing.atEnd), `${item.id} scrollend ${landing.atEnd}`).toBeLessThanOrEqual(2)
@@ -191,16 +255,14 @@ test.describe('language view transition', () => {
       })
 
       await page.addInitScript(() => {
-        Object.defineProperty(window, '__cls', {
-          value: 0,
-          writable: true,
-          configurable: true,
-        })
+        const state = { cls: 0, sources: [] as number[] }
+        ;(window as unknown as { __clsState: typeof state }).__clsState = state
         const observer = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
             const shift = entry as PerformanceEntry & { hadRecentInput?: boolean; value: number }
             if (!shift.hadRecentInput) {
-              ;(window as unknown as { __cls: number }).__cls += shift.value
+              state.cls += shift.value
+              state.sources.push(shift.value)
             }
           }
         })
@@ -209,6 +271,12 @@ test.describe('language view transition', () => {
 
       await page.setViewportSize(viewport)
       await gotoHome(page)
+      await page.evaluate(() => {
+        const state = (window as unknown as { __clsState: { cls: number; sources: number[] } })
+          .__clsState
+        state.cls = 0
+        state.sources = []
+      })
 
       await page.getByRole('button', { name: /^EN/ }).click()
       await page.waitForFunction(() => document.documentElement.lang === 'en')
@@ -217,7 +285,9 @@ test.describe('language view transition', () => {
       await page.waitForFunction(() => document.documentElement.lang === 'hu')
       await page.waitForTimeout(500)
 
-      const cls = await page.evaluate(() => (window as unknown as { __cls: number }).__cls)
+      const cls = await page.evaluate(
+        () => (window as unknown as { __clsState: { cls: number } }).__clsState.cls,
+      )
       expect(cls, `CLS ${viewport.width}=${cls}`).toBe(0)
       expect(
         errors.filter((text) => /view-transition|duplicate|Snapshot capture/i.test(text)),

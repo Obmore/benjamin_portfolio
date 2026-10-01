@@ -16,6 +16,9 @@ function applyHash(behavior?: ScrollBehavior) {
 export function useInitialHash() {
   useEffect(() => {
     let cancelled = false
+    if (window.location.hash) {
+      document.documentElement.style.scrollBehavior = 'auto'
+    }
 
     const run = async () => {
       try {

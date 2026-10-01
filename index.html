@@ -3,6 +3,7 @@
   <head>
     <script>
       document.documentElement.classList.add('js')
+      if (location.hash) document.documentElement.style.scrollBehavior = 'auto'
       try {
         var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
         if ((connection && connection.saveData) || (navigator.deviceMemory && navigator.deviceMemory <= 2)) {
@@ -51,6 +52,13 @@
       type="font/woff2"
       crossorigin
       href="/fonts/dm-sans-600.woff2"
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/fonts/jetbrains-mono-400.woff2"
     />
     <title>Ott Benjámin, villamosmérnök és szoftverfejlesztő</title>
   </head>
