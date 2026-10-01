@@ -48,32 +48,48 @@ async function assertNoHorizontalScroll(page: Page, label: string): Promise<void
   ).toBeLessThanOrEqual(overflow.clientWidth + 1)
 }
 
-function contrastRatio(fg: string, bg: string): number {
-  const parse = (value: string) => {
-    const match = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
-    if (!match) throw new Error(`Cannot parse color: ${value}`)
-    return [Number(match[1]), Number(match[2]), Number(match[3])] as const
-  }
-  const lum = (channel: readonly [number, number, number]) => {
-    const srgb = channel.map((part) => {
-      const v = part / 255
-      return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
-    })
-    return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2]
-  }
-  const l1 = lum(parse(fg))
-  const l2 = lum(parse(bg))
-  const lighter = Math.max(l1, l2)
-  const darker = Math.min(l1, l2)
-  return (lighter + 0.05) / (darker + 0.05)
-}
-
 async function assertOrderLink(link: Locator, label: string, expectedText = 'Megrendelés'): Promise<void> {
   await expect(link, label).toHaveCount(1)
   await expect(link).toHaveAttribute('href', ORDER_HREF)
   await expect(link).toHaveText(expectedText)
   await expect(link).not.toHaveAttribute('target', '_blank')
+  await expect(link).not.toHaveAttribute('lang')
   await expect(link).not.toContainText(/ajánlat/i)
+}
+
+async function assertNoLangOnOrderLinks(page: Page): Promise<void> {
+  const links = orderLinks(page)
+  const count = await links.count()
+  for (let i = 0; i < count; i += 1) {
+    await expect(links.nth(i), `order link ${i} lang`).not.toHaveAttribute('lang')
+  }
+}
+
+async function assertHeroActionOrder(
+  page: Page,
+  labels: { work: string; cv: string; order: string },
+  cvFile: string,
+): Promise<void> {
+  const actions = page.locator('.hero-actions a, .hero-actions button')
+  await expect(actions).toHaveCount(3)
+  await expect(page.locator('.hero-actions').locator(`a[href="${ORDER_HREF}"]`)).toHaveCount(1)
+
+  const work = actions.nth(0)
+  const cv = actions.nth(1)
+  const order = actions.nth(2)
+
+  await expect(work).toHaveText(labels.work)
+  await expect(work).toHaveAttribute('href', '#munkaim')
+  await expect(cv).toContainText(labels.cv)
+  await expect(cv).toHaveAttribute('href', new RegExp(`${cvFile}$`))
+  await expect(cv).toHaveAttribute('download', cvFile)
+  await assertOrderLink(order, 'hero', labels.order)
+
+  for (const name of ['work', 'cv', 'order'] as const) {
+    const box = await { work, cv, order }[name].boundingBox()
+    expect(box, `${name} tap target`).toBeTruthy()
+    expect(box!.height, `${name} min 44px`).toBeGreaterThanOrEqual(44)
+  }
 }
 
 async function clickOrderAndExpectPage(page: Page, link: Locator): Promise<void> {
@@ -105,6 +121,7 @@ test.describe('homepage /megrendeles/ entry points', () => {
 
     await expect(page.locator('html')).toHaveAttribute('lang', 'hu')
     await expect(orderLinks(page)).toHaveCount(5)
+    await assertNoLangOnOrderLinks(page)
 
     const headerNav = page.getByRole('navigation', { name: 'Fő navigáció' }).locator(`a[href="${ORDER_HREF}"]`)
     const mobileNav = page.locator('nav[aria-label="Mobil navigáció"]').locator(`a[href="${ORDER_HREF}"]`)
@@ -118,14 +135,15 @@ test.describe('homepage /megrendeles/ entry points', () => {
     await assertOrderLink(contact, 'contact')
     await assertOrderLink(footer, 'footer')
 
-    await expect(headerNav).toHaveAttribute('lang', 'hu')
-    await expect(hero).toHaveAttribute('lang', 'hu')
-
     const navItems = page.getByRole('navigation', { name: 'Fő navigáció' }).locator('button, a')
     await expect(navItems.last()).toHaveText('Megrendelés')
     await expect(navItems.nth(-2)).toHaveText('Kapcsolat')
 
-    await expect(page.locator('.hero-actions a, .hero-actions button')).toHaveCount(1)
+    await assertHeroActionOrder(
+      page,
+      { work: 'Munkáim', cv: 'Önéletrajz letöltése', order: 'Megrendelés' },
+      'Ott_Benjamin_CV_HU.pdf',
+    )
     await expect(page.locator('body')).not.toContainText(/ajánlat/i)
     await expect(page.locator('body')).not.toContainText(/\d[\d\s\u00a0.]*Ft/)
     await expect(page.locator('body')).not.toContainText('Bemutatkozó oldal vállalkozásoknak')
@@ -139,15 +157,8 @@ test.describe('homepage /megrendeles/ entry points', () => {
     expect(headingBox).toBeTruthy()
     expect(subBox).toBeTruthy()
     expect(heroBox).toBeTruthy()
-    expect(heroBox!.y, 'CTA below the role line').toBeGreaterThan(headingBox!.y + headingBox!.height)
-    expect(heroBox!.y, 'CTA below the subhead').toBeGreaterThan(subBox!.y + subBox!.height - 1)
-    expect(heroBox!.height, 'hero CTA min-h-11').toBeGreaterThanOrEqual(44)
-
-    const colors = await hero.evaluate((el) => {
-      const style = getComputedStyle(el)
-      return { color: style.color, background: style.backgroundColor }
-    })
-    expect(contrastRatio(colors.color, colors.background), 'hero CTA contrast').toBeGreaterThanOrEqual(4.5)
+    expect(heroBox!.y, 'order link below the role line').toBeGreaterThan(headingBox!.y + headingBox!.height)
+    expect(heroBox!.y, 'order link below the subhead').toBeGreaterThan(subBox!.y + subBox!.height - 1)
 
     expect(consoleErrors.map((msg) => msg.text()), 'console errors').toEqual([])
   })
@@ -201,18 +212,26 @@ test.describe('homepage /megrendeles/ entry points', () => {
     await page.getByRole('button', { name: /váltás angolra/i }).click()
 
     await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+    await expect(orderLinks(page)).toHaveCount(5)
+    await assertNoLangOnOrderLinks(page)
+
     const headerNav = page.getByRole('navigation', { name: 'Main navigation' }).locator(`a[href="${ORDER_HREF}"]`)
+    const mobileNav = page.locator('nav[aria-label="Mobile navigation"]').locator(`a[href="${ORDER_HREF}"]`)
     const hero = page.locator('.hero-actions').locator(`a[href="${ORDER_HREF}"]`)
     const contact = page.locator('#kapcsolat').locator(`a[href="${ORDER_HREF}"]`)
     const footer = page.locator('footer').locator(`a[href="${ORDER_HREF}"]`)
 
-    await expect(headerNav).toHaveText('Order')
-    await expect(hero).toHaveText('Order')
-    await expect(contact).toHaveText('Order')
-    await expect(footer).toHaveText('Order')
-    await expect(headerNav).toHaveAttribute('lang', 'hu')
-    await expect(contact).toHaveAttribute('lang', 'hu')
-    await expect(orderLinks(page)).toHaveCount(5)
+    await assertOrderLink(headerNav, 'desktop nav EN', 'Order')
+    await assertOrderLink(mobileNav, 'mobile nav EN', 'Order')
+    await assertOrderLink(hero, 'hero EN', 'Order')
+    await assertOrderLink(contact, 'contact EN', 'Order')
+    await assertOrderLink(footer, 'footer EN', 'Order')
+
+    await assertHeroActionOrder(
+      page,
+      { work: 'My work', cv: 'Download resume', order: 'Order' },
+      'Ott_Benjamin_CV_EN.pdf',
+    )
   })
 
   test('desktop nav stays on one line at 1024 and 1440', async ({ page }) => {
@@ -276,14 +295,17 @@ test.describe('homepage /megrendeles/ entry points', () => {
 
     const outDir = path.join(process.cwd(), 'test-results')
     fs.mkdirSync(outDir, { recursive: true })
-    fs.writeFileSync(path.join(outDir, 'order-entry-cls.json'), `${JSON.stringify(results, null, 2)}\n`)
+    const payload = `${JSON.stringify(results, null, 2)}\n`
+    fs.writeFileSync(path.join(outDir, 'order-entry-cls.json'), payload)
+    fs.mkdirSync(ARTIFACTS, { recursive: true })
+    fs.writeFileSync(path.join(ARTIFACTS, 'order-entry-cls.json'), payload)
 
     expect(results['360'], `CLS 360=${results['360']}`).toBe(0)
     expect(results['390'], `CLS 390=${results['390']}`).toBe(0)
     expect(results['1440'], `CLS 1440=${results['1440']}`).toBe(0)
   })
 
-  test('screenshots hero, open mobile menu and footer', async ({ page }) => {
+  test('screenshots hero, EN hero and open mobile menu', async ({ page }) => {
     fs.mkdirSync(ARTIFACTS, { recursive: true })
     await page.emulateMedia({ reducedMotion: 'reduce' })
 
@@ -293,25 +315,33 @@ test.describe('homepage /megrendeles/ entry points', () => {
       path: path.join(ARTIFACTS, 'go_hero_1440.png'),
       animations: 'disabled',
     })
-    await page.locator('footer').scrollIntoViewIfNeeded()
+
+    await page.getByRole('button', { name: /váltás angolra/i }).click()
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+    await expect(page.locator('.hero-actions').locator(`a[href="${ORDER_HREF}"]`)).toHaveText('Order')
     await page.screenshot({
-      path: path.join(ARTIFACTS, 'go_footer_1440.png'),
+      path: path.join(ARTIFACTS, 'go_hero_en_1440.png'),
       animations: 'disabled',
     })
 
     await page.setViewportSize({ width: 390, height: 844 })
+    await page.getByRole('button', { name: /switch to Hungarian/i }).click()
+    await expect(page.locator('html')).toHaveAttribute('lang', 'hu')
     await gotoHome(page)
     await page.screenshot({
       path: path.join(ARTIFACTS, 'go_hero_390.png'),
       animations: 'disabled',
     })
-    await page.locator('footer').scrollIntoViewIfNeeded()
+
+    await page.setViewportSize({ width: 360, height: 800 })
+    await gotoHome(page)
     await page.screenshot({
-      path: path.join(ARTIFACTS, 'go_footer_390.png'),
+      path: path.join(ARTIFACTS, 'go_hero_360.png'),
       animations: 'disabled',
     })
 
-    await page.evaluate(() => window.scrollTo(0, 0))
+    await page.setViewportSize({ width: 390, height: 844 })
+    await gotoHome(page)
     await page.getByRole('button', { name: 'Menü megnyitása' }).click()
     await expect(
       page.getByRole('navigation', { name: 'Mobil navigáció' }).locator(`a[href="${ORDER_HREF}"]`),

@@ -23,7 +23,6 @@
   html.js .hero-headline,
   html.js .hero-sub,
   html.js .hero-btn,
-  html.js .hero-cta,
   html.js .hero-chips,
   html.js .hero-titleblock-cell {
     opacity: 1 !important;
@@ -125,6 +124,7 @@
   --hero-t-btn: 320ms;
   --hero-d-btn1: 360ms;
   --hero-d-btn2: 420ms;
+  --hero-d-btn3: 480ms;
   --hero-t-chips: 200ms;
   --hero-d-chips: 480ms;
   --hero-t-line: 900ms;
@@ -163,6 +163,7 @@ html[data-theme="dark"] {
     --hero-t-btn: 256ms;
     --hero-d-btn1: 288ms;
     --hero-d-btn2: 336ms;
+    --hero-d-btn3: 384ms;
     --hero-t-chips: 160ms;
     --hero-d-chips: 384ms;
     --hero-t-line: 600ms;
@@ -344,36 +345,14 @@ html.js [data-reveal]:not([data-revealed]) {
 
 .hero-actions {
   display: flex;
-  justify-content: flex-start;
+  flex-direction: column;
+  gap: 12px;
   margin-top: 24px;
 }
 
-.hero-cta {
-  display: inline-flex;
+.hero-btn {
+  width: 100%;
   min-height: 2.75rem;
-  align-items: center;
-  justify-content: center;
-  padding: 0 1.25rem;
-  border-radius: 0.375rem;
-  background: var(--color-accent);
-  color: var(--color-on-foreground);
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.25;
-  text-decoration: none;
-}
-
-.hero-cta:hover {
-  background: color-mix(in srgb, var(--color-accent) 82%, black);
-}
-
-html[data-theme="dark"] .hero-cta:hover {
-  background: color-mix(in srgb, var(--color-accent) 82%, white);
-}
-
-.hero-cta:focus-visible {
-  outline: 2px solid var(--color-foreground);
-  outline-offset: 3px;
 }
 
 .nav-order-link {
@@ -794,7 +773,13 @@ html.js.is-static-motion .munkaim-dimension-line {
   }
 
   .hero-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
     margin-top: 32px;
+  }
+
+  .hero-btn {
+    width: auto;
   }
 
   .hero-copy {
@@ -978,8 +963,16 @@ html.js.is-static-motion .munkaim-dimension-line {
     animation: fade-up-16 var(--hero-t-sub) var(--motion-ink) var(--hero-d-sub) both;
   }
 
-  html.js:not(.is-static-motion) .hero-cta {
+  html.js:not(.is-static-motion) .hero-btn-primary {
     animation: fade-up-16 var(--hero-t-btn) var(--motion-ink) var(--hero-d-btn1) both;
+  }
+
+  html.js:not(.is-static-motion) .hero-btn-cv {
+    animation: fade-up-16 var(--hero-t-btn) var(--motion-ink) var(--hero-d-btn2) both;
+  }
+
+  html.js:not(.is-static-motion) .hero-btn-order {
+    animation: fade-up-16 var(--hero-t-btn) var(--motion-ink) var(--hero-d-btn3) both;
   }
 
   html.js:not(.is-static-motion) .hero-chips {

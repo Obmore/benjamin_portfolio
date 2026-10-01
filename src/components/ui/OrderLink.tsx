@@ -8,7 +8,7 @@ export function OrderLink({ className = 'text-accent', ...props }: OrderLinkProp
   const { content } = useI18n()
 
   return (
-    <a {...props} href={ORDER_HREF} lang="hu" className={className}>
+    <a {...props} href={ORDER_HREF} className={className}>
       {content.common.orderLink}
     </a>
   )

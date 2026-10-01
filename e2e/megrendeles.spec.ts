@@ -157,9 +157,21 @@ test.describe('/megrendeles/', () => {
       await expect(page.locator('.hero-actions a[href="/megrendeles/"]')).toHaveCount(1)
       await expect(page.locator('footer a[href="/megrendeles/"]')).toHaveCount(1)
       const contact = page.locator('#kapcsolat a[href="/megrendeles/"]')
-      await expect(contact).toHaveAttribute('lang', 'hu')
       const htmlLang = await page.locator('html').getAttribute('lang')
-      await expect(contact).toHaveText(htmlLang === 'en' ? 'Order' : 'Megrendelés')
+      const orderLabel = htmlLang === 'en' ? 'Order' : 'Megrendelés'
+      const workLabel = htmlLang === 'en' ? 'My work' : 'Munkáim'
+      const cvLabel = htmlLang === 'en' ? 'Download resume' : 'Önéletrajz letöltése'
+      await expect(contact).not.toHaveAttribute('lang')
+      await expect(contact).toHaveText(orderLabel)
+      const orderCount = await all.count()
+      for (let i = 0; i < orderCount; i += 1) {
+        await expect(all.nth(i)).not.toHaveAttribute('lang')
+      }
+      const heroActions = page.locator('.hero-actions a, .hero-actions button')
+      await expect(heroActions).toHaveCount(3)
+      await expect(heroActions.nth(0)).toHaveText(workLabel)
+      await expect(heroActions.nth(1)).toContainText(cvLabel)
+      await expect(heroActions.nth(2)).toHaveText(orderLabel)
       const bodyText = await page.locator('body').innerText()
       expect([...bodyText.matchAll(/ajánlat/gi)].length, 'S1 ajánlat count').toBe(0)
     }
