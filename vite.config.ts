@@ -7,11 +7,28 @@ import tailwindcss from '@tailwindcss/vite'
 
 const root = path.dirname(fileURLToPath(import.meta.url))
 
+function decodePathname(urlPath: string): string {
+  const pathname = urlPath.split('?')[0] ?? '/'
+  try {
+    return decodeURIComponent(pathname)
+  } catch {
+    return pathname
+  }
+}
+
+function fileInside(distRoot: string, candidate: string): string | null {
+  const resolved = path.resolve(candidate)
+  const rootWithSep = distRoot.endsWith(path.sep) ? distRoot : distRoot + path.sep
+  if (resolved !== distRoot && !resolved.startsWith(rootWithSep)) return null
+  if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) return null
+  return resolved
+}
+
 function githubPagesPreview(): Plugin {
   return {
     name: 'github-pages-preview',
     configurePreviewServer(server) {
-      const distDir = path.resolve(root, 'dist')
+      const distRoot = path.resolve(root, 'dist')
       return () => {
         server.middlewares.use((req, res, next) => {
           if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -19,29 +36,26 @@ function githubPagesPreview(): Plugin {
             return
           }
 
-          const incoming = req as typeof req & { originalUrl?: string }
-          const original = incoming.originalUrl ?? req.url ?? '/'
-          const pathname = original.split('?')[0] ?? '/'
-
-          let decoded = pathname
-          try {
-            decoded = decodeURIComponent(pathname)
-          } catch {
-            // Keep the raw path and fall through to 404.html.
+          const rewritten = decodePathname(req.url ?? '/')
+          if (rewritten === '/' || rewritten === '') {
+            next()
+            return
+          }
+          const rewrittenFile = fileInside(distRoot, path.join(distRoot, rewritten.replace(/^\/+/, '')))
+          if (rewrittenFile) {
+            next()
+            return
           }
 
-          const distRoot = path.resolve(distDir)
-          const relative = decoded.replace(/^\/+/, '').replace(/\/+$/, '')
+          const incoming = req as typeof req & { originalUrl?: string }
+          const original = decodePathname(incoming.originalUrl ?? req.url ?? '/')
+          const relative = original.replace(/^\/+/, '').replace(/\/+$/, '')
           if (relative && !relative.split('/').includes('..')) {
-            const indexFile = path.resolve(distRoot, relative, 'index.html')
-            if (indexFile.startsWith(distRoot + path.sep) && fs.existsSync(indexFile)) {
+            const indexFile = fileInside(distRoot, path.join(distRoot, relative, 'index.html'))
+            if (indexFile) {
               res.statusCode = 200
               res.setHeader('Content-Type', 'text/html; charset=utf-8')
-              if (req.method === 'HEAD') {
-                res.end()
-                return
-              }
-              res.end(fs.readFileSync(indexFile))
+              res.end(req.method === 'HEAD' ? undefined : fs.readFileSync(indexFile))
               return
             }
           }
@@ -54,11 +68,7 @@ function githubPagesPreview(): Plugin {
 
           res.statusCode = 404
           res.setHeader('Content-Type', 'text/html; charset=utf-8')
-          if (req.method === 'HEAD') {
-            res.end()
-            return
-          }
-          res.end(fs.readFileSync(notFound))
+          res.end(req.method === 'HEAD' ? undefined : fs.readFileSync(notFound))
         })
       }
     },

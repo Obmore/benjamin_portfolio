@@ -45,10 +45,11 @@ test.describe('static GitHub Pages helpers', () => {
 
   test('known typos on the 404 page go to /megrendeles/', async ({ page }) => {
     for (const from of ['/rendeles', '/megrendelés', '/megrendel%C3%A9s']) {
-      const response = await page.goto(from, { waitUntil: 'networkidle' })
-      expect(response, `${from} final response`).toBeTruthy()
-      expect(response!.status(), `${from} final status`).toBe(200)
+      const initial = await page.goto(from, { waitUntil: 'domcontentloaded' })
+      expect(initial?.status(), `${from} is served as 404.html`).toBe(404)
       await waitForOrder(page)
+      const landed = await page.request.get('/megrendeles/')
+      expect(landed.status(), `${from} finally 200`).toBe(200)
     }
   })
 
