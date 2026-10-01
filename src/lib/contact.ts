@@ -1,11 +1,18 @@
-export interface ContactFormData {
-  name: string
-  email: string
-  message: string
+export function isClipboardWriteAvailable(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    window.isSecureContext &&
+    typeof navigator.clipboard?.writeText === 'function'
+  )
 }
 
-export async function submitContact(data: ContactFormData): Promise<void> {
-  // Placeholder for EmailJS, Resend or backend API integration.
-  await new Promise((resolve) => setTimeout(resolve, 600))
-  console.info('Contact form submission (frontend-only):', data)
+/** Copies text with the Clipboard API only. Returns false on any failure. */
+export async function copyTextWithClipboardApi(text: string): Promise<boolean> {
+  if (!isClipboardWriteAvailable()) return false
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    return false
+  }
 }

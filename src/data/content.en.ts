@@ -207,18 +207,9 @@ export const contentEn: SiteContent = {
     email: 'bendzsiott1998@gmail.com',
     location: 'Budapest, Hungary',
     linkedIn: 'linkedin.com/in/benjaminottee',
-    form: {
-      name: 'Name',
-      email: 'Email',
-      message: 'Message',
-      submit: 'Send message',
-      success: 'Thank you for your message! I will get back to you soon.',
-      errors: {
-        name: 'Please enter your name.',
-        email: 'Please enter a valid email address.',
-        message: 'Please write your message.',
-      },
-    },
+    prompt: "Write me an email and I'll get back to you soon.",
+    copyAddress: 'Copy address',
+    copied: 'Copied',
   },
   footer: {
     text: '© 2026 Ott Benjámin, electrical engineer and software developer',

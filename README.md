@@ -42,7 +42,7 @@ src/
 ├── context/      Theme + i18n providers
 ├── data/         Hungarian and English content
 ├── hooks/
-└── lib/          Constants, contact form stub
+└── lib/          Constants, clipboard helper
 ```
 
 ## CV files
@@ -59,4 +59,4 @@ Place PDFs in `public/cv/`:
 - Smooth anchor navigation
 - Scroll animations
 - SEO meta tags and JSON-LD
-- Contact form (frontend-only, ready for EmailJS / Resend / API)
+- Contact section with mailto and copy-to-clipboard

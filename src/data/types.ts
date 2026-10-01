@@ -78,18 +78,9 @@ export interface SiteContent {
     email: string
     location: string
     linkedIn: string
-    form: {
-      name: string
-      email: string
-      message: string
-      submit: string
-      success: string
-      errors: {
-        name: string
-        email: string
-        message: string
-      }
-    }
+    prompt: string
+    copyAddress: string
+    copied: string
   }
   footer: {
     text: string
