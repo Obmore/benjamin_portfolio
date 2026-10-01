@@ -25,7 +25,7 @@ function SkipLink() {
   }
 
   return (
-    <a href="/" className="skip-link" onClick={onClick}>
+    <a href="#main" className="skip-link" onClick={onClick}>
       {content.common.skipToContent}
     </a>
   )
@@ -40,7 +40,7 @@ function AppShell() {
       <SkipLink />
       <GridBackground />
       <Navbar />
-      <main tabIndex={-1} className="outline-none">
+      <main id="main" tabIndex={-1} className="outline-none">
         <Hero />
         <Projects />
         <About />

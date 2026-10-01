@@ -212,6 +212,12 @@ html.js [data-reveal]:not([data-revealed]) {
   transform: translateY(24px);
 }
 
+html.js [data-reveal][data-revealed="instant"] {
+  transition: none;
+  opacity: 1;
+  transform: none;
+}
+
 [data-reveal] {
   transition-property: opacity, transform;
   transition-duration: var(--reveal-duration, 0.55s);
@@ -1151,6 +1157,10 @@ main.is-lang-in {
 .skip-link:focus {
   transform: none;
   pointer-events: auto;
+}
+
+html[data-theme="dark"] .skip-link {
+  color: #0b1a2e;
 }
 
 .site-name {

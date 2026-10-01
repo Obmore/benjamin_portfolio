@@ -148,6 +148,7 @@ test.describe('hash-fix PR7', () => {
     await page.keyboard.press('Tab')
     const skip = page.getByRole('link', { name: 'Ugrás a tartalomra' })
     await expect(skip).toBeFocused()
+    await expect(skip).toHaveAttribute('href', '#main')
     const skipBox = await skip.boundingBox()
     expect(skipBox?.height ?? 0).toBeGreaterThanOrEqual(44)
 
@@ -339,4 +340,276 @@ test.describe('hash-fix PR7', () => {
     await page.waitForTimeout(400)
     expect(Math.abs(await sectionDelta(page, 'tapasztalat'))).toBeLessThanOrEqual(2)
   })
+
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 390, height: 844 },
+  ] as const) {
+    test(`${viewport.width}: hash load reveals in-view instantly, below-fold still animates`, async ({
+      page,
+    }) => {
+      await page.addInitScript(() => {
+        const state = {
+          firstWithReveal: null as null | {
+            inView: boolean
+            opacity: string
+            transform: string
+            revealed: string | null
+          }[],
+          instantTransitionRun: 0,
+        }
+        ;(window as unknown as { __hashReveal: typeof state }).__hashReveal = state
+        document.addEventListener(
+          'transitionrun',
+          (event) => {
+            const el = event.target
+            if (!(el instanceof Element)) return
+            if (
+              el.hasAttribute('data-reveal') &&
+              el.getAttribute('data-revealed') === 'instant'
+            ) {
+              state.instantTransitionRun += 1
+            }
+          },
+          true,
+        )
+        const sample = () => {
+          const els = document.querySelectorAll('[data-reveal]')
+          if (els.length === 0 || state.firstWithReveal) {
+            if (!state.firstWithReveal) requestAnimationFrame(sample)
+            return
+          }
+          state.firstWithReveal = [...els].map((el) => {
+            const rect = el.getBoundingClientRect()
+            const cs = getComputedStyle(el)
+            return {
+              inView:
+                rect.bottom > 0 &&
+                rect.top < window.innerHeight &&
+                rect.right > 0 &&
+                rect.left < window.innerWidth,
+              opacity: cs.opacity,
+              transform: cs.transform,
+              revealed: el.getAttribute('data-revealed'),
+            }
+          })
+        }
+        requestAnimationFrame(sample)
+      })
+
+      await page.setViewportSize(viewport)
+      const hashes = ['oneletrajz', 'tapasztalat', 'kompetenciak'] as const
+      for (const id of hashes) {
+        await page.goto(`/?reveal=${viewport.width}-${id}#${id}`, {
+          waitUntil: 'domcontentloaded',
+        })
+        await page.waitForFunction(
+          () =>
+            (window as unknown as { __hashReveal?: { firstWithReveal: unknown } })
+              .__hashReveal?.firstWithReveal,
+        )
+        const probe = await page.evaluate(() => {
+          const state = (
+            window as unknown as {
+              __hashReveal: {
+                firstWithReveal: {
+                  inView: boolean
+                  opacity: string
+                  transform: string
+                  revealed: string | null
+                }[]
+                instantTransitionRun: number
+              }
+            }
+          ).__hashReveal
+          return state
+        })
+        const inView = probe.firstWithReveal.filter((item) => item.inView)
+        expect(inView.length, `#${id} in-view reveals`).toBeGreaterThan(0)
+        for (const item of inView) {
+          expect(item.revealed, `#${id} data-revealed`).toBe('instant')
+          expect(Number(item.opacity), `#${id} opacity ${item.opacity}`).toBe(1)
+          expect(
+            item.transform === 'none' || item.transform === 'matrix(1, 0, 0, 1, 0, 0)',
+            `#${id} transform ${item.transform}`,
+          ).toBe(true)
+        }
+        await page.waitForTimeout(1000)
+        const later = await page.evaluate(
+          () =>
+            (window as unknown as { __hashReveal: { instantTransitionRun: number } })
+              .__hashReveal.instantTransitionRun,
+        )
+        expect(later, `#${id} instant transitionrun`).toBe(0)
+
+        const belowMoved = await page.evaluate(async () => {
+          const below = [...document.querySelectorAll<HTMLElement>('[data-reveal]')].find(
+            (el) => {
+              const rect = el.getBoundingClientRect()
+              const inView =
+                rect.bottom > 0 &&
+                rect.top < window.innerHeight &&
+                rect.right > 0 &&
+                rect.left < window.innerWidth
+              return !inView && el.getAttribute('data-revealed') !== 'instant'
+            },
+          )
+          if (!below) return { found: false, ran: false, opacity: '0' }
+          let ran = false
+          const onRun = (event: Event) => {
+            if (event.target === below) ran = true
+          }
+          document.addEventListener('transitionrun', onRun, true)
+          below.scrollIntoView({ block: 'center', behavior: 'instant' })
+          await new Promise((resolve) => window.setTimeout(resolve, 700))
+          document.removeEventListener('transitionrun', onRun, true)
+          return {
+            found: true,
+            ran,
+            opacity: getComputedStyle(below).opacity,
+            revealed: below.getAttribute('data-revealed'),
+          }
+        })
+        expect(belowMoved.found, `#${id} below-fold reveal`).toBe(true)
+        expect(
+          belowMoved.ran || belowMoved.revealed === 'true' || belowMoved.opacity === '1',
+          `#${id} below-fold should animate`,
+        ).toBe(true)
+
+        await page.evaluate(() => {
+          const state = (
+            window as unknown as {
+              __hashReveal: {
+                firstWithReveal: unknown
+                instantTransitionRun: number
+              }
+            }
+          ).__hashReveal
+          state.firstWithReveal = null
+          state.instantTransitionRun = 0
+        })
+      }
+    })
+
+    test(`${viewport.width}: mid-section HU↔EN keeps viewport anchor ±2px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport)
+      await gotoHome(page)
+      const sections = ['tapasztalat', 'kompetenciak'] as const
+
+      for (const id of sections) {
+        if (viewport.width < 1024) await clickMobileNav(page, id === 'tapasztalat' ? 'Tapasztalat' : 'Kompetenciák')
+        else await clickDesktopNav(page, id === 'tapasztalat' ? 'Tapasztalat' : 'Kompetenciák')
+        await waitAligned(page, id)
+        await page.evaluate(() => {
+          window.scrollBy({ top: 280, behavior: 'instant' })
+        })
+
+        const before = await page.evaluate(() => {
+          const x = Math.min(Math.max(24, window.innerWidth / 2), window.innerWidth - 24)
+          let probe = document.elementFromPoint(x, 66)
+          if (probe instanceof Element && probe.closest('header, .skip-link')) {
+            probe = document.elementFromPoint(x, 76)
+          }
+          if (!(probe instanceof Element)) return null
+          const target = probe.closest<HTMLElement>('article, [data-reveal], section[id], [id]')
+          if (!target || target.id === 'root' || target.id === 'main') return null
+          const sel = target.id
+            ? `#${CSS.escape(target.id)}`
+            : (() => {
+                const parts: string[] = []
+                let node: HTMLElement | null = target
+                while (node && node !== document.body) {
+                  if (node.id) {
+                    parts.unshift(`#${CSS.escape(node.id)}`)
+                    break
+                  }
+                  const parent = node.parentElement
+                  if (!parent) break
+                  const tag = node.tagName.toLowerCase()
+                  let index = 1
+                  let pred = node.previousElementSibling
+                  while (pred) {
+                    if (pred.tagName === node.tagName) index += 1
+                    pred = pred.previousElementSibling
+                  }
+                  parts.unshift(`${tag}:nth-of-type(${index})`)
+                  node = parent
+                }
+                return parts.join('>')
+              })()
+          return {
+            sel,
+            top: target.getBoundingClientRect().top,
+            hash: location.hash,
+            history: history.length,
+          }
+        })
+        expect(before, `${id} viewport anchor`).toBeTruthy()
+
+        await page.getByRole('button', { name: /^EN/ }).click()
+        await page.waitForFunction(() => document.documentElement.lang === 'en')
+        const afterEn = await page.evaluate((sel) => {
+          const el = document.querySelector(sel)
+          return {
+            top: el instanceof HTMLElement ? el.getBoundingClientRect().top : 9999,
+            hash: location.hash,
+            history: history.length,
+          }
+        }, before!.sel)
+        expect(Math.abs(afterEn.top - before!.top), `${id} HU→EN ${viewport.width}`).toBeLessThanOrEqual(2)
+        expect(afterEn.hash).toBe(before!.hash)
+        expect(afterEn.history).toBe(before!.history)
+
+        await page.getByRole('button', { name: /^HU/ }).click()
+        await page.waitForFunction(() => document.documentElement.lang === 'hu')
+        const afterHu = await page.evaluate((sel) => {
+          const el = document.querySelector(sel)
+          return {
+            top: el instanceof HTMLElement ? el.getBoundingClientRect().top : 9999,
+            hash: location.hash,
+            history: history.length,
+          }
+        }, before!.sel)
+        expect(Math.abs(afterHu.top - before!.top), `${id} EN→HU ${viewport.width}`).toBeLessThanOrEqual(2)
+        expect(afterHu.hash).toBe(before!.hash)
+        expect(afterHu.history).toBe(before!.history)
+      }
+    })
+
+    test(`${viewport.width}: skip link contrast ≥4.5 in light and dark`, async ({ page }) => {
+      await page.setViewportSize(viewport)
+      await gotoHome(page)
+
+      const contrastOf = async () =>
+        page.evaluate(() => {
+          const el = document.querySelector('.skip-link')
+          if (!(el instanceof HTMLElement)) return 0
+          const cs = getComputedStyle(el)
+          const parse = (value: string) => {
+            const m = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+            if (!m) return [0, 0, 0]
+            return [Number(m[1]), Number(m[2]), Number(m[3])]
+          }
+          const lum = (rgb: number[]) => {
+            const lin = rgb.map((c) => {
+              const s = c / 255
+              return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+            })
+            return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+          }
+          const L1 = lum(parse(cs.color))
+          const L2 = lum(parse(cs.backgroundColor))
+          const [hi, lo] = L1 > L2 ? [L1, L2] : [L2, L1]
+          return (hi + 0.05) / (lo + 0.05)
+        })
+
+      expect(await contrastOf(), `light skip ${viewport.width}`).toBeGreaterThanOrEqual(4.5)
+
+      await page.getByRole('button', { name: 'Sötét mód' }).click()
+      await page.waitForFunction(() => document.documentElement.getAttribute('data-theme') === 'dark')
+      expect(await contrastOf(), `dark skip ${viewport.width}`).toBeGreaterThanOrEqual(4.5)
+    })
+  }
 })

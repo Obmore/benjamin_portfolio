@@ -18,11 +18,11 @@ import {
   runLangCssFallback,
   startThemedViewTransition,
 } from '@/lib/motion'
-import { FORBIDDEN_HASH_IDS, rawLocationHash, resolveAnchor } from '@/lib/hash'
-import { scrollToSection } from '@/hooks/useActiveSection'
 
 const LOCALE_STORAGE_KEY = 'portfolio-locale'
 const HEADER_OFFSET_PX = 64
+
+type ViewportAnchor = { sel: string; top: number }
 
 interface I18nContextValue {
   locale: Locale
@@ -53,33 +53,40 @@ function getInitialLocale(): Locale {
   return 'hu'
 }
 
-function currentSectionHash() {
-  const raw = rawLocationHash()
-  if (!raw || FORBIDDEN_HASH_IDS.has(raw)) return ''
-  const id = resolveAnchor(raw)
-  return document.getElementById(id) ? id : ''
+function selectorFor(el: HTMLElement): string {
+  if (el.id) return `#${CSS.escape(el.id)}`
+  const parts: string[] = []
+  let node: HTMLElement | null = el
+  while (node && node !== document.body) {
+    if (node.id) {
+      parts.unshift(`#${CSS.escape(node.id)}`)
+      break
+    }
+    const parent = node.parentElement
+    if (!parent) break
+    const tag = node.tagName.toLowerCase()
+    let index = 1
+    let pred = node.previousElementSibling
+    while (pred) {
+      if (pred.tagName === node.tagName) index += 1
+      pred = pred.previousElementSibling
+    }
+    parts.unshift(`${tag}:nth-of-type(${index})`)
+    node = parent
+  }
+  return parts.join('>')
 }
 
-function captureVisibleSectionAnchor() {
-  const sections = document.querySelectorAll<HTMLElement>('main section[id]')
-  let best: { id: string; top: number; dist: number } | null = null
-  for (const section of sections) {
-    const rect = section.getBoundingClientRect()
-    if (rect.bottom <= HEADER_OFFSET_PX || rect.top >= window.innerHeight) continue
-    const dist = Math.abs(rect.top - HEADER_OFFSET_PX)
-    if (!best || dist < best.dist) best = { id: section.id, top: rect.top, dist }
+function captureViewportAnchor(): ViewportAnchor | null {
+  const x = Math.min(Math.max(24, window.innerWidth / 2), window.innerWidth - 24)
+  let probe = document.elementFromPoint(x, HEADER_OFFSET_PX + 2)
+  if (probe instanceof Element && probe.closest('header, .skip-link')) {
+    probe = document.elementFromPoint(x, HEADER_OFFSET_PX + 12)
   }
-  return best ? { id: best.id, top: best.top } : null
-}
-
-function restoreSectionAnchor(anchor: { id: string; top: number } | null) {
-  if (!anchor) return
-  const section = document.getElementById(anchor.id)
-  if (!section) return
-  const delta = section.getBoundingClientRect().top - anchor.top
-  if (Math.abs(delta) >= 1) {
-    window.scrollBy(0, delta)
-  }
+  if (!(probe instanceof Element)) return null
+  const target = probe.closest<HTMLElement>('article, [data-reveal], section[id], [id]')
+  if (!target || target.id === 'root' || target.id === 'main') return null
+  return { sel: selectorFor(target), top: target.getBoundingClientRect().top }
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
@@ -89,6 +96,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const busyRef = useRef(false)
   const localeRef = useRef(locale)
   const enContentRef = useRef(enContent)
+  const pendingAnchorRef = useRef<ViewportAnchor | null>(null)
   localeRef.current = locale
   enContentRef.current = enContent
 
@@ -126,29 +134,21 @@ export function I18nProvider({ children }: { children: ReactNode }) {
           })
         }
 
-        const hashId = currentSectionHash()
-        const anchor = hashId ? null : captureVisibleSectionAnchor()
-        const settlePosition = () => {
-          if (hashId) scrollToSection(hashId, 'auto')
-          else restoreSectionAnchor(anchor)
-        }
+        pendingAnchorRef.current = captureViewportAnchor()
         const swap = () => {
           document.documentElement.lang = next
           flushSync(() => {
             setLocaleState(next)
           })
           persistLocale(next)
-          settlePosition()
         }
 
         if (prefersReducedMotion()) {
           swap()
         } else if (canViewTransition()) {
           await startThemedViewTransition('lang', swap)
-          settlePosition()
         } else {
           await runLangCssFallback(swap)
-          settlePosition()
         }
       } finally {
         if (busyTimer !== undefined) window.clearTimeout(busyTimer)
@@ -160,6 +160,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useLayoutEffect(() => {
     document.documentElement.lang = locale
+    const anchor = pendingAnchorRef.current
+    if (!anchor) return
+    pendingAnchorRef.current = null
+    const el = document.querySelector(anchor.sel)
+    if (!(el instanceof HTMLElement)) return
+    const delta = el.getBoundingClientRect().top - anchor.top
+    if (Math.abs(delta) < 0.5) return
+    window.scrollTo({ top: window.scrollY + delta, behavior: 'instant' })
   }, [locale])
 
   useEffect(() => {
