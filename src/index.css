@@ -367,7 +367,7 @@ html.js [data-reveal]:not([data-revealed]) {
 
 .hero-figure {
   width: 100%;
-  aspect-ratio: 5 / 2;
+  min-aspect-ratio: 5 / 2;
   margin: 0;
   color: var(--color-accent);
   pointer-events: none;
@@ -376,8 +376,9 @@ html.js [data-reveal]:not([data-revealed]) {
 .hero-figure-inner {
   box-sizing: border-box;
   display: grid;
-  height: 100%;
+  min-height: 100%;
   padding: 16px;
+  overflow: clip;
   border: 1px solid #d7e2ef;
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
 }
@@ -391,14 +392,17 @@ html.js [data-reveal]:not([data-revealed]) {
 
 .hero-titleblock {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 16px;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
   margin: 0;
   align-content: center;
 }
 
 .hero-titleblock-cell {
-  min-width: 0;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: baseline;
 }
 
 .hero-titleblock dt {
@@ -727,6 +731,7 @@ html.js.is-static-motion .munkaim-dimension-line {
 
   .hero-figure {
     aspect-ratio: 16 / 5;
+    min-aspect-ratio: auto;
   }
 
   .hero-figure-inner {
@@ -789,7 +794,9 @@ html.js.is-static-motion .munkaim-dimension-line {
   .hero-figure {
     grid-column: 9 / 13;
     aspect-ratio: 4 / 5;
+    min-aspect-ratio: auto;
     align-self: center;
+    margin-inline-start: 4px;
   }
 
   .hero-figure-inner {
