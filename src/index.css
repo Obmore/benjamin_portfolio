@@ -109,6 +109,7 @@
   color-scheme: light;
   --shadow-ink: 0 16px 40px color-mix(in srgb, var(--color-foreground) 12%, transparent);
   --shadow-card: 0 1px 2px color-mix(in srgb, var(--color-foreground) 12%, transparent);
+  --color-domain: #475569;
   --motion-ink: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-pen: cubic-bezier(0.16, 1, 0.3, 1);
   --motion-page: cubic-bezier(0.65, 0, 0.35, 1);
@@ -147,6 +148,7 @@ html[data-theme="dark"] {
   --color-on-foreground: #0B1A2E;
   --shadow-ink: 0 16px 40px rgb(0 0 0 / 0.4);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+  --color-domain: var(--color-muted);
 }
 
 @media (max-width: 899px), (pointer: coarse) {
@@ -586,24 +588,29 @@ html.js.is-static-motion .munkaim-dimension-line {
 }
 
 .work-shot {
+  min-width: 0;
   margin-bottom: 20px;
 }
 
 .work-shot-chrome {
   display: flex;
   align-items: center;
+  min-width: 0;
   height: 28px;
   padding: 0 12px;
+  overflow: hidden;
   border: 1px solid var(--color-line);
   border-bottom: 0;
   background: color-mix(in srgb, var(--color-surface) 96%, var(--color-accent));
 }
 
 .work-shot-domain {
+  min-width: 0;
+  flex: 1 1 0;
   overflow: hidden;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--color-ink-2);
+  color: var(--color-domain);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

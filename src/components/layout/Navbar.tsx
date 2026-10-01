@@ -100,7 +100,7 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 md:px-8">
         <button
           type="button"
-          onClick={() => scrollToSection('hero')}
+          onClick={() => scrollToSection('hero', 'auto')}
           className="font-mono text-sm font-semibold tracking-wide text-foreground"
         >
           OB<span className="text-accent">.</span>
@@ -117,6 +117,7 @@ export function Navbar() {
                   ? 'text-accent'
                   : 'text-muted hover:text-foreground'
               }`}
+              aria-current={activeId === item.id ? 'true' : undefined}
             >
               {content.nav[item.key]}
             </button>
@@ -164,6 +165,7 @@ export function Navbar() {
               className={`rounded-lg px-3 py-2 text-left text-sm ${
                 activeId === item.id ? 'text-accent' : 'text-muted'
               }`}
+              aria-current={activeId === item.id ? 'true' : undefined}
             >
               {content.nav[item.key]}
             </button>
