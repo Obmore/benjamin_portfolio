@@ -210,7 +210,7 @@ export const contentHu: SiteContent = {
     prompt: 'Írjon nekem e-mailt, és hamarosan válaszolok.',
     copyAddress: 'Cím másolása',
     copied: 'Kimásolva',
-    copiedAnnouncement: 'E-mail-cím a vágólapra másolva',
+    copiedAnnouncement: 'Az e-mail-cím a vágólapra került.',
   },
   footer: {
     text: '© 2026 Ott Benjámin, villamosmérnök és szoftverfejlesztő',
