@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react'
 import { flushSync } from 'react-dom'
-import { applyTheme, getDocumentTheme, type ThemeName } from '@/lib/theme'
+import { applyTheme, getDocumentTheme, persistTheme, type ThemeName } from '@/lib/theme'
 import { startThemedViewTransition } from '@/lib/motion'
 
 interface ThemeContextValue {
@@ -29,6 +29,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const next: ThemeName = theme === 'dark' ? 'light' : 'dark'
     void startThemedViewTransition('theme', () => {
       applyTheme(next)
+      persistTheme(next)
       flushSync(() => setTheme(next))
     })
   }, [theme])

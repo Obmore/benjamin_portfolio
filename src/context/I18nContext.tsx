@@ -117,6 +117,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
         const anchor = captureVisibleSectionAnchor()
         const swap = () => {
+          document.documentElement.lang = next
           flushSync(() => {
             setLocaleState(next)
           })
@@ -138,11 +139,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       }
     })()
   }, [persistLocale])
-
-  useEffect(() => {
-    document.documentElement.lang = locale
-    document.documentElement.classList.add('js')
-  }, [locale])
 
   useEffect(() => {
     if (locale !== 'en') {

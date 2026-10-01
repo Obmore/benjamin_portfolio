@@ -1,12 +1,10 @@
 import { useI18n } from '@/context/I18nContext'
-import { useTheme } from '@/context/ThemeContext'
 import { EMAIL, LINKEDIN_URL } from '@/lib/constants'
 
 const SITE_URL = 'https://ottbenjamin.hu/'
 
 export function SeoHead() {
   const { content, locale } = useI18n()
-  const { dark } = useTheme()
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -30,7 +28,7 @@ export function SeoHead() {
       <meta property="og:title" content={content.meta.title} />
       <meta property="og:description" content={content.meta.description} />
       <meta name="twitter:card" content="summary" />
-      <html lang={locale} {...(dark ? { 'data-theme': 'dark' } : {})} />
+      <html lang={locale} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

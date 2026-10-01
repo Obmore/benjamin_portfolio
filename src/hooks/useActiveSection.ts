@@ -113,8 +113,11 @@ export function scrollToSection(id: string, behavior?: ScrollBehavior) {
   const root = document.documentElement
 
   const snap = () => {
+    const prev = root.style.scrollBehavior
+    root.style.scrollBehavior = 'auto'
     const delta = element.getBoundingClientRect().top - HEADER_OFFSET_PX
     if (Math.abs(delta) > 2) root.scrollTop += delta
+    root.style.scrollBehavior = prev
   }
 
   if (instant) {
@@ -127,11 +130,17 @@ export function scrollToSection(id: string, behavior?: ScrollBehavior) {
     return
   }
 
-  window.scrollTo({ top, behavior: 'smooth' })
-  window.setTimeout(() => {
-    const prev = root.style.scrollBehavior
-    root.style.scrollBehavior = 'auto'
+  let settled = false
+  let fallbackTimer = 0
+  const finish = () => {
+    if (settled) return
+    settled = true
+    window.clearTimeout(fallbackTimer)
+    window.removeEventListener('scrollend', finish)
     snap()
-    root.style.scrollBehavior = prev
-  }, 500)
+  }
+
+  window.addEventListener('scrollend', finish)
+  fallbackTimer = window.setTimeout(finish, 1000)
+  window.scrollTo({ top, behavior: 'smooth' })
 }

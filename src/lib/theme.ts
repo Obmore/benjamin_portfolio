@@ -21,7 +21,9 @@ export function applyTheme(theme: ThemeName) {
     root.style.colorScheme = 'light'
     if (meta) meta.setAttribute('content', LIGHT_THEME_COLOR)
   }
+}
 
+export function persistTheme(theme: ThemeName) {
   try {
     localStorage.setItem(THEME_STORAGE_KEY, theme)
   } catch {
