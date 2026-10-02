@@ -65,6 +65,14 @@ function nearBox(el: Element): Promise<void> {
   })
 }
 
+function yieldMain(): Promise<void> {
+  const sched = (globalThis as unknown as { scheduler?: { yield?: () => Promise<void> } }).scheduler
+  if (typeof sched?.yield === 'function') return sched.yield()
+  return new Promise((resolve) => {
+    setTimeout(resolve, 0)
+  })
+}
+
 export function bootHero3d(): () => void {
   const box = document.querySelector<HTMLElement>('.hero-3d')
   const qa = isQa3d()
@@ -88,6 +96,7 @@ export function bootHero3d(): () => void {
       return
     }
     const mod = await import('@/three/view-manager')
+    await yieldMain()
     if (stopped) return
     await mod.startView(box)
     stopView = () => mod.stopView()

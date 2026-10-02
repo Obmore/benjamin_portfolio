@@ -62,6 +62,7 @@ declare module 'three' {
     rotation: { x: number; y: number; z: number; set(x: number, y: number, z: number): void }
     frustumCulled: boolean
     visible: boolean
+    renderOrder: number
     add(...object: Object3D[]): this
     traverse(callback: (object: Object3D) => void): void
     lookAt(x: number, y: number, z: number): void
@@ -117,7 +118,11 @@ declare module 'three' {
     color: Color
     opacity: number
     depthWrite?: boolean
+    depthTest?: boolean
     transparent?: boolean
+    polygonOffset?: boolean
+    polygonOffsetFactor?: number
+    polygonOffsetUnits?: number
     onBeforeCompile: (shader: Shader) => void
     customProgramCacheKey: () => string
     dispose(): void
@@ -129,6 +134,10 @@ declare module 'three' {
       transparent?: boolean
       opacity?: number
       depthWrite?: boolean
+      depthTest?: boolean
+      polygonOffset?: boolean
+      polygonOffsetFactor?: number
+      polygonOffsetUnits?: number
     })
     depthWrite: boolean
   }
@@ -138,6 +147,8 @@ declare module 'three' {
       color?: Color | string | number
       transparent?: boolean
       opacity?: number
+      depthWrite?: boolean
+      depthTest?: boolean
     })
   }
 

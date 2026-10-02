@@ -16,6 +16,7 @@ import {
   allAnchors,
   allBotPads,
   allTopPads,
+  anchorById,
   BD,
   boardOutline,
   BOT_Y,
@@ -31,10 +32,10 @@ import {
   conn,
   FRUSTUM,
   loop,
-  nearestAnchor,
   passives,
   poseYs,
   TOP_Y,
+  topFaceEdges,
   topTraces,
   traceEnds,
   vias,
@@ -77,7 +78,7 @@ export type K1Scene = {
   lite: boolean
   pulseOffset: number
   anchors: Anchor[]
-  endPairs: { x: number; z: number; layer: 'top' | 'bot' }[]
+  endPairs: { x: number; z: number; layer: 'top' | 'bot'; id: string }[]
 }
 
 const LY = { bot: 0, sub: 1, top: 2, chip: 3 }
@@ -215,7 +216,7 @@ function mergeMesh(geos: BufferGeometry[]) {
 
 function worldY(scene: K1Scene, layer: 'top' | 'bot') {
   const v = scene.uLayerY.value
-  const local = scene.lite ? 0 : layer === 'bot' ? BOT_Y : TOP_Y
+  const local = layer === 'bot' ? BOT_Y : TOP_Y
   return layer === 'bot' ? v.x + local : v.z + local
 }
 
@@ -225,15 +226,33 @@ export async function createK1Scene(
   pause: () => Promise<void> = () => Promise.resolve(),
 ): Promise<K1Scene> {
   const uLayerY = { value: new Vector4(0, 0, 0, 0) }
-  const fill = new MeshBasicMaterial({ color: colors.surface })
+  const fill = new MeshBasicMaterial({
+    color: colors.surface,
+    polygonOffset: true,
+    polygonOffsetFactor: 2,
+    polygonOffsetUnits: 2,
+  })
   const subMat = new MeshBasicMaterial({
     color: colors.surface,
     transparent: true,
     opacity: 0.92,
     depthWrite: true,
+    polygonOffset: true,
+    polygonOffsetFactor: 2,
+    polygonOffsetUnits: 2,
   })
-  const ink = new LineBasicMaterial({ color: colors.ink, transparent: true, opacity: 0.55 })
-  const accent = new LineBasicMaterial({ color: colors.ink, transparent: true, opacity: 0.55 })
+  const ink = new LineBasicMaterial({
+    color: colors.ink,
+    transparent: true,
+    opacity: 0.55,
+    depthWrite: false,
+  })
+  const accent = new LineBasicMaterial({
+    color: colors.ink,
+    transparent: true,
+    opacity: 0.55,
+    depthWrite: false,
+  })
   bindLayer(fill, uLayerY)
   bindLayer(subMat, uLayerY)
   bindLayer(ink, uLayerY)
@@ -244,8 +263,8 @@ export async function createK1Scene(
 
   await pause()
 
-  const topY = lite ? 0 : TOP_Y
-  const botY = lite ? 0 : BOT_Y
+  const topY = TOP_Y
+  const botY = BOT_Y
 
   const fillGeos = [
     taggedBox(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z, LY.top),
@@ -254,21 +273,23 @@ export async function createK1Scene(
   ]
   const fillMesh = new Mesh(mergeMesh(fillGeos), fill)
   fillMesh.frustumCulled = false
+  fillMesh.renderOrder = 0
 
   await pause()
 
   const inkBuf: LineBuf = { pos: [], layer: [] }
   addPolys(inkBuf, [boardOutline], botY, LY.bot)
+  addPolys(inkBuf, [boardOutline], 0, LY.sub)
   addPolys(inkBuf, [boardOutline], topY, LY.top)
   addPolys(inkBuf, [...botTraces, ...allBotPads()], botY, LY.bot)
   addEdges(inkBuf, boxEdges(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z), LY.top)
   for (const p of passives) {
     addEdges(inkBuf, boxEdges(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z), LY.top)
   }
-  addEdges(inkBuf, boxEdges(CHIP, 0.1, CHIP, 0, CHIP_Y, 0), LY.chip)
-  if (!lite) addEdges(inkBuf, boxEdges(BW, BT, BD, 0, 0, 0), LY.sub)
+  addEdges(inkBuf, topFaceEdges(CHIP, 0.1, CHIP, 0, CHIP_Y, 0), LY.chip)
   const inkLines = new LineSegments(lineGeometry(inkBuf), ink)
   inkLines.frustumCulled = false
+  inkLines.renderOrder = 2
 
   await pause()
 
@@ -285,12 +306,14 @@ export async function createK1Scene(
   }
   const accentLines = new LineSegments(lineGeometry(accentBuf), accent)
   accentLines.frustumCulled = false
+  accentLines.renderOrder = 3
 
   let subMesh: Mesh | null = null
   if (!lite) {
     const subGeo = taggedBox(BW, BT, BD, 0, 0, 0, LY.sub)
     subMesh = new Mesh(subGeo, subMat)
     subMesh.frustumCulled = false
+    subMesh.renderOrder = 0
     carrier.add(subMesh)
   }
 
@@ -397,7 +420,10 @@ export function projectEnds(scene: K1Scene, width: number, height: number): Hero
     const y = worldY(scene, rec.layer)
     ve.set(rec.x, y, rec.z)
     const end = mapPt(ve)
-    const anc = nearestAnchor(rec.x, rec.z, rec.layer, scene.anchors)
+    const anc = anchorById(rec.id, rec.layer, scene.anchors)
+    if (!anc) {
+      return { x: end.x, y: end.y, ax: end.x + 99, ay: end.y + 99, id: rec.id, kind: 'pad' as const }
+    }
     va.set(anc.x, worldY(scene, anc.layer), anc.z)
     const a = mapPt(va)
     return { x: end.x, y: end.y, ax: a.x, ay: a.y, id: anc.id, kind: anc.kind }

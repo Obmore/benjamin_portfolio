@@ -301,6 +301,11 @@ async function bootScene() {
   if (qa) el.setAttribute('data-pose', '0')
 
   const lite = tier === 'lite'
+  await yieldSlice()
+  if (my !== gen) {
+    booting = false
+    return
+  }
   const r = new WebGLRenderer({
     canvas: el,
     alpha: true,

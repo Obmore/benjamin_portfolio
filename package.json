@@ -9,7 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist",
-    "build:fonts": "node scripts/build-fonts.mjs",
+    "bake:poster": "node scripts/bake-hero-poster.mjs",
     "check:size": "node scripts/check-budgets.mjs",
     "check:motion": "node scripts/check-motion.mjs",
     "check:cv": "node scripts/check-cv-size.mjs",

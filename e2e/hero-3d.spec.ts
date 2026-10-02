@@ -249,7 +249,7 @@ test.describe('hero 3D K1', () => {
     await expect(page.locator('.hero-3d canvas')).toHaveCount(0)
   })
 
-  test('lite draw calls stay at or under 8', async ({ page }) => {
+  test('lite draw calls stay at or under 3', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await gotoHome(page, '?qa3d=1')
     await page.waitForFunction(
@@ -268,7 +268,7 @@ test.describe('hero 3D K1', () => {
       return { calls: hook.info.calls, tier: hook.tier }
     })
     expect(probe?.tier).toBe('lite')
-    expect(probe?.calls).toBeLessThanOrEqual(8)
+    expect(probe?.calls).toBeLessThanOrEqual(3)
     expect(probe?.calls).toBeGreaterThan(0)
   })
 
@@ -317,7 +317,7 @@ test.describe('hero 3D K1', () => {
     expect(chipHits, JSON.stringify(axe.violations, null, 2)).toEqual([])
   })
 
-  test('chunk load long tasks stay under 120 ms at 390', async ({ page }) => {
+  test('page-load long tasks stay under 120 ms at 390 from navigation start', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     const client = await page.context().newCDPSession(page)
     await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
@@ -338,14 +338,13 @@ test.describe('hero 3D K1', () => {
       null,
       { timeout: 30000 },
     )
-    const max = await page.evaluate(() => {
+    await page.waitForTimeout(800)
+    const probe = await page.evaluate(() => {
       const w = window as Window & { __lt?: { d: number; t: number }[] }
-      const res = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
-      const chunk = res.find((e) => /three/.test(e.name) && e.name.endsWith('.js'))
-      const start = chunk ? chunk.startTime : 0
-      const tasks = (w.__lt ?? []).filter((e) => e.t >= start - 16)
-      return Math.max(0, ...tasks.map((e) => e.d))
+      const tasks = w.__lt ?? []
+      const max = Math.max(0, ...tasks.map((e) => e.d))
+      return { max, n: tasks.length, tasks: [...tasks].sort((a, b) => b.d - a.d).slice(0, 8) }
     })
-    expect(max).toBeLessThanOrEqual(120)
+    expect(probe.max, JSON.stringify(probe.tasks)).toBeLessThanOrEqual(120)
   })
 })

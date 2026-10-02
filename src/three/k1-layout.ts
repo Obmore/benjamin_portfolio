@@ -126,25 +126,34 @@ function C(i: number): Pair {
   return [CONN_PIN_X, connPinZ(i)]
 }
 
-export const topTraces: readonly Poly[] = [
-  [L(1), [-0.55, PIN_TS[1]], [-0.55, connPinZ(2)], C(2)],
-  [C(2), C(5)],
-  [C(5), [V.nw[0], connPinZ(5)], V.nw],
-  [V.se, [0.55, V.se[1]], [0.55, PIN_TS[1]], R(1)],
-  [T(2), [T(2)[0], V.n[1]], V.n],
-  [Btm(2), [Btm(2)[0], V.s[1]], V.s],
-  [L(3), [-PIN_X, PAD.r1[1]], PAD.r1],
-  [R(3), [PIN_X, PAD.r2[1]], PAD.r2],
-  [R(0), [PIN_X, PAD.c1[1]], PAD.c1],
-  [C(0), [V.sw[0], connPinZ(0)], V.sw],
-  [R(4), [V.ne[0], PIN_TS[4]], V.ne],
+export type TraceRoute = {
+  poly: Poly
+  startId: string
+  endId: string
+}
+
+export const topRoutes: readonly TraceRoute[] = [
+  { poly: [L(1), [-0.55, PIN_TS[1]], [-0.55, connPinZ(2)], C(2)], startId: 'pin-L1', endId: 'pad-conn-2' },
+  { poly: [C(2), C(5)], startId: 'pad-conn-2', endId: 'pad-conn-5' },
+  { poly: [C(5), [V.nw[0], connPinZ(5)], V.nw], startId: 'pad-conn-5', endId: 'via-nw' },
+  { poly: [V.se, [0.55, V.se[1]], [0.55, PIN_TS[1]], R(1)], startId: 'via-se', endId: 'pin-R1' },
+  { poly: [T(2), [T(2)[0], V.n[1]], V.n], startId: 'pin-T2', endId: 'via-n' },
+  { poly: [Btm(2), [Btm(2)[0], V.s[1]], V.s], startId: 'pin-B2', endId: 'via-s' },
+  { poly: [L(3), [-PIN_X, PAD.r1[1]], PAD.r1], startId: 'pin-L3', endId: 'pad-r1' },
+  { poly: [R(3), [PIN_X, PAD.r2[1]], PAD.r2], startId: 'pin-R3', endId: 'pad-r2' },
+  { poly: [R(0), [PIN_X, PAD.c1[1]], PAD.c1], startId: 'pin-R0', endId: 'pad-c1' },
+  { poly: [C(0), [V.sw[0], connPinZ(0)], V.sw], startId: 'pad-conn-0', endId: 'via-sw' },
+  { poly: [R(4), [V.ne[0], PIN_TS[4]], V.ne], startId: 'pin-R4', endId: 'via-ne' },
 ]
 
-export const botTraces: readonly Poly[] = [
-  [V.nw, [V.nw[0], V.se[1]], V.se],
-  [V.n, [V.n[0], V.ne[1]], V.ne],
-  [V.s, [V.s[0], V.sw[1]], V.sw],
+export const botRoutes: readonly TraceRoute[] = [
+  { poly: [V.nw, [V.nw[0], V.se[1]], V.se], startId: 'via-nw', endId: 'via-se' },
+  { poly: [V.n, [V.n[0], V.ne[1]], V.ne], startId: 'via-n', endId: 'via-ne' },
+  { poly: [V.s, [V.s[0], V.sw[1]], V.sw], startId: 'via-s', endId: 'via-sw' },
 ]
+
+export const topTraces: readonly Poly[] = topRoutes.map((t) => t.poly)
+export const botTraces: readonly Poly[] = botRoutes.map((t) => t.poly)
 
 export const loop: readonly PathNode[] = [
   { x: L(1)[0], z: L(1)[1], layer: 'chip' },
@@ -182,20 +191,24 @@ export type TraceEnd = {
   x: number
   z: number
   layer: 'top' | 'bot'
+  id: string
+}
+
+function pushRouteEnds(out: TraceEnd[], routes: readonly TraceRoute[], layer: 'top' | 'bot') {
+  for (const route of routes) {
+    const first = route.poly[0]
+    const last = route.poly[route.poly.length - 1]
+    out.push(
+      { x: first[0], z: first[1], layer, id: route.startId },
+      { x: last[0], z: last[1], layer, id: route.endId },
+    )
+  }
 }
 
 export function traceEnds(): TraceEnd[] {
   const out: TraceEnd[] = []
-  for (const poly of topTraces) {
-    const last = poly[poly.length - 1]
-    const first = poly[0]
-    out.push({ x: first[0], z: first[1], layer: 'top' }, { x: last[0], z: last[1], layer: 'top' })
-  }
-  for (const poly of botTraces) {
-    const last = poly[poly.length - 1]
-    const first = poly[0]
-    out.push({ x: first[0], z: first[1], layer: 'bot' }, { x: last[0], z: last[1], layer: 'bot' })
-  }
+  pushRouteEnds(out, topRoutes, 'top')
+  pushRouteEnds(out, botRoutes, 'bot')
   return out
 }
 
@@ -229,18 +242,35 @@ export function allAnchors(): Anchor[] {
   return out
 }
 
-export function nearestAnchor(x: number, z: number, layer: 'top' | 'bot', pool: readonly Anchor[]): Anchor {
-  let best = pool[0]
-  let bestD = Infinity
-  for (const a of pool) {
-    if (a.layer !== layer) continue
-    const d = (a.x - x) * (a.x - x) + (a.z - z) * (a.z - z)
-    if (d < bestD) {
-      bestD = d
-      best = a
-    }
-  }
-  return best
+export function anchorById(id: string, layer: 'top' | 'bot', pool: readonly Anchor[]): Anchor | undefined {
+  return pool.find((a) => a.id === id && a.layer === layer)
+}
+
+export function topFaceEdges(
+  w: number,
+  h: number,
+  d: number,
+  x: number,
+  y: number,
+  z: number,
+): [Pair3, Pair3][] {
+  const y1 = y + h / 2
+  const x0 = x - w / 2
+  const x1 = x + w / 2
+  const z0 = z - d / 2
+  const z1 = z + d / 2
+  const c: Pair3[] = [
+    [x0, y1, z0],
+    [x1, y1, z0],
+    [x1, y1, z1],
+    [x0, y1, z1],
+  ]
+  return [
+    [c[0], c[1]],
+    [c[1], c[2]],
+    [c[2], c[3]],
+    [c[3], c[0]],
+  ]
 }
 
 export function boxEdges(
