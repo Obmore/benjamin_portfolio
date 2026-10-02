@@ -79,7 +79,7 @@ async function assertHeroActionOrder(
   const order = actions.nth(2)
 
   await expect(work).toHaveText(labels.work)
-  await expect(work).toHaveAttribute('href', '#munkaim')
+  await expect(work).toHaveAttribute('href', '/#munkaim')
   await expect(cv).toContainText(labels.cv)
   await expect(cv).toHaveAttribute('href', new RegExp(`${cvFile}$`))
   await expect(cv).toHaveAttribute('download', cvFile)
