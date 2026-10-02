@@ -91,6 +91,41 @@ if (redirect && Buffer.byteLength(redirect, 'utf8') > 8 * 1024) {
   )
 }
 
+const mainHtmlPath = path.join(dist, 'index.html')
+const mainHtml = read(mainHtmlPath)
+if (mainHtml) {
+  const htmlDir = path.dirname(mainHtmlPath)
+  const entryFiles = new Set()
+  for (const match of mainHtml.matchAll(/<(?:script|link)\b[^>]*>/gi)) {
+    const tag = match[0]
+    const src = tag.match(/\bsrc="([^"]+)"/)?.[1]
+    const href = tag.match(/\bhref="([^"]+)"/)?.[1]
+    const rel = tag.match(/\brel="([^"]+)"/)?.[1]?.toLowerCase() ?? ''
+    const url = src ?? ((rel === 'stylesheet' || rel === 'modulepreload') ? href : null)
+    if (!url) continue
+    const clean = url.split('?')[0].split('#')[0]
+    const file = clean.startsWith('/') ? path.join(dist, clean.slice(1)) : path.join(htmlDir, clean)
+    if (fs.existsSync(file)) entryFiles.add(file)
+  }
+  const banned = [
+    'Ez az oldal nem található.',
+    'This page could not be found.',
+    'Vissza a főoldalra',
+    'Hiba 404',
+    'Tovább a megrendeléshez',
+  ]
+  for (const file of entryFiles) {
+    const text = fs.readFileSync(file, 'utf8')
+    for (const snippet of banned) {
+      if (text.includes(snippet)) {
+        errors.push(
+          `main entry ${path.relative(dist, file)} must not contain 404/redirect copy ${JSON.stringify(snippet)}`,
+        )
+      }
+    }
+  }
+}
+
 if (errors.length > 0) {
   console.error('Static pages check failed:\n')
   for (const error of errors) console.error(`- ${error}`)

@@ -94,22 +94,46 @@ test.describe('static GitHub Pages helpers', () => {
     expect(colors.scheme).toMatch(/light/)
   })
 
-  test('screenshots 390 and 1440', async ({ page }) => {
+  test('404 is readable at 360, 390 and 1440', async ({ page }) => {
     fs.mkdirSync(ARTIFACTS, { recursive: true })
     const shots = [
-      { width: 390, height: 844, name: '404_390x844.png' },
-      { width: 1440, height: 900, name: '404_1440x900.png' },
+      { width: 360, height: 800, name: '404_readable_360x800.png' },
+      { width: 390, height: 844, name: '404_merge_390x844.png' },
+      { width: 1440, height: 900, name: '404_merge_1440x900.png' },
     ] as const
 
     for (const shot of shots) {
       await page.setViewportSize({ width: shot.width, height: shot.height })
       const response = await page.goto('/nincs-ilyen', { waitUntil: 'networkidle' })
       expect(response?.status()).toBe(404)
+      await expect(page.locator('h1')).toBeVisible()
+      await expect(page.getByRole('link', { name: 'Vissza a főoldalra' })).toBeVisible()
+      const overflow = await page.evaluate(() => {
+        const root = document.documentElement
+        return { scrollWidth: root.scrollWidth, clientWidth: root.clientWidth }
+      })
+      expect(
+        overflow.scrollWidth,
+        `horizontal scroll at ${shot.width}`,
+      ).toBeLessThanOrEqual(overflow.clientWidth + 1)
       await page.screenshot({
         path: path.join(ARTIFACTS, shot.name),
         fullPage: true,
         animations: 'disabled',
       })
     }
+  })
+
+  test('screenshot /megrendelo landing on /megrendeles/', async ({ page }) => {
+    fs.mkdirSync(ARTIFACTS, { recursive: true })
+    await page.setViewportSize({ width: 1440, height: 900 })
+    const response = await page.goto('/megrendelo', { waitUntil: 'networkidle' })
+    expect(response?.status()).toBe(200)
+    await waitForOrder(page)
+    await page.screenshot({
+      path: path.join(ARTIFACTS, 'megrendelo_redirect_landing_1440.png'),
+      fullPage: true,
+      animations: 'disabled',
+    })
   })
 })
