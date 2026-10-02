@@ -510,7 +510,7 @@ test.describe('hero 3D K1', () => {
     test.setTimeout(120000)
     const collect = async (reduced: boolean, query: string) => {
       const samples: number[] = []
-      for (let i = 0; i < 3; i += 1) {
+      for (let i = 0; i < 5; i += 1) {
         const context = await browser.newContext({
           viewport: { width: 390, height: 844 },
           reducedMotion: reduced ? 'reduce' : 'no-preference',
@@ -532,6 +532,11 @@ test.describe('hero 3D K1', () => {
           }
         })
         await p.goto(`/${query}`, { waitUntil: 'domcontentloaded' })
+        await p.waitForFunction(() => (window as Window & { __lcp: number | null }).__lcp != null, null, {
+          timeout: 30000,
+        })
+        await p.waitForTimeout(400)
+        const lcp = await p.evaluate(() => (window as Window & { __lcp: number | null }).__lcp)
         if (!reduced) {
           await p.waitForFunction(
             () => document.querySelector('.hero-3d')?.classList.contains('is-ready'),
@@ -539,11 +544,6 @@ test.describe('hero 3D K1', () => {
             { timeout: 30000 },
           )
         }
-        await p.waitForTimeout(800)
-        const lcp = await p.evaluate(() => {
-          const w = window as Window & { __lcp: number | null; __lcpTag?: string }
-          return w.__lcp
-        })
         await context.close()
         if (lcp != null) samples.push(lcp)
       }
