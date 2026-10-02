@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -17,9 +18,12 @@ import {
   runLangCssFallback,
   startThemedViewTransition,
 } from '@/lib/motion'
+import { cancelPendingSnap } from '@/hooks/useActiveSection'
 
 const LOCALE_STORAGE_KEY = 'portfolio-locale'
 const HEADER_OFFSET_PX = 64
+
+type ViewportAnchor = { id: string; top: number }
 
 interface I18nContextValue {
   locale: Locale
@@ -50,25 +54,25 @@ function getInitialLocale(): Locale {
   return 'hu'
 }
 
-function captureVisibleSectionAnchor() {
-  const sections = document.querySelectorAll<HTMLElement>('main section[id]')
-  for (const section of sections) {
-    const rect = section.getBoundingClientRect()
-    if (rect.bottom > HEADER_OFFSET_PX && rect.top < window.innerHeight) {
-      return { id: section.id, top: rect.top }
-    }
+function captureViewportAnchor(): ViewportAnchor | null {
+  const x = Math.min(Math.max(24, window.innerWidth / 2), window.innerWidth - 24)
+  let probe = document.elementFromPoint(x, HEADER_OFFSET_PX + 2)
+  if (probe instanceof Element && probe.closest('header, .skip-link')) {
+    probe = document.elementFromPoint(x, HEADER_OFFSET_PX + 12)
   }
-  return null
+  if (!(probe instanceof Element)) return null
+  const section = probe.closest<HTMLElement>('main section[id]')
+  if (!section) return null
+  return { id: section.id, top: section.getBoundingClientRect().top }
 }
 
-function restoreSectionAnchor(anchor: { id: string; top: number } | null) {
+function restoreViewportAnchor(anchor: ViewportAnchor | null) {
   if (!anchor) return
-  const section = document.getElementById(anchor.id)
-  if (!section) return
-  const delta = section.getBoundingClientRect().top - anchor.top
-  if (Math.abs(delta) >= 1) {
-    window.scrollBy(0, delta)
-  }
+  const el = document.getElementById(anchor.id)
+  if (!el) return
+  const delta = el.getBoundingClientRect().top - anchor.top
+  if (Math.abs(delta) < 0.5) return
+  window.scrollTo({ top: window.scrollY + delta, behavior: 'instant' })
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
@@ -78,6 +82,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const busyRef = useRef(false)
   const localeRef = useRef(locale)
   const enContentRef = useRef(enContent)
+  const pendingAnchorRef = useRef<ViewportAnchor | null>(null)
   localeRef.current = locale
   enContentRef.current = enContent
 
@@ -115,14 +120,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
           })
         }
 
-        const anchor = captureVisibleSectionAnchor()
+        cancelPendingSnap()
+        const anchor = captureViewportAnchor()
+        pendingAnchorRef.current = anchor
         const swap = () => {
           document.documentElement.lang = next
           flushSync(() => {
             setLocaleState(next)
           })
           persistLocale(next)
-          restoreSectionAnchor(anchor)
         }
 
         if (prefersReducedMotion()) {
@@ -132,6 +138,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         } else {
           await runLangCssFallback(swap)
         }
+        restoreViewportAnchor(anchor)
       } finally {
         if (busyTimer !== undefined) window.clearTimeout(busyTimer)
         setLocaleLoading(false)
@@ -139,6 +146,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       }
     })()
   }, [persistLocale])
+
+  useLayoutEffect(() => {
+    document.documentElement.lang = locale
+    const anchor = pendingAnchorRef.current
+    if (!anchor) return
+    pendingAnchorRef.current = null
+    restoreViewportAnchor(anchor)
+  }, [locale])
 
   useEffect(() => {
     if (locale !== 'en') {

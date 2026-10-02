@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { SECTION_IDS } from '@/lib/constants'
 import { scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
-import { navigateTo } from '@/lib/anchors'
+import { goToPageTop, navigateTo } from '@/lib/anchors'
 import { LangToggle } from '@/components/ui/LangToggle'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { OrderLink } from '@/components/ui/OrderLink'
@@ -88,25 +88,35 @@ export function Navbar() {
     navigateTo(id)
   }
 
+  const handleNameClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    if (menuOpen) {
+      document.body.style.overflow = ''
+      setMenuOpen(false)
+    }
+    goToPageTop()
+  }
+
   return (
     <header
-      className={`site-header fixed inset-x-0 top-0 z-50 h-16 ${
+      className={`site-header fixed inset-x-0 top-0 z-50 overflow-visible ${
         scrolled
           ? 'border-b border-border/60 bg-background/80 backdrop-blur-xl'
           : 'bg-transparent'
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-6xl flex-nowrap items-center justify-between gap-3 px-5 md:px-8">
-        <button
-          type="button"
-          onClick={() => scrollToSection('hero', 'auto')}
-          className="font-mono text-sm font-semibold tracking-wide text-foreground"
+      <div className="mx-auto flex h-16 max-w-6xl flex-nowrap items-center justify-between gap-2 px-5 md:px-8">
+        <a
+          href="/"
+          aria-label={content.common.backToTop}
+          onClick={handleNameClick}
+          className="site-name inline-flex h-11 min-h-11 w-11 min-w-11 shrink-0 items-center font-mono text-sm font-semibold tracking-wide text-foreground"
         >
           OB<span className="text-accent">.</span>
-        </button>
+        </a>
 
         <nav
-          className="hidden flex-nowrap items-center gap-0.5 whitespace-nowrap lg:flex xl:gap-1"
+          className="hidden min-w-0 flex-nowrap items-center gap-0 whitespace-nowrap lg:flex xl:gap-1"
           aria-label={content.common.navMain}
         >
           {navItems.map((item) => (
@@ -114,7 +124,7 @@ export function Navbar() {
               key={item.id}
               type="button"
               onClick={() => handleNavClick(item.id)}
-              className={`shrink-0 rounded-lg px-2.5 py-2 text-sm xl:px-3 ${
+              className={`shrink-0 rounded-lg px-2 py-2 text-sm xl:px-3 ${
                 activeId === item.id
                   ? 'text-accent'
                   : 'text-muted hover:text-foreground'
@@ -127,7 +137,7 @@ export function Navbar() {
           <OrderLink className="nav-order-link shrink-0" />
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <ThemeToggle />
           <LangToggle />
           <button

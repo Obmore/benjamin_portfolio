@@ -19,12 +19,15 @@
     stroke-dashoffset: 0 !important;
   }
 
-  html.js .hero-name,
-  html.js .hero-headline,
-  html.js .hero-sub,
-  html.js .hero-btn,
-  html.js .hero-chips,
-  html.js .hero-titleblock-cell {
+  #hero h1,
+  #hero .hero-name,
+  #hero .hero-headline,
+  #hero .hero-sub,
+  #hero .hero-btn,
+  #hero .hero-chips,
+  #hero .hero-titleblock-cell {
+    animation: none !important;
+    transition: none !important;
     opacity: 1 !important;
     transform: none !important;
   }
@@ -107,6 +110,7 @@
 
 :root {
   color-scheme: light;
+  --header-h: 64px;
   --shadow-ink: 0 16px 40px color-mix(in srgb, var(--color-foreground) 12%, transparent);
   --shadow-card: 0 1px 2px color-mix(in srgb, var(--color-foreground) 12%, transparent);
   --color-domain: #475569;
@@ -115,18 +119,9 @@
   --motion-page: cubic-bezier(0.65, 0, 0.35, 1);
   --motion-micro: cubic-bezier(0.2, 0, 0, 1);
   --hero-keepout: 40px;
-  --hero-t-name: 320ms;
-  --hero-d-name: 0ms;
-  --hero-t-headline: 560ms;
-  --hero-d-headline: 80ms;
-  --hero-t-sub: 320ms;
-  --hero-d-sub: 300ms;
-  --hero-t-btn: 320ms;
-  --hero-d-btn1: 360ms;
-  --hero-d-btn2: 420ms;
-  --hero-d-btn3: 480ms;
-  --hero-t-chips: 200ms;
-  --hero-d-chips: 480ms;
+  --hero-d-first: 80ms;
+  --hero-stagger: 60ms;
+  --hero-t-entry: 320ms;
   --hero-t-line: 900ms;
   --hero-d-line: 150ms;
   --hero-t-cell: 200ms;
@@ -154,18 +149,6 @@ html[data-theme="dark"] {
 
 @media (max-width: 899px), (pointer: coarse) {
   :root {
-    --hero-t-name: 256ms;
-    --hero-d-name: 0ms;
-    --hero-t-headline: 448ms;
-    --hero-d-headline: 64ms;
-    --hero-t-sub: 256ms;
-    --hero-d-sub: 240ms;
-    --hero-t-btn: 256ms;
-    --hero-d-btn1: 288ms;
-    --hero-d-btn2: 336ms;
-    --hero-d-btn3: 384ms;
-    --hero-t-chips: 160ms;
-    --hero-d-chips: 384ms;
     --hero-t-line: 600ms;
     --hero-d-line: 120ms;
     --hero-t-cell: 160ms;
@@ -214,22 +197,17 @@ html.js [data-reveal]:not([data-revealed]) {
   transform: translateY(24px);
 }
 
+html.js [data-reveal][data-revealed="instant"] {
+  transition: none;
+  opacity: 1;
+  transform: none;
+}
+
 [data-reveal] {
   transition-property: opacity, transform;
   transition-duration: var(--reveal-duration, 0.55s);
   transition-timing-function: var(--motion-ink);
   transition-delay: var(--reveal-delay, 0s);
-}
-
-@keyframes fade-up-8 {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 @keyframes fade-up-16 {
@@ -334,6 +312,15 @@ html.js [data-reveal]:not([data-revealed]) {
   color: var(--color-foreground);
 }
 
+#hero h1,
+#hero h1 .hero-name,
+#hero h1 .hero-headline {
+  animation: none;
+  transition: none;
+  opacity: 1;
+  transform: none;
+}
+
 .hero-sub {
   margin-top: 16px;
   max-width: 56ch;
@@ -361,11 +348,17 @@ html.js [data-reveal]:not([data-revealed]) {
   border: 1px solid var(--color-accent);
   border-radius: 0.375rem;
   padding-block: 0.5rem;
-  padding-inline: 0.75rem;
+  padding-inline: 0.5rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
   color: var(--color-accent);
   text-decoration: none;
+}
+
+@media (min-width: 1280px) {
+  .nav-order-link {
+    padding-inline: 0.75rem;
+  }
 }
 
 .nav-order-link-mobile {
@@ -950,33 +943,59 @@ html.js.is-static-motion .munkaim-dimension-line {
   }
 }
 
+.hero-copy:has(.hero-actions > .hero-btn:nth-child(1):last-child) {
+  --hero-btn-count: 1;
+}
+
+.hero-copy:has(.hero-actions > .hero-btn:nth-child(2):last-child) {
+  --hero-btn-count: 2;
+}
+
+.hero-copy:has(.hero-actions > .hero-btn:nth-child(3):last-child) {
+  --hero-btn-count: 3;
+}
+
+.hero-copy:has(.hero-actions > .hero-btn:nth-child(4):last-child) {
+  --hero-btn-count: 4;
+}
+
+.hero-copy:has(.hero-actions > .hero-btn:nth-child(5):last-child) {
+  --hero-btn-count: 5;
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  html.js:not(.is-static-motion) .hero-name {
-    animation: fade-up-8 var(--hero-t-name) var(--motion-ink) var(--hero-d-name) both;
-  }
-
-  html.js:not(.is-static-motion) .hero-headline {
-    animation: fade-up-16 var(--hero-t-headline) var(--motion-pen) var(--hero-d-headline) both;
-  }
-
   html.js:not(.is-static-motion) .hero-sub {
-    animation: fade-up-16 var(--hero-t-sub) var(--motion-ink) var(--hero-d-sub) both;
+    animation: fade-up-16 var(--hero-t-entry) var(--motion-ink) var(--hero-d-first) both;
   }
 
-  html.js:not(.is-static-motion) .hero-btn-primary {
-    animation: fade-up-16 var(--hero-t-btn) var(--motion-ink) var(--hero-d-btn1) both;
+  html.js:not(.is-static-motion) .hero-actions .hero-btn {
+    animation: fade-up-16 var(--hero-t-entry) var(--motion-ink) both;
+    animation-delay: calc(var(--hero-d-first) + var(--hero-stagger) * var(--hero-btn-i, 1));
   }
 
-  html.js:not(.is-static-motion) .hero-btn-cv {
-    animation: fade-up-16 var(--hero-t-btn) var(--motion-ink) var(--hero-d-btn2) both;
+  html.js:not(.is-static-motion) .hero-actions .hero-btn:nth-child(1) {
+    --hero-btn-i: 1;
   }
 
-  html.js:not(.is-static-motion) .hero-btn-order {
-    animation: fade-up-16 var(--hero-t-btn) var(--motion-ink) var(--hero-d-btn3) both;
+  html.js:not(.is-static-motion) .hero-actions .hero-btn:nth-child(2) {
+    --hero-btn-i: 2;
+  }
+
+  html.js:not(.is-static-motion) .hero-actions .hero-btn:nth-child(3) {
+    --hero-btn-i: 3;
+  }
+
+  html.js:not(.is-static-motion) .hero-actions .hero-btn:nth-child(4) {
+    --hero-btn-i: 4;
+  }
+
+  html.js:not(.is-static-motion) .hero-actions .hero-btn:nth-child(5) {
+    --hero-btn-i: 5;
   }
 
   html.js:not(.is-static-motion) .hero-chips {
-    animation: fade-in var(--hero-t-chips) var(--motion-ink) var(--hero-d-chips) both;
+    animation: fade-up-16 var(--hero-t-entry) var(--motion-ink) both;
+    animation-delay: calc(var(--hero-d-first) + var(--hero-stagger) * (1 + var(--hero-btn-count, 3)));
   }
 
   html.js:not(.is-static-motion) .hero-signal {
@@ -1153,4 +1172,73 @@ main.is-lang-hold {
 
 main.is-lang-in {
   animation: fade-in 200ms var(--motion-ink);
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 60;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25;
+  text-decoration: none;
+  transform: translateY(-160%);
+  pointer-events: none;
+}
+
+.skip-link:focus {
+  transform: none;
+  pointer-events: auto;
+}
+
+html[data-theme="dark"] .skip-link {
+  color: #0b1a2e;
+}
+
+.site-header {
+  height: var(--header-h, 64px);
+}
+
+.site-name {
+  text-decoration: none;
+  white-space: nowrap;
+  transition-property: color;
+  transition-duration: 150ms;
+}
+
+.site-name:hover {
+  color: var(--color-accent);
+}
+
+.site-name:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+main:focus,
+main:focus-visible {
+  outline: none;
+}
+
+main:focus-visible::before {
+  content: "";
+  position: fixed;
+  top: var(--header-h, 64px);
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-accent);
+  z-index: 51;
+  pointer-events: none;
+}
+
+html:has(.mobile-nav.is-open) main:focus-visible::before {
+  content: none;
 }

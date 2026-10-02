@@ -38,7 +38,7 @@ export function Hero() {
             <p className="hero-sub">{content.hero.subheadline}</p>
             <div className="hero-actions">
               <Button
-                href={`#${SECTION_IDS.projects}`}
+                href={`/#${SECTION_IDS.projects}`}
                 className="hero-btn hero-btn-primary"
                 onClick={onWorkClick}
               >

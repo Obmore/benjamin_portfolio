@@ -234,10 +234,12 @@ test.describe('homepage /megrendeles/ entry points', () => {
     )
   })
 
-  test('desktop nav stays on one line at 1024 and 1440', async ({ page }) => {
-    for (const width of [1024, 1440]) {
+  test('desktop nav stays on one line at 1025–1280 and 1440', async ({ page }) => {
+    for (const width of [1025, 1100, 1280, 1440]) {
       await page.setViewportSize({ width, height: 800 })
       await gotoHome(page)
+      const headerBox = await page.locator('header.site-header').boundingBox()
+      expect(headerBox?.height ?? 0, `header height ${width}`).toBe(64)
       const nav = page.getByRole('navigation', { name: 'Fő navigáció' })
       await expect(nav).toBeVisible()
       const count = await nav.locator('button, a').count()

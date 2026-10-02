@@ -265,5 +265,7 @@ export const contentEn: SiteContent = {
     orderLink: 'Order',
     navMain: 'Main navigation',
     navMobile: 'Mobile navigation',
+    skipToContent: 'Skip to content',
+    backToTop: 'OB. – Ott Benjámin, back to top',
   },
 }
