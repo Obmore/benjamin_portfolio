@@ -223,8 +223,10 @@ async function mainRect(page: Page) {
 
 async function focusMainViaSkip(page: Page) {
   await page.evaluate(() => {
-    const active = document.activeElement
-    if (active instanceof HTMLElement) active.blur()
+    const root = document.documentElement
+    root.tabIndex = -1
+    root.focus({ preventScroll: true })
+    root.removeAttribute('tabindex')
   })
   await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Ugrás a tartalomra' })).toBeFocused()
