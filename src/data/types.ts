@@ -112,5 +112,7 @@ export interface SiteContent {
     orderLink: string
     navMain: string
     navMobile: string
+    skipToContent: string
+    backToTop: string
   }
 }

@@ -1,4 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import {
+  FORBIDDEN_HASH_IDS,
+  isHashTargetInView,
+  rawLocationHash,
+  replaceLocationHash,
+} from '@/lib/hash'
+import { prefersReducedMotion } from '@/lib/motion'
 
 const HEADER_OFFSET_PX = 64
 
@@ -15,6 +22,7 @@ function useSectionSpy(
   factor: number,
   fallback: string,
   toDomId: (id: string) => string,
+  syncHash = false,
 ) {
   const [activeId, setActiveId] = useState(fallback)
   const idsKey = ids.join(',')
@@ -39,7 +47,18 @@ function useSectionSpy(
       pageHeight = document.documentElement.scrollHeight
     }
 
-    const pick = () => {
+    const syncUrlHash = (next: string) => {
+      if (!syncHash || pendingSnap) return
+      const raw = rawLocationHash()
+      if (window.location.hash === '#' || FORBIDDEN_HASH_IDS.has(raw)) {
+        replaceLocationHash(null)
+        return
+      }
+      if (raw && isHashTargetInView(raw, HEADER_OFFSET_PX)) return
+      replaceLocationHash(next || null)
+    }
+
+    const pick = (fromScroll = false) => {
       const y = window.scrollY
       const vh = window.innerHeight
       let next = fallbackRef.current
@@ -55,23 +74,24 @@ function useSectionSpy(
         last = next
         setActiveId(next)
       }
+      if (fromScroll) syncUrlHash(next)
     }
 
     const onScroll = () => {
       if (frame) return
       frame = window.requestAnimationFrame(() => {
         frame = 0
-        pick()
+        pick(true)
       })
     }
 
     const onResize = () => {
       recache()
-      pick()
+      pick(false)
     }
 
     recache()
-    pick()
+    pick(false)
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize)
     const observer = new ResizeObserver(onResize)
@@ -83,29 +103,21 @@ function useSectionSpy(
       observer.disconnect()
       if (frame) window.cancelAnimationFrame(frame)
     }
-  }, [factor, idsKey, toDomId])
+  }, [factor, idsKey, syncHash, toDomId])
 
   return activeId
 }
 
 export function useActiveSection(sectionIds: string[]) {
-  return useSectionSpy(sectionIds, 0.35, '', identityId)
+  return useSectionSpy(sectionIds, 0.35, '', identityId, true)
 }
 
 export function useWorkIndex(ids: string[]) {
   return useSectionSpy(ids, 0.5, ids[0] ?? '', workDomId)
 }
 
-function prefersReducedMotion() {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
-
 function sectionOffsetPx(element: Element) {
   return Number.parseFloat(getComputedStyle(element).scrollMarginTop) || 0
-}
-
-function supportsScrollEnd() {
-  return 'onscrollend' in window
 }
 
 let pendingSnap: {
@@ -126,11 +138,13 @@ function clearPendingSnap() {
 
 function alignToSection(element: HTMLElement) {
   const root = document.documentElement
-  root.style.scrollBehavior = 'auto'
 
   const apply = () => {
+    const prev = root.style.scrollBehavior
+    root.style.scrollBehavior = 'auto'
     const delta = element.getBoundingClientRect().top - sectionOffsetPx(element)
     if (Math.abs(delta) > 2) root.scrollTop += delta
+    root.style.scrollBehavior = prev
   }
 
   apply()
@@ -147,49 +161,47 @@ function alignToSection(element: HTMLElement) {
   requestAnimationFrame(retry)
 }
 
+export function cancelPendingSnap() {
+  clearPendingSnap()
+}
+
 export function scrollToSection(id: string, behavior?: ScrollBehavior) {
   const element = document.getElementById(id)
   if (!element) return
 
-  const prevBehavior = pendingSnap?.prevBehavior ?? ''
+  const prevBehavior = pendingSnap?.prevBehavior ?? document.documentElement.style.scrollBehavior
   clearPendingSnap()
 
   const instant = (behavior ?? (prefersReducedMotion() ? 'auto' : 'smooth')) === 'auto'
   const offset = sectionOffsetPx(element)
-  const top = Math.max(0, window.scrollY + element.getBoundingClientRect().top - offset)
+  const delta = element.getBoundingClientRect().top - offset
+  const top = Math.max(0, window.scrollY + delta)
   const root = document.documentElement
-  const hasEnd = supportsScrollEnd()
   let lastY = window.scrollY
-  let ended = false
 
-  const quietThenDone = () => {
+  const finish = () => {
     if (!pendingSnap) return
-    window.clearTimeout(pendingSnap.stillTimer)
-    lastY = window.scrollY
-    pendingSnap.stillTimer = window.setTimeout(() => {
-      if (Math.abs(window.scrollY - lastY) > 1) return
-      alignToSection(element)
-      clearPendingSnap()
-    }, 150)
+    alignToSection(element)
+    clearPendingSnap()
+  }
+
+  if (Math.abs(delta) <= 1) {
+    alignToSection(element)
+    return
   }
 
   const onEnd = () => {
-    ended = true
-    alignToSection(element)
-    quietThenDone()
+    finish()
   }
 
   const onScroll = () => {
     lastY = window.scrollY
     if (!pendingSnap) return
-    if (!hasEnd) {
-      window.clearTimeout(pendingSnap.stillTimer)
-      pendingSnap.stillTimer = window.setTimeout(() => {
-        if (window.scrollY === lastY) onEnd()
-      }, 150)
-      return
-    }
-    if (ended) quietThenDone()
+    window.clearTimeout(pendingSnap.stillTimer)
+    pendingSnap.stillTimer = window.setTimeout(() => {
+      if (!pendingSnap) return
+      if (Math.abs(window.scrollY - lastY) <= 1) onEnd()
+    }, 150)
   }
 
   window.addEventListener('scrollend', onEnd)
@@ -203,9 +215,8 @@ export function scrollToSection(id: string, behavior?: ScrollBehavior) {
     window.scrollTo({ top, behavior: 'smooth' })
   }
 
-  if (!hasEnd) {
-    pendingSnap.stillTimer = window.setTimeout(() => {
-      if (pendingSnap && window.scrollY === lastY) onEnd()
-    }, 150)
-  }
+  lastY = window.scrollY
+  pendingSnap.stillTimer = window.setTimeout(() => {
+    if (pendingSnap) onEnd()
+  }, 150)
 }

@@ -24,6 +24,7 @@ export function useRevealOnce<T extends Element = HTMLElement>() {
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    if (element.hasAttribute('data-revealed')) return
 
     const obs = getObserver()
     obs.observe(element)
