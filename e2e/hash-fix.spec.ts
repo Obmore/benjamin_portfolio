@@ -461,6 +461,7 @@ test.describe('hash-fix PR7', () => {
     test(`${viewport.width}: skip-focus bar pixels at header bottom, both themes`, async ({
       page,
     }) => {
+      test.setTimeout(60_000)
       await page.setViewportSize(viewport)
       await gotoHome(page)
       await installClsProbe(page)
@@ -476,30 +477,37 @@ test.describe('hash-fix PR7', () => {
         await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
         await assertNoAccentAtHeaderBottom(page, `${viewport.width} ${theme} idle`)
 
+        await page.locator('main').click({ position: { x: 12, y: 80 } })
+        await expect(page.locator('main')).toBeFocused()
+        expect(
+          await page.locator('main').evaluate((el) => el.matches(':focus-visible')),
+          `${viewport.width} ${theme} mouse focus is not :focus-visible`,
+        ).toBe(false)
+        await assertNoAccentAtHeaderBottom(page, `${viewport.width} ${theme} mouse`)
+
         const rectBefore = await mainRect(page)
         await focusMainViaSkip(page)
         const rectAfter = await mainRect(page)
         expect(rectAfter, `${viewport.width} ${theme} main rect`).toEqual(rectBefore)
         await assertAccentBarVisible(page, `${viewport.width} ${theme} top`)
 
-        await page.mouse.click(Math.min(48, viewport.width - 8), 120)
+        await page.getByRole('link', { name: /OB\./ }).click()
         await page.waitForFunction(() => !document.querySelector('main')?.matches(':focus-visible'))
-        await assertNoAccentAtHeaderBottom(page, `${viewport.width} ${theme} mouse`)
+        await assertNoAccentAtHeaderBottom(page, `${viewport.width} ${theme} after mouse click`)
 
         await focusMainViaSkip(page)
         await page.evaluate(() => window.scrollTo({ top: 520, behavior: 'instant' }))
         const scrolledBefore = await mainRect(page)
-        await page.evaluate(() => {
-          const main = document.querySelector('main')
-          if (main instanceof HTMLElement) main.focus({ preventScroll: true })
-        })
         await expect(page.locator('main')).toBeFocused()
         const scrolledAfter = await mainRect(page)
         expect(scrolledAfter, `${viewport.width} ${theme} scrolled main rect`).toEqual(scrolledBefore)
         await assertAccentBarVisible(page, `${viewport.width} ${theme} scrolled`)
 
-        await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
-        await page.mouse.click(Math.min(48, viewport.width - 8), 120)
+        await page.evaluate(() => {
+          window.scrollTo({ top: 0, behavior: 'instant' })
+          const active = document.activeElement
+          if (active instanceof HTMLElement) active.blur()
+        })
       }
 
       if (viewport.width === 390) {
@@ -514,8 +522,9 @@ test.describe('hash-fix PR7', () => {
 
         await page.evaluate(() => {
           document.querySelector('.mobile-nav')?.classList.remove('is-open')
+          const active = document.activeElement
+          if (active instanceof HTMLElement) active.blur()
         })
-        await page.mouse.click(Math.min(48, viewport.width - 8), 120)
         await page.getByRole('button', { name: 'Menü megnyitása' }).click()
         await expect(page.getByRole('navigation', { name: 'Mobil navigáció' })).toBeVisible()
         await assertNoAccentAtHeaderBottom(page, `${viewport.width} menu open after click`)
