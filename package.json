@@ -18,20 +18,22 @@
     "check": "npm run lint && npm run build && npm run check:size && npm run check:motion && npm run check:cv && npm run check:megrendeles"
   },
   "dependencies": {
+    "gsap": "^3.15.0",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "three": "^0.186.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
     "@capsizecss/metrics": "^4.3.0",
     "@fontsource/dm-sans": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
+    "@playwright/test": "^1.55.1",
     "@tailwindcss/vite": "^4.1.17",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
-    "@axe-core/playwright": "^4.11.0",
-    "@playwright/test": "^1.55.1",
     "gh-pages": "^6.3.0",
     "oxlint": "^1.71.0",
     "tailwindcss": "^4.1.17",

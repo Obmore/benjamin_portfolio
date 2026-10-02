@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react'
+import { useEffect } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { SECTION_SHEETS } from '@/lib/constants'
+import { HeroK1Poster } from './HeroK1Poster'
 
 const DRAWING_SUBJECT = {
   hu: 'Villamosmérnök és szoftverfejlesztő',
@@ -18,40 +20,20 @@ export function HeroVisual() {
     { label: 'LAP', value: SECTION_SHEETS.hero },
   ]
 
+  useEffect(() => {
+    let stop = () => {}
+    void import('@/lib/hero3d-boot').then((mod) => {
+      stop = mod.bootHero3d()
+    })
+    return () => stop()
+  }, [])
+
   return (
-    <figure className="hero-figure" data-hero-figure aria-hidden="true">
+    <figure className="hero-figure hero-visual" data-hero-figure aria-hidden="true">
       <div className="hero-figure-inner" data-hero-figure-inner>
-        <svg className="hero-circuit" viewBox="0 0 240 240" focusable="false">
-          <g
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="28" cy="48" r="7" vectorEffect="non-scaling-stroke" />
-            <circle cx="28" cy="48" r="2.5" fill="currentColor" stroke="none" />
-            <path d="M35 48 H78" vectorEffect="non-scaling-stroke" />
-            <path
-              d="M78 48 l10 -12 l14 24 l14 -24 l14 24 l14 -24 l10 12"
-              vectorEffect="non-scaling-stroke"
-            />
-            <path
-              className="hero-signal"
-              pathLength="1"
-              d="M154 48 H196 V112 H88 V168"
-              vectorEffect="non-scaling-stroke"
-            />
-            <path
-              d="M72 168 C60 168 60 192 72 192 C60 192 60 216 72 216"
-              vectorEffect="non-scaling-stroke"
-            />
-            <path
-              d="M104 168 C116 168 116 192 104 192 C116 192 116 216 104 216"
-              vectorEffect="non-scaling-stroke"
-            />
-          </g>
-        </svg>
+        <div className="hero-3d">
+          <HeroK1Poster />
+        </div>
         <dl className="hero-titleblock">
           {cells.map((cell, index) => (
             <div

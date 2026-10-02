@@ -30,10 +30,25 @@ export default defineConfig({
     },
   },
   build: {
+    modulePreload: {
+      polyfill: false,
+      resolveDependencies(_filename, deps) {
+        return deps.filter((dep) => !/(?:^|\/)(?:three|gsap)/.test(dep))
+      },
+    },
     rollupOptions: {
       input: {
         main: path.resolve(root, 'index.html'),
         megrendeles: path.resolve(root, 'megrendeles/index.html'),
+      },
+      output: {
+        manualChunks(id) {
+          const n = id.replaceAll('\\', '/')
+          if (n.includes('node_modules/three')) return 'three'
+          if (n.includes('node_modules/gsap')) return 'gsap'
+          if (n.includes('/src/three/')) return 'three-hero'
+          return undefined
+        },
       },
     },
   },
