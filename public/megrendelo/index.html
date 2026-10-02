@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <meta name="robots" content="noindex" />
+    <meta http-equiv="refresh" content="0; url=/megrendeles/" />
+    <link rel="canonical" href="https://ottbenjamin.hu/megrendeles/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Átirányítás a megrendeléshez</title>
+    <script>
+      location.replace('/megrendeles/' + location.search + location.hash)
+    </script>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: light;
+        }
+      }
+      html,
+      body {
+        margin: 0;
+        background: #fafbfc;
+        color: #0f172a;
+        font-family: "DM Sans", Arial, ui-sans-serif, system-ui, sans-serif;
+      }
+      main {
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      a {
+        color: #1e3a5f;
+        font-size: 1.125rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p><a href="/megrendeles/">Tovább a megrendeléshez</a></p>
+    </main>
+  </body>
+</html>
