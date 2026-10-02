@@ -161,6 +161,10 @@ function alignToSection(element: HTMLElement) {
   requestAnimationFrame(retry)
 }
 
+export function cancelPendingSnap() {
+  clearPendingSnap()
+}
+
 export function scrollToSection(id: string, behavior?: ScrollBehavior) {
   const element = document.getElementById(id)
   if (!element) return

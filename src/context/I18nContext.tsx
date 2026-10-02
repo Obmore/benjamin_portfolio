@@ -18,6 +18,7 @@ import {
   runLangCssFallback,
   startThemedViewTransition,
 } from '@/lib/motion'
+import { cancelPendingSnap } from '@/hooks/useActiveSection'
 
 const LOCALE_STORAGE_KEY = 'portfolio-locale'
 const HEADER_OFFSET_PX = 64
@@ -119,6 +120,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
           })
         }
 
+        cancelPendingSnap()
         const anchor = captureViewportAnchor()
         pendingAnchorRef.current = anchor
         const swap = () => {

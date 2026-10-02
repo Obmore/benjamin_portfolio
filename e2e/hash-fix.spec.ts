@@ -101,6 +101,12 @@ async function waitLangSettled(page: Page, lang: 'en' | 'hu') {
     },
     lang,
   )
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      }),
+  )
 }
 
 test.describe('hash-fix PR7', () => {
@@ -518,6 +524,7 @@ test.describe('hash-fix PR7', () => {
         if (viewport.width < 1024) await clickMobileNav(page, id === 'tapasztalat' ? 'Tapasztalat' : 'Kompetenciák')
         else await clickDesktopNav(page, id === 'tapasztalat' ? 'Tapasztalat' : 'Kompetenciák')
         await waitAligned(page, id)
+        await page.waitForTimeout(250)
         await page.evaluate(() => {
           window.scrollBy({ top: 280, behavior: 'instant' })
         })
