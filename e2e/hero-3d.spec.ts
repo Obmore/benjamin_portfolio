@@ -291,7 +291,7 @@ test.describe('hero 3D K1', () => {
       const canvas = document.querySelector('.hero-3d canvas')
       return {
         canvas: Boolean(canvas),
-        swapping: box?.classList.contains('is-swapping-back') ?? false,
+        swapping: box?.classList.contains('is-back') ?? false,
         pose: poster?.getAttribute('data-pose'),
         hostVis: host ? getComputedStyle(host).visibility : null,
         posterVis: poster ? getComputedStyle(poster).visibility : null,

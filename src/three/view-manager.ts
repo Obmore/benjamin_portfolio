@@ -255,8 +255,13 @@ function clearSwapTimer() {
 function showPosterImmediate() {
   if (!boxEl) return
   clearSwapTimer()
-  boxEl.classList.add('is-poster-snap')
-  boxEl.classList.remove('is-ready', 'is-swapped', 'is-swapping-back')
+  const host = posterHost()
+  if (host) {
+    host.style.transitionDuration = '0ms'
+    host.style.visibility = 'visible'
+    host.style.opacity = '1'
+  }
+  boxEl.classList.remove('is-ready', 'is-swapped', 'is-back')
   swapped = false
 }
 
@@ -298,7 +303,13 @@ function startPosterSwap() {
     finish()
   }
   canvas.addEventListener('transitionend', onEnd)
-  boxEl.classList.remove('is-poster-snap', 'is-swapping-back', 'is-swapped')
+  const host = posterHost()
+  if (host) {
+    host.style.transitionDuration = ''
+    host.style.visibility = ''
+    host.style.opacity = ''
+  }
+  boxEl.classList.remove('is-back', 'is-swapped')
   boxEl.classList.add('is-ready')
   swapTimer = window.setTimeout(finish, SWAP_MS + 120)
 }
@@ -331,7 +342,7 @@ function swapBackPoster(animated: boolean, after: () => void) {
   }
   host?.addEventListener('transitionend', onEnd)
   boxEl.classList.remove('is-swapped')
-  boxEl.classList.add('is-swapping-back')
+  boxEl.classList.add('is-back')
   swapTimer = window.setTimeout(finish, SWAP_MS + 120)
 }
 
