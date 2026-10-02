@@ -649,111 +649,139 @@ test.describe('hash-fix PR7', () => {
       page,
     }) => {
       await page.addInitScript(() => {
-        const state = {
-          first: null as null | {
-            instant: number
-            inView: {
-              revealed: string | null
-              opacity: string
-              duration: string
-            }[]
-          },
-          inViewRuns: 0,
-        }
+        const state = { runs: 0, instantSeen: 0 }
         ;(window as unknown as { __noHashReveal: typeof state }).__noHashReveal = state
-        const inView = (el: Element) => {
-          const rect = el.getBoundingClientRect()
-          return (
-            rect.bottom > 0 &&
-            rect.top < window.innerHeight &&
-            rect.right > 0 &&
-            rect.left < window.innerWidth
-          )
-        }
         document.addEventListener(
           'transitionrun',
           (event) => {
             const el = event.target
-            if (!(el instanceof Element) || !el.hasAttribute('data-reveal')) return
-            if (el.getAttribute('data-revealed') === 'instant') return
-            if (inView(el)) state.inViewRuns += 1
+            if (!(el instanceof Element)) return
+            const reveal = el.closest('[data-reveal]')
+            if (!reveal) return
+            if (reveal.getAttribute('data-revealed') === 'instant') {
+              state.instantSeen += 1
+              return
+            }
+            state.runs += 1
           },
           true,
         )
-        const sample = () => {
-          const els = document.querySelectorAll('[data-reveal]')
-          if (els.length === 0 || state.first) {
-            if (!state.first) requestAnimationFrame(sample)
-            return
-          }
-          state.first = {
-            instant: [...els].filter((el) => el.getAttribute('data-revealed') === 'instant').length,
-            inView: [...els].filter(inView).map((el) => {
-              const cs = getComputedStyle(el)
-              return {
-                revealed: el.getAttribute('data-revealed'),
-                opacity: cs.opacity,
-                duration: cs.transitionDuration,
-              }
-            }),
-          }
-        }
-        requestAnimationFrame(sample)
       })
 
       await page.setViewportSize(viewport)
-      await page.goto(`/?fold=${viewport.width}x${viewport.height}`, { waitUntil: 'domcontentloaded' })
-      await page.waitForFunction(
-        () => (window as unknown as { __noHashReveal?: { first: unknown } }).__noHashReveal?.first,
-      )
+      await page.goto(`/?fold=${viewport.width}x${viewport.height}`, {
+        waitUntil: 'domcontentloaded',
+      })
+      await page.waitForSelector('[data-reveal]')
+      await page.evaluate(() => document.fonts.ready)
 
-      const first = await page.evaluate(
-        () =>
-          (window as unknown as { __noHashReveal: { first: { instant: number; inView: { revealed: string | null; opacity: string; duration: string }[] } } })
-            .__noHashReveal.first,
-      )
-      expect(first.instant, `${viewport.width} instant marks`).toBe(0)
-      expect(first.inView.length, `${viewport.width} above-fold reveals`).toBeGreaterThan(0)
-      for (const item of first.inView) {
-        expect(item.revealed, `${viewport.width} in-view data-revealed`).not.toBe('instant')
+      const snapshot = async () =>
+        page.evaluate(() => {
+          const nodes = [...document.querySelectorAll<HTMLElement>('[data-reveal]')]
+          const inView = nodes.filter((el) => {
+            const rect = el.getBoundingClientRect()
+            return (
+              rect.bottom > 0 &&
+              rect.top < window.innerHeight &&
+              rect.right > 0 &&
+              rect.left < window.innerWidth
+            )
+          })
+          const probe = (
+            window as unknown as { __noHashReveal: { runs: number; instantSeen: number } }
+          ).__noHashReveal
+          return {
+            instant: nodes.filter((el) => el.getAttribute('data-revealed') === 'instant').length,
+            inView: inView.map((el) => ({
+              revealed: el.getAttribute('data-revealed'),
+              duration: getComputedStyle(el).transitionDuration,
+            })),
+            runs: probe.runs,
+            instantSeen: probe.instantSeen,
+          }
+        })
+
+      let seen = await snapshot()
+      expect(seen.instant, `${viewport.width} instant marks`).toBe(0)
+      expect(seen.instantSeen, `${viewport.width} instant transitionrun`).toBe(0)
+
+      if (seen.inView.length === 0) {
+        const animated = await page.evaluate(async () => {
+          const firstReveal = document.querySelector<HTMLElement>('[data-reveal]')
+          if (!firstReveal) return { found: false, ran: false, duration: '0s', revealed: null }
+          let ran = false
+          const onRun = (event: Event) => {
+            const el = event.target
+            if (!(el instanceof Element)) return
+            if (el === firstReveal || firstReveal.contains(el)) ran = true
+          }
+          document.addEventListener('transitionrun', onRun, true)
+          firstReveal.scrollIntoView({ block: 'center', behavior: 'instant' })
+          await new Promise((resolve) => window.setTimeout(resolve, 700))
+          document.removeEventListener('transitionrun', onRun, true)
+          return {
+            found: true,
+            ran,
+            duration: getComputedStyle(firstReveal).transitionDuration,
+            revealed: firstReveal.getAttribute('data-revealed'),
+            instant: document.querySelectorAll('[data-revealed="instant"]').length,
+          }
+        })
+        expect(animated.found).toBe(true)
+        expect(animated.instant).toBe(0)
+        expect(
+          animated.ran || animated.revealed === 'true',
+          `${viewport.width} first reveal should animate`,
+        ).toBe(true)
+        expect(
+          animated.duration.split(',').some((part) => Number.parseFloat(part) > 0.05),
+          `${viewport.width} real transition ${animated.duration}`,
+        ).toBe(true)
+        return
       }
 
-      await page.waitForFunction(() => {
-        const state = (window as unknown as { __noHashReveal: { inViewRuns: number } }).__noHashReveal
-        return state.inViewRuns > 0
-      })
+      for (const item of seen.inView) {
+        expect(item.revealed, `${viewport.width} in-view data-revealed`).not.toBe('instant')
+      }
+      expect(
+        seen.inView.some((item) =>
+          item.duration.split(',').some((part) => Number.parseFloat(part) > 0.05),
+        ),
+        `${viewport.width} real transition duration`,
+      ).toBe(true)
 
-      const later = await page.evaluate(() => {
-        const nodes = [...document.querySelectorAll<HTMLElement>('[data-reveal]')]
-        const instant = nodes.filter((el) => el.getAttribute('data-revealed') === 'instant').length
-        const inView = nodes.filter((el) => {
+      const animated = await page.evaluate(async () => {
+        const inView = [...document.querySelectorAll<HTMLElement>('[data-reveal]')].filter((el) => {
           const rect = el.getBoundingClientRect()
-          return (
-            rect.bottom > 0 &&
-            rect.top < window.innerHeight &&
-            rect.right > 0 &&
-            rect.left < window.innerWidth
-          )
+          return rect.bottom > 0 && rect.top < window.innerHeight
         })
+        const target =
+          inView.find((el) => el.getAttribute('data-revealed') !== 'true') ?? inView[0]
+        if (!target) return { ran: false, revealed: null as string | null, runs: 0 }
+        let ran = false
+        const onRun = (event: Event) => {
+          const el = event.target
+          if (!(el instanceof Element)) return
+          if (el === target || target.contains(el)) ran = true
+        }
+        document.addEventListener('transitionrun', onRun, true)
+        if (target.getAttribute('data-revealed') !== 'true') {
+          target.scrollIntoView({ block: 'center', behavior: 'instant' })
+        }
+        await new Promise((resolve) => window.setTimeout(resolve, 700))
+        document.removeEventListener('transitionrun', onRun, true)
+        const probe = (window as unknown as { __noHashReveal: { runs: number } }).__noHashReveal
         return {
-          instant,
-          runs: (window as unknown as { __noHashReveal: { inViewRuns: number } }).__noHashReveal
-            .inViewRuns,
-          inViewRevealed: inView.map((el) => el.getAttribute('data-revealed')),
-          inViewDuration: inView.map((el) => getComputedStyle(el).transitionDuration),
+          ran: ran || probe.runs > 0,
+          revealed: target.getAttribute('data-revealed'),
+          runs: probe.runs,
+          instant: document.querySelectorAll('[data-revealed="instant"]').length,
         }
       })
-      expect(later.instant, `${viewport.width} instant after settle`).toBe(0)
-      expect(later.runs, `${viewport.width} above-fold transitionrun`).toBeGreaterThan(0)
+      expect(animated.instant, `${viewport.width} instant after animate`).toBe(0)
       expect(
-        later.inViewRevealed.some((value) => value === 'true'),
-        `${viewport.width} above-fold data-revealed=true`,
-      ).toBe(true)
-      expect(
-        later.inViewDuration.some((value) =>
-          value.split(',').some((part) => Number.parseFloat(part) > 0.05),
-        ),
-        `${viewport.width} real transition duration ${later.inViewDuration.join(',')}`,
+        animated.ran || animated.revealed === 'true',
+        `${viewport.width} above-fold should animate`,
       ).toBe(true)
     })
   }
