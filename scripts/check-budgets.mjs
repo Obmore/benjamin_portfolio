@@ -249,7 +249,11 @@ for (const file of main.entryJs) {
     console.error(`\nEntry chunk contains gsap: ${path.relative(dist, file)}`)
     failed = true
   }
-  if (text.includes('data-pose') || text.includes('M90.8,80.4') || text.includes('viewBox="0 0 320 240"')) {
+  if (
+    text.includes('data-pose') ||
+    text.includes('preserveAspectRatio="xMidYMid meet"') ||
+    text.includes('viewBox="0 0 320 240"')
+  ) {
     console.error(`\nEntry chunk contains poster SVG or QA pose attrs: ${path.relative(dist, file)}`)
     failed = true
   }

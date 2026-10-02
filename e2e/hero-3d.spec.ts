@@ -72,6 +72,7 @@ test.describe('hero 3D K1', () => {
     await page.waitForTimeout(2500)
     await expect(page.locator('.hero-3d canvas')).toHaveCount(0)
     await expect(page.locator('.hero-3d-poster')).toBeVisible()
+    await expect(page.locator('.hero-3d-poster')).toHaveAttribute('data-pose', '100')
     const tier = await page.locator('.hero-3d').getAttribute('data-hero3d-tier')
     expect(tier).toBe('static')
     const hook = await page.evaluate(() => Boolean((window as Window & { __hero3d?: unknown }).__hero3d))
@@ -133,7 +134,7 @@ test.describe('hero 3D K1', () => {
       await expect(page.locator('.hero-3d-poster')).toHaveAttribute('data-pose', '100')
       await expect(page.locator('.hero-3d canvas')).toHaveAttribute('data-pose', '0')
 
-      type End = { x: number; y: number; ax: number; ay: number }
+      type End = { x: number; y: number; ax: number; ay: number; id: string; kind: string }
       const read = (progress: number) =>
         page.evaluate((p) => {
           const hook = (
@@ -159,13 +160,192 @@ test.describe('hero 3D K1', () => {
       expect(at50?.n).toBe(at0?.n)
       expect(at100?.n).toBe(at0?.n)
       expect(at0?.sample).toEqual(
-        expect.objectContaining({ x: expect.any(Number), y: expect.any(Number), ax: expect.any(Number), ay: expect.any(Number) }),
+        expect.objectContaining({
+          x: expect.any(Number),
+          y: expect.any(Number),
+          ax: expect.any(Number),
+          ay: expect.any(Number),
+          id: expect.any(String),
+          kind: expect.stringMatching(/^(pad|via|pin)$/),
+        }),
       )
       expect(at100?.progress).toBeCloseTo(1, 5)
       for (const end of at100?.ends ?? []) {
+        expect(end.id.length).toBeGreaterThan(0)
+        expect(['pad', 'via', 'pin']).toContain(end.kind)
         expect(Math.abs(end.x - end.ax)).toBeLessThanOrEqual(1)
         expect(Math.abs(end.y - end.ay)).toBeLessThanOrEqual(1)
       }
     })
   }
+
+  test('poster data-pose is a literal on the cloned SVG', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await gotoHome(page)
+    await expect(page.locator('.hero-3d-poster')).toHaveAttribute('data-pose', '100')
+  })
+
+  test('watchdog does not trip on the first frame after a scroll pause', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.addInitScript(() => {
+      try {
+        sessionStorage.removeItem('ob-3d-off')
+      } catch {
+        /* ignore */
+      }
+    })
+    await gotoHome(page, '?qa3d=1')
+    await page.waitForFunction(
+      () => {
+        const box = document.querySelector('.hero-3d')
+        const hook = (window as Window & { __hero3d?: { seek?: (p: number) => void } }).__hero3d
+        return Boolean(box?.classList.contains('is-ready') && hook?.seek)
+      },
+      null,
+      { timeout: 20000 },
+    )
+    await page.waitForTimeout(1300)
+    await page.evaluate(() => {
+      document.documentElement.style.scrollBehavior = 'auto'
+    })
+    for (const y of [40, 80, 120, 160, 200, 80, 0]) {
+      await page.evaluate((top) => window.scrollTo(0, top), y)
+      await page.waitForTimeout(80)
+    }
+    const state = await page.evaluate(() => {
+      const box = document.querySelector('.hero-3d')
+      return {
+        flag: sessionStorage.getItem('ob-3d-off'),
+        tier: box?.getAttribute('data-hero3d-tier'),
+        ready: box?.classList.contains('is-ready'),
+        canvas: Boolean(box?.querySelector('canvas')),
+      }
+    })
+    expect(state.flag).toBeNull()
+    expect(state.tier === 'full' || state.tier === 'lite').toBeTruthy()
+    expect(state.ready).toBe(true)
+    expect(state.canvas).toBe(true)
+  })
+
+  test('dispose frees every geometry and texture', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await gotoHome(page, '?qa3d=1')
+    await page.waitForFunction(
+      () => Boolean((window as Window & { __hero3d?: { dispose?: () => void } }).__hero3d?.dispose),
+      null,
+      { timeout: 20000 },
+    )
+    const mem = await page.evaluate(() => {
+      const hook = (
+        window as Window & {
+          __hero3d?: { dispose: () => void; info: { memory: { geometries: number; textures: number } } }
+        }
+      ).__hero3d
+      if (!hook) return null
+      hook.dispose()
+      return hook.info.memory
+    })
+    expect(mem).toEqual({ geometries: 0, textures: 0 })
+    await expect(page.locator('.hero-3d canvas')).toHaveCount(0)
+  })
+
+  test('lite draw calls stay at or under 8', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await gotoHome(page, '?qa3d=1')
+    await page.waitForFunction(
+      () => Boolean((window as Window & { __hero3d?: { seek?: (p: number) => void } }).__hero3d?.seek),
+      null,
+      { timeout: 20000 },
+    )
+    const probe = await page.evaluate(() => {
+      const hook = (
+        window as Window & {
+          __hero3d?: { seek: (n: number) => void; info: { calls: number }; tier: string }
+        }
+      ).__hero3d
+      if (!hook) return null
+      hook.seek(1)
+      return { calls: hook.info.calls, tier: hook.tier }
+    })
+    expect(probe?.tier).toBe('lite')
+    expect(probe?.calls).toBeLessThanOrEqual(8)
+    expect(probe?.calls).toBeGreaterThan(0)
+  })
+
+  test('full draw calls stay at or under 12', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await gotoHome(page, '?qa3d=1')
+    await page.waitForFunction(
+      () => Boolean((window as Window & { __hero3d?: { seek?: (p: number) => void } }).__hero3d?.seek),
+      null,
+      { timeout: 20000 },
+    )
+    const probe = await page.evaluate(() => {
+      const hook = (
+        window as Window & {
+          __hero3d?: { seek: (n: number) => void; info: { calls: number }; tier: string }
+        }
+      ).__hero3d
+      if (!hook) return null
+      hook.seek(1)
+      return { calls: hook.info.calls, tier: hook.tier }
+    })
+    expect(probe?.tier).toBe('full')
+    expect(probe?.calls).toBeLessThanOrEqual(12)
+  })
+
+  test('ui-chip color-contrast is 0 at 1440 on the skills cards', async ({ page }) => {
+    const { default: AxeBuilder } = await import('@axe-core/playwright')
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await gotoHome(page, '?qa3d=1')
+    await page.waitForFunction(
+      () => document.querySelector('.hero-3d')?.classList.contains('is-ready'),
+      null,
+      { timeout: 20000 },
+    )
+    await page.evaluate(() => {
+      document.documentElement.style.scrollBehavior = 'auto'
+      document.getElementById('kompetenciak')?.scrollIntoView()
+    })
+    await page.waitForTimeout(400)
+    const fourth = page.locator('#kompetenciak .card-elev').nth(3)
+    await fourth.scrollIntoViewIfNeeded()
+    const axe = await new AxeBuilder({ page }).include('#kompetenciak').withRules(['color-contrast']).analyze()
+    const chipHits = axe.violations.flatMap((v) =>
+      v.nodes.filter((n) => n.html.includes('ui-chip') || n.target.some((t) => String(t).includes('ui-chip'))),
+    )
+    expect(chipHits, JSON.stringify(axe.violations, null, 2)).toEqual([])
+  })
+
+  test('chunk load long tasks stay under 120 ms at 390', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    const client = await page.context().newCDPSession(page)
+    await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+    await page.addInitScript(() => {
+      const w = window as Window & { __lt: { d: number; t: number }[] }
+      w.__lt = []
+      try {
+        new PerformanceObserver((list) => {
+          for (const e of list.getEntries()) w.__lt.push({ d: e.duration, t: e.startTime })
+        }).observe({ type: 'longtask', buffered: true })
+      } catch {
+        /* ignore */
+      }
+    })
+    await gotoHome(page, '?qa3d=1')
+    await page.waitForFunction(
+      () => document.querySelector('.hero-3d')?.classList.contains('is-ready'),
+      null,
+      { timeout: 30000 },
+    )
+    const max = await page.evaluate(() => {
+      const w = window as Window & { __lt?: { d: number; t: number }[] }
+      const res = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
+      const chunk = res.find((e) => /three/.test(e.name) && e.name.endsWith('.js'))
+      const start = chunk ? chunk.startTime : 0
+      const tasks = (w.__lt ?? []).filter((e) => e.t >= start - 16)
+      return Math.max(0, ...tasks.map((e) => e.d))
+    })
+    expect(max).toBeLessThanOrEqual(120)
+  })
 })

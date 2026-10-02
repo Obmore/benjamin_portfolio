@@ -80,7 +80,7 @@ export function bootHero3d(): () => void {
 
   void (async () => {
     await afterLoad()
-    if (!qa) await afterIdle()
+    await afterIdle()
     if (stopped) return
     await nearBox(box)
     if (stopped || tier() === 'static') {

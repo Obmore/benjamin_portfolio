@@ -3,24 +3,24 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
-  EdgesGeometry,
   Group,
   LineBasicMaterial,
   LineSegments,
   Mesh,
   MeshBasicMaterial,
   OrthographicCamera,
-  Points,
-  PointsMaterial,
   Vector3,
+  Vector4,
 } from 'three'
 import {
+  allAnchors,
   allBotPads,
   allTopPads,
   BD,
   boardOutline,
   BOT_Y,
   botTraces,
+  boxEdges,
   BT,
   BW,
   CAM_AZIM,
@@ -28,119 +28,80 @@ import {
   CAM_ELEV,
   CHIP,
   CHIP_Y,
-  chipPins,
   conn,
   FRUSTUM,
   loop,
+  nearestAnchor,
   passives,
   poseYs,
   TOP_Y,
   topTraces,
   traceEnds,
   vias,
+  type Anchor,
   type PathNode,
   type Poly,
 } from './k1-layout'
 
 export type K1Colors = { surface: Color; ink: Color; accent: Color; line: Color }
 
-export type HeroEnd = { x: number; y: number; ax: number; ay: number }
+export type HeroEnd = {
+  x: number
+  y: number
+  ax: number
+  ay: number
+  id: string
+  kind: 'pad' | 'via' | 'pin'
+}
+
+type LayerShaderMat = MeshBasicMaterial | LineBasicMaterial
 
 export type K1Scene = {
   root: Group
+  carrier: Group
   camera: OrthographicCamera
   frustum: number
-  layers: { parts: Group; chip: Group; top: Group; sub: Group; bot: Group }
   mats: {
     fill: MeshBasicMaterial
     sub: MeshBasicMaterial
     ink: LineBasicMaterial
     accent: LineBasicMaterial
-    topTrace: LineBasicMaterial
-    botTrace: LineBasicMaterial
-    grid: PointsMaterial
   }
-  vias: LineSegments
-  pulse: LineSegments
-  grid: Points
-  topOutline: LineSegments
-  botOutline: LineSegments
+  fill: Mesh
+  ink: LineSegments
+  accent: LineSegments
+  subMesh: Mesh | null
+  uLayerY: { value: Vector4 }
+  tokens: { ink: Color; accent: Color }
+  dark: boolean
   lite: boolean
-  endPairs: { x: number; z: number; yLocal: number; layer: 'top' | 'bot' }[]
+  pulseOffset: number
+  anchors: Anchor[]
+  endPairs: { x: number; z: number; layer: 'top' | 'bot' }[]
 }
 
-function box(w: number, h: number, d: number, x: number, y: number, z: number) {
-  const g = new BoxGeometry(w, h, d)
-  g.translate(x, y, z)
-  return g
+const LY = { bot: 0, sub: 1, top: 2, chip: 3 }
+
+type LineBuf = { pos: number[]; layer: number[] }
+
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t
 }
 
-function mergeMesh(geos: BufferGeometry[]) {
-  let vc = 0
-  let ic = 0
-  for (const g of geos) {
-    vc += g.getAttribute('position').count
-    ic += g.index ? g.index.count : 0
+function bindLayer(mat: LayerShaderMat, uLayerY: { value: Vector4 }) {
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uLayerY = uLayerY
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute float aLayer;\nuniform vec4 uLayerY;')
+      .replace(
+        '#include <begin_vertex>',
+        [
+          '#include <begin_vertex>',
+          'transformed.y += aLayer < 0.0 ? 0.0 : aLayer < 0.5 ? uLayerY.x : aLayer < 1.5 ? uLayerY.y : aLayer < 2.5 ? uLayerY.z : uLayerY.w;',
+        ].join('\n'),
+      )
   }
-  const pos = new Float32Array(vc * 3)
-  const idx = new Uint32Array(ic)
-  let po = 0
-  let io = 0
-  let vo = 0
-  for (const g of geos) {
-    const p = g.getAttribute('position')
-    pos.set(p.array as Float32Array, po)
-    if (g.index) {
-      const a = g.index.array
-      for (let i = 0; i < a.length; i++) idx[io++] = (a[i] as number) + vo
-    }
-    po += p.count * 3
-    vo += p.count
-    g.dispose()
-  }
-  const out = new BufferGeometry()
-  out.setAttribute('position', new BufferAttribute(pos, 3))
-  out.setIndex(new BufferAttribute(idx, 1))
-  return out
-}
-
-function mergeEdges(geos: BufferGeometry[]) {
-  const acc: number[] = []
-  for (const g of geos) {
-    const e = new EdgesGeometry(g, 20)
-    const a = e.getAttribute('position').array as ArrayLike<number>
-    for (let i = 0; i < a.length; i++) acc.push(a[i] as number)
-    e.dispose()
-  }
-  const out = new BufferGeometry()
-  out.setAttribute('position', new BufferAttribute(new Float32Array(acc), 3))
-  return out
-}
-
-function polyLines(polys: readonly Poly[], y: number) {
-  const acc: number[] = []
-  for (const poly of polys) {
-    for (let i = 0; i < poly.length - 1; i++) {
-      const a = poly[i]
-      const b = poly[i + 1]
-      acc.push(a[0], y, a[1], b[0], y, b[1])
-    }
-  }
-  const g = new BufferGeometry()
-  g.setAttribute('position', new BufferAttribute(new Float32Array(acc), 3))
-  return g
-}
-
-function addMesh(parent: Group, geo: BufferGeometry, mat: MeshBasicMaterial) {
-  const m = new Mesh(geo, mat)
-  parent.add(m)
-  return m
-}
-
-function addLines(parent: Group, geo: BufferGeometry, mat: LineBasicMaterial) {
-  const l = new LineSegments(geo, mat)
-  parent.add(l)
-  return l
+  mat.customProgramCacheKey = () => 'k1y'
 }
 
 function placeCam(cam: OrthographicCamera, elev: number, azim: number) {
@@ -154,10 +115,6 @@ function placeCam(cam: OrthographicCamera, elev: number, azim: number) {
   cam.lookAt(0, 0, 0)
   cam.updateProjectionMatrix()
   cam.updateMatrixWorld()
-}
-
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t
 }
 
 function nodeY(node: PathNode, ys: ReturnType<typeof poseYs>) {
@@ -184,8 +141,89 @@ export function makeK1Camera() {
   return cam
 }
 
-export function createK1Scene(colors: K1Colors, lite: boolean): K1Scene {
-  const root = new Group()
+function addPolys(buf: LineBuf, polys: readonly Poly[], y: number, layer: number) {
+  for (const poly of polys) {
+    for (let i = 0; i < poly.length - 1; i++) {
+      const a = poly[i]
+      const b = poly[i + 1]
+      buf.pos.push(a[0], y, a[1], b[0], y, b[1])
+      buf.layer.push(layer, layer)
+    }
+  }
+}
+
+function addEdges(
+  buf: LineBuf,
+  edges: readonly (readonly (readonly [number, number, number])[])[],
+  layer: number,
+) {
+  for (const [a, b] of edges) {
+    buf.pos.push(a[0], a[1], a[2], b[0], b[1], b[2])
+    buf.layer.push(layer, layer)
+  }
+}
+
+function lineGeometry(buf: LineBuf) {
+  const g = new BufferGeometry()
+  g.setAttribute('position', new BufferAttribute(new Float32Array(buf.pos), 3))
+  g.setAttribute('aLayer', new BufferAttribute(new Float32Array(buf.layer), 1))
+  return g
+}
+
+function taggedBox(w: number, h: number, d: number, x: number, y: number, z: number, layer: number) {
+  const g = new BoxGeometry(w, h, d)
+  g.translate(x, y, z)
+  const n = g.getAttribute('position').count
+  g.setAttribute('aLayer', new BufferAttribute(new Float32Array(n).fill(layer), 1))
+  return g
+}
+
+function mergeMesh(geos: BufferGeometry[]) {
+  let vc = 0
+  let ic = 0
+  for (const g of geos) {
+    vc += g.getAttribute('position').count
+    ic += g.index ? g.index.count : 0
+  }
+  const pos = new Float32Array(vc * 3)
+  const layer = new Float32Array(vc)
+  const idx = new Uint32Array(ic)
+  let po = 0
+  let lo = 0
+  let io = 0
+  let vo = 0
+  for (const g of geos) {
+    const p = g.getAttribute('position')
+    pos.set(p.array as Float32Array, po)
+    const la = g.getAttribute('aLayer')
+    if (la) layer.set(la.array as Float32Array, lo)
+    if (g.index) {
+      const a = g.index.array
+      for (let i = 0; i < a.length; i++) idx[io++] = (a[i] as number) + vo
+    }
+    po += p.count * 3
+    lo += p.count
+    vo += p.count
+    g.dispose()
+  }
+  const out = new BufferGeometry()
+  out.setAttribute('position', new BufferAttribute(pos, 3))
+  out.setAttribute('aLayer', new BufferAttribute(layer, 1))
+  out.setIndex(new BufferAttribute(idx, 1))
+  return out
+}
+
+function worldY(scene: K1Scene, layer: 'top' | 'bot') {
+  const v = scene.uLayerY.value
+  return layer === 'bot' ? v.x + BOT_Y : v.z + TOP_Y
+}
+
+export async function createK1Scene(
+  colors: K1Colors,
+  lite: boolean,
+  pause: () => Promise<void> = () => Promise.resolve(),
+): Promise<K1Scene> {
+  const uLayerY = { value: new Vector4(0, 0, 0, 0) }
   const fill = new MeshBasicMaterial({ color: colors.surface })
   const subMat = new MeshBasicMaterial({
     color: colors.surface,
@@ -193,94 +231,96 @@ export function createK1Scene(colors: K1Colors, lite: boolean): K1Scene {
     opacity: 0.92,
     depthWrite: true,
   })
-  const ink = new LineBasicMaterial({ color: colors.ink, transparent: true, opacity: 0.7 })
-  const accent = new LineBasicMaterial({ color: colors.accent, transparent: true, opacity: 1 })
-  const topTrace = new LineBasicMaterial({ color: colors.ink, transparent: true, opacity: 0.7 })
-  const botTrace = new LineBasicMaterial({ color: colors.ink, transparent: true, opacity: 0.55 })
-  const gridMat = new PointsMaterial({
-    color: colors.line,
-    size: 1.6,
-    sizeAttenuation: false,
-  })
+  const ink = new LineBasicMaterial({ color: colors.ink, transparent: true, opacity: 0.55 })
+  const accent = new LineBasicMaterial({ color: colors.ink, transparent: true, opacity: 0.55 })
+  bindLayer(fill, uLayerY)
+  bindLayer(subMat, uLayerY)
+  bindLayer(ink, uLayerY)
+  bindLayer(accent, uLayerY)
 
-  const parts = new Group()
-  const chip = new Group()
-  const top = new Group()
-  const sub = new Group()
-  const bot = new Group()
+  const root = new Group()
+  const carrier = new Group()
 
-  const partGeos: BufferGeometry[] = [box(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z)]
-  for (const p of passives) partGeos.push(box(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z))
-  addMesh(parts, mergeMesh(partGeos.map((g) => g.clone())), fill)
-  addLines(parts, mergeEdges(partGeos), ink)
-  for (const g of partGeos) g.dispose()
+  await pause()
 
-  const chipGeos: BufferGeometry[] = [box(CHIP, 0.1, CHIP, 0, CHIP_Y, 0)]
-  for (const p of chipPins()) chipGeos.push(box(p.w, 0.028, p.d, p.x, BT / 2 + 0.02, p.z))
-  addMesh(chip, mergeMesh(chipGeos.map((g) => g.clone())), fill)
-  addLines(chip, mergeEdges(chipGeos), ink)
-  for (const g of chipGeos) g.dispose()
+  const fillGeos = [
+    taggedBox(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z, LY.top),
+    ...passives.map((p) => taggedBox(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z, LY.top)),
+    taggedBox(CHIP, 0.1, CHIP, 0, CHIP_Y, 0, LY.chip),
+  ]
+  const fillMesh = new Mesh(mergeMesh(fillGeos), fill)
+  fillMesh.frustumCulled = false
 
-  addLines(top, polyLines([...topTraces, ...allTopPads()], TOP_Y), topTrace)
-  const topOutline = addLines(top, polyLines([boardOutline], TOP_Y), ink)
+  await pause()
 
+  const inkBuf: LineBuf = { pos: [], layer: [] }
+  addPolys(inkBuf, [boardOutline], BOT_Y, LY.bot)
+  addPolys(inkBuf, [boardOutline], TOP_Y, LY.top)
+  addPolys(inkBuf, [...botTraces, ...allBotPads()], BOT_Y, LY.bot)
+  addEdges(inkBuf, boxEdges(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z), LY.top)
+  for (const p of passives) {
+    addEdges(inkBuf, boxEdges(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z), LY.top)
+  }
+  addEdges(inkBuf, boxEdges(CHIP, 0.1, CHIP, 0, CHIP_Y, 0), LY.chip)
+  if (!lite) addEdges(inkBuf, boxEdges(BW, BT, BD, 0, 0, 0), LY.sub)
+  const inkLines = new LineSegments(lineGeometry(inkBuf), ink)
+  inkLines.frustumCulled = false
+
+  await pause()
+
+  const accentBuf: LineBuf = { pos: [], layer: [] }
+  addPolys(accentBuf, [...topTraces, ...allTopPads()], TOP_Y, LY.top)
+  for (const [x, z] of vias) {
+    accentBuf.pos.push(x, TOP_Y, z, x, BOT_Y, z)
+    accentBuf.layer.push(LY.top, LY.bot)
+  }
+  const pulseOffset = accentBuf.pos.length
+  for (let i = 0; i < 6; i++) {
+    accentBuf.pos.push(0, 0, 0)
+    accentBuf.layer.push(-1)
+  }
+  const accentLines = new LineSegments(lineGeometry(accentBuf), accent)
+  accentLines.frustumCulled = false
+
+  let subMesh: Mesh | null = null
   if (!lite) {
-    const subGeo = box(BW, BT, BD, 0, 0, 0)
-    addMesh(sub, subGeo, subMat)
-    addLines(sub, new EdgesGeometry(subGeo, 20), ink)
+    const subGeo = taggedBox(BW, BT, BD, 0, 0, 0, LY.sub)
+    subMesh = new Mesh(subGeo, subMat)
+    subMesh.frustumCulled = false
+    carrier.add(subMesh)
   }
 
-  addLines(bot, polyLines([...botTraces, ...allBotPads()], BOT_Y), botTrace)
-  const botOutline = addLines(bot, polyLines([boardOutline], BOT_Y), ink)
-
-  const viaPos = new Float32Array(vias.length * 6)
-  const viaLines = new LineSegments(new BufferGeometry(), accent)
-  viaLines.geometry.setAttribute('position', new BufferAttribute(viaPos, 3))
-  viaLines.frustumCulled = false
-
-  const pulseGeo = new BufferGeometry()
-  pulseGeo.setAttribute('position', new BufferAttribute(new Float32Array(18), 3))
-  const pulse = new LineSegments(pulseGeo, accent)
-  pulse.frustumCulled = false
-
-  const gridGeo = new BufferGeometry()
-  gridGeo.setAttribute('position', new BufferAttribute(new Float32Array(3), 3))
-  const grid = new Points(gridGeo, gridMat)
-
-  root.add(bot, sub, top, parts, chip, viaLines, pulse, grid)
-
-  const endPairs = traceEnds().map((e) => ({
-    x: e.x,
-    z: e.z,
-    yLocal: e.layer === 'bot' ? BOT_Y : TOP_Y,
-    layer: e.layer,
-  }))
+  root.add(fillMesh, inkLines, accentLines, carrier)
 
   const scene: K1Scene = {
     root,
+    carrier,
     camera: makeK1Camera(),
     frustum: FRUSTUM,
-    layers: { parts, chip, top, sub, bot },
-    mats: { fill, sub: subMat, ink, accent, topTrace, botTrace, grid: gridMat },
-    vias: viaLines,
-    pulse,
-    grid,
-    topOutline,
-    botOutline,
+    mats: { fill, sub: subMat, ink, accent },
+    fill: fillMesh,
+    ink: inkLines,
+    accent: accentLines,
+    subMesh,
+    uLayerY,
+    tokens: { ink: colors.ink.clone(), accent: colors.accent.clone() },
+    dark: false,
     lite,
-    endPairs,
+    pulseOffset,
+    anchors: allAnchors(),
+    endPairs: traceEnds(),
   }
   applyK1Progress(scene, 0, 0)
   return scene
 }
 
-export function setK1Colors(scene: K1Scene, colors: K1Colors) {
+export function setK1Colors(scene: K1Scene, colors: K1Colors, dark = false) {
+  scene.tokens.ink.copy(colors.ink)
+  scene.tokens.accent.copy(colors.accent)
+  scene.dark = dark
   scene.mats.fill.color.copy(colors.surface)
   scene.mats.sub.color.copy(colors.surface)
   scene.mats.ink.color.copy(colors.ink)
-  scene.mats.accent.color.copy(colors.accent)
-  scene.mats.botTrace.color.copy(colors.ink)
-  scene.mats.grid.color.copy(colors.line)
 }
 
 export function setK1Aspect(scene: K1Scene, aspect: number) {
@@ -292,69 +332,45 @@ export function setK1Aspect(scene: K1Scene, aspect: number) {
   scene.camera.updateProjectionMatrix()
 }
 
-export function layoutGrid(scene: K1Scene, px: number, worldH: number) {
-  const step = (28 / Math.max(px, 1)) * worldH
-  const acc: number[] = []
-  const limX = BW / 2 - 0.08
-  const limZ = BD / 2 - 0.08
-  for (let x = -limX; x <= limX + 1e-6; x += step) {
-    for (let z = -limZ; z <= limZ + 1e-6; z += step) {
-      acc.push(x, 0, z)
-    }
-  }
-  scene.grid.geometry.setAttribute('position', new BufferAttribute(new Float32Array(acc), 3))
-  scene.grid.geometry.computeBoundingSphere()
-}
-
 export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   placeCam(scene.camera, CAM_ELEV, CAM_AZIM)
-
   const ys = poseYs(p)
-  scene.layers.top.position.y = ys.top
-  scene.layers.parts.position.y = ys.parts
-  scene.layers.chip.position.y = ys.chip
-  scene.layers.sub.position.y = ys.sub
-  scene.layers.bot.position.y = ys.bot
+  scene.uLayerY.value.set(ys.bot, ys.sub, ys.top, ys.chip)
 
-  scene.vias.visible = ys.explode > 0.04
-  if (!scene.lite) {
-    scene.topOutline.visible = ys.explode > 0.06
-    scene.botOutline.visible = ys.explode > 0.06
+  if (scene.subMesh) {
+    scene.mats.sub.opacity = 0.92 - 0.74 * ys.explode
+    scene.mats.sub.depthWrite = ys.explode < 0.35
   }
-  scene.mats.sub.opacity = 0.92 - 0.74 * ys.explode
-  scene.mats.sub.depthWrite = ys.explode < 0.35
-  const viaAttr = scene.vias.geometry.getAttribute('position')
-  const va = viaAttr.array as Float32Array
-  const topY = ys.top + TOP_Y
-  const botY = ys.bot + BOT_Y
-  for (let i = 0; i < vias.length; i++) {
-    const [x, z] = vias[i]
-    const o = i * 6
-    va[o] = x
-    va[o + 1] = topY
-    va[o + 2] = z
-    va[o + 3] = x
-    va[o + 4] = botY
-    va[o + 5] = z
-  }
-  viaAttr.needsUpdate = true
 
   const accentAmt = p >= 0.5 ? 1 : p / 0.5
-  scene.mats.topTrace.color.lerpColors(scene.mats.ink.color, scene.mats.accent.color, accentAmt)
-  scene.mats.topTrace.opacity = 0.7 + 0.3 * accentAmt
-  scene.mats.accent.opacity = 0.35 + 0.65 * Math.max(accentAmt, ys.explode)
+  if (scene.dark) {
+    scene.mats.ink.opacity = 0.7
+    scene.mats.accent.color.lerpColors(scene.tokens.ink, scene.tokens.accent, accentAmt)
+    scene.mats.accent.opacity = 0.35 + 0.65 * Math.max(accentAmt, ys.explode)
+  } else {
+    scene.mats.ink.opacity = 0.55
+    scene.mats.ink.color.copy(scene.tokens.ink)
+    if (p >= 0.5) {
+      scene.mats.accent.color.copy(scene.tokens.accent)
+      scene.mats.accent.opacity = 1
+    } else {
+      scene.mats.accent.color.copy(scene.tokens.ink)
+      scene.mats.accent.opacity = 0.55
+    }
+  }
 
-  const trail = 0.12
-  const pa = scene.pulse.geometry.getAttribute('position')
+  const pa = scene.accent.geometry.getAttribute('position')
   const arr = pa.array as Float32Array
   const a = new Vector3()
   const b = new Vector3()
+  const trail = 0.12
+  const base = scene.pulseOffset
   for (let i = 0; i < 3; i++) {
     const u0 = Math.max(0, pulseU - (trail * (i + 1)) / 3)
     const u1 = Math.max(0, pulseU - (trail * i) / 3)
     sampleLoop(u0, ys, a)
     sampleLoop(u1, ys, b)
-    const o = i * 6
+    const o = base + i * 6
     arr[o] = a.x
     arr[o + 1] = a.y
     arr[o + 2] = a.z
@@ -374,12 +390,13 @@ export function projectEnds(scene: K1Scene, width: number, height: number): Hero
     return { x: (v.x * 0.5 + 0.5) * width, y: (-v.y * 0.5 + 0.5) * height }
   }
   return scene.endPairs.map((rec) => {
-    const ly = rec.layer === 'bot' ? scene.layers.bot.position.y : scene.layers.top.position.y
-    ve.set(rec.x, rec.yLocal + ly, rec.z)
-    va.set(rec.x, rec.yLocal + ly, rec.z)
+    const y = worldY(scene, rec.layer)
+    ve.set(rec.x, y, rec.z)
     const end = mapPt(ve)
-    const anc = mapPt(va)
-    return { x: end.x, y: end.y, ax: anc.x, ay: anc.y }
+    const anc = nearestAnchor(rec.x, rec.z, rec.layer, scene.anchors)
+    va.set(anc.x, worldY(scene, anc.layer), anc.z)
+    const a = mapPt(va)
+    return { x: end.x, y: end.y, ax: a.x, ay: a.y, id: anc.id, kind: anc.kind }
   })
 }
 

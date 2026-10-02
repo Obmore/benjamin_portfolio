@@ -72,14 +72,16 @@ export function poseYs(p: number) {
   }
 }
 
-export function chipPins(): { x: number; z: number; w: number; d: number }[] {
-  const out: { x: number; z: number; w: number; d: number }[] = []
-  for (const t of PIN_TS) {
-    out.push({ x: -PIN_X, z: t, w: PIN, d: 0.032 })
-    out.push({ x: PIN_X, z: t, w: PIN, d: 0.032 })
-    out.push({ x: t, z: -PIN_X, w: 0.032, d: PIN })
-    out.push({ x: t, z: PIN_X, w: 0.032, d: PIN })
-  }
+export type PinRec = { id: string; x: number; z: number; w: number; d: number }
+
+export function chipPins(): PinRec[] {
+  const out: PinRec[] = []
+  PIN_TS.forEach((t, i) => {
+    out.push({ id: `pin-L${i}`, x: -PIN_X, z: t, w: PIN, d: 0.032 })
+    out.push({ id: `pin-R${i}`, x: PIN_X, z: t, w: PIN, d: 0.032 })
+    out.push({ id: `pin-B${i}`, x: t, z: -PIN_X, w: 0.032, d: PIN })
+    out.push({ id: `pin-T${i}`, x: t, z: PIN_X, w: 0.032, d: PIN })
+  })
   return out
 }
 
@@ -176,19 +178,69 @@ export function allBotPads(): Poly[] {
   return vias.map(([x, z]) => padSquares(x, z))
 }
 
-export function traceEnds(): { x: number; z: number; layer: 'top' | 'bot' }[] {
-  const out: { x: number; z: number; layer: 'top' | 'bot' }[] = []
+export type TraceEnd = {
+  x: number
+  z: number
+  layer: 'top' | 'bot'
+}
+
+export function traceEnds(): TraceEnd[] {
+  const out: TraceEnd[] = []
   for (const poly of topTraces) {
-    const a = poly[0]
-    const b = poly[poly.length - 1]
-    out.push({ x: a[0], z: a[1], layer: 'top' }, { x: b[0], z: b[1], layer: 'top' })
+    const last = poly[poly.length - 1]
+    const first = poly[0]
+    out.push({ x: first[0], z: first[1], layer: 'top' }, { x: last[0], z: last[1], layer: 'top' })
   }
   for (const poly of botTraces) {
-    const a = poly[0]
-    const b = poly[poly.length - 1]
-    out.push({ x: a[0], z: a[1], layer: 'bot' }, { x: b[0], z: b[1], layer: 'bot' })
+    const last = poly[poly.length - 1]
+    const first = poly[0]
+    out.push({ x: first[0], z: first[1], layer: 'bot' }, { x: last[0], z: last[1], layer: 'bot' })
   }
   return out
+}
+
+export type AnchorKind = 'pad' | 'via' | 'pin'
+
+export type Anchor = {
+  id: string
+  kind: AnchorKind
+  x: number
+  z: number
+  layer: 'top' | 'bot'
+}
+
+export function allAnchors(): Anchor[] {
+  const out: Anchor[] = []
+  for (const [name, p] of Object.entries(V)) {
+    out.push({ id: `via-${name}`, kind: 'via', x: p[0], z: p[1], layer: 'top' })
+    out.push({ id: `via-${name}`, kind: 'via', x: p[0], z: p[1], layer: 'bot' })
+  }
+  for (const p of chipPins()) {
+    out.push({ id: p.id, kind: 'pin', x: p.x, z: p.z, layer: 'top' })
+  }
+  connPins().forEach((p, i) => {
+    out.push({ id: `pad-conn-${i}`, kind: 'pad', x: p.x, z: p.z, layer: 'top' })
+  })
+  out.push(
+    { id: 'pad-r1', kind: 'pad', x: PAD.r1[0], z: PAD.r1[1], layer: 'top' },
+    { id: 'pad-r2', kind: 'pad', x: PAD.r2[0], z: PAD.r2[1], layer: 'top' },
+    { id: 'pad-c1', kind: 'pad', x: PAD.c1[0], z: PAD.c1[1], layer: 'top' },
+  )
+  return out
+}
+
+export function nearestAnchor(x: number, z: number, layer: 'top' | 'bot', pool: readonly Anchor[]): Anchor {
+  let best = pool[0]
+  let bestD = Infinity
+  for (const a of pool) {
+    if (a.layer !== layer) continue
+    const d = (a.x - x) * (a.x - x) + (a.z - z) * (a.z - z)
+    if (d < bestD) {
+      bestD = d
+      best = a
+    }
+  }
+  return best
 }
 
 export function boxEdges(

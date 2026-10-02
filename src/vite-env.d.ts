@@ -38,7 +38,23 @@ declare module 'three' {
   export class Color {
     constructor(color?: string | number)
     copy(c: Color): this
+    clone(): Color
     lerpColors(a: Color, b: Color, t: number): this
+  }
+
+  export class Vector4 {
+    x: number
+    y: number
+    z: number
+    w: number
+    constructor(x?: number, y?: number, z?: number, w?: number)
+    set(x: number, y: number, z: number, w: number): this
+  }
+
+  export type Shader = {
+    vertexShader: string
+    fragmentShader: string
+    uniforms: Record<string, { value: unknown }>
   }
 
   export class Object3D {
@@ -101,6 +117,9 @@ declare module 'three' {
     color: Color
     opacity: number
     depthWrite?: boolean
+    transparent?: boolean
+    onBeforeCompile: (shader: Shader) => void
+    customProgramCacheKey: () => string
     dispose(): void
   }
 
@@ -168,7 +187,8 @@ declare module 'three' {
     getPixelRatio(): number
     setSize(width: number, height: number, updateStyle?: boolean): void
     render(scene: Scene, camera: Camera): void
-    compileAsync?(scene: Scene, camera: Camera): Promise<void>
+    compile(scene: Scene, camera: Camera): void
+    compileAsync(scene: Scene, camera: Camera): Promise<void>
     dispose(): void
     forceContextLoss(): void
   }

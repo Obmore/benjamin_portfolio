@@ -881,9 +881,8 @@ html.js.is-static-motion .munkaim-dimension-line {
   }
 
   .hero-3d {
-    aspect-ratio: auto;
     max-height: none;
-    height: 100%;
+    align-self: start;
   }
 
   .munkaim-section {

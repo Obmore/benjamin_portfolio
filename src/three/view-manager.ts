@@ -4,7 +4,6 @@ import {
   applyK1Progress,
   createK1Scene,
   disposeK1,
-  layoutGrid,
   projectEnds,
   setK1Aspect,
   setK1Colors,
@@ -28,6 +27,7 @@ type Hero3dQa = {
   dpr: number
   readonly ends: ReturnType<typeof projectEnds>
   seek?: (p: number) => void
+  dispose?: () => void
 }
 
 declare global {
@@ -57,6 +57,8 @@ let visible = true
 let qa = false
 let themeMo: MutationObserver | null = null
 let ro: ResizeObserver | null = null
+let observersOn = false
+let booting = false
 
 function readColors(el: HTMLElement) {
   const css = getComputedStyle(el)
@@ -69,9 +71,23 @@ function readColors(el: HTMLElement) {
   }
 }
 
+function isDark() {
+  return document.documentElement.getAttribute('data-theme') === 'dark'
+}
+
 function dprCap(lite: boolean) {
   const wide = window.innerWidth >= 1440
   return Math.min(window.devicePixelRatio || 1, lite ? 1.5 : wide ? 2 : 1.5)
+}
+
+function yieldSlice() {
+  return new Promise<void>((resolve) => {
+    requestAnimationFrame(() => {
+      const ric = window.requestIdleCallback
+      if (typeof ric === 'function') ric(() => resolve(), { timeout: 16 })
+      else window.setTimeout(resolve, 0)
+    })
+  })
 }
 
 function sizeCanvas() {
@@ -84,7 +100,6 @@ function sizeCanvas() {
   renderer.setPixelRatio(dprCap(lite))
   renderer.setSize(w, h, false)
   setK1Aspect(k1, w / h)
-  layoutGrid(k1, h, k1.frustum * 2)
 }
 
 function snapshotInfo(): Hero3dInfo {
@@ -101,13 +116,13 @@ function snapshotInfo(): Hero3dInfo {
 }
 
 function bindQa() {
-  if (!qa || !boxEl || !k1) return
+  if (!qa || !boxEl) return
   const next = {
-    tier: boxEl.dataset.hero3dTier || (k1.lite ? 'lite' : 'full'),
+    tier: boxEl.dataset.hero3dTier || (k1?.lite ? 'lite' : 'full'),
     info: snapshotInfo(),
     rafCount,
     progress,
-    dpr: renderer ? canvas!.width / Math.max(1, boxEl.clientWidth) : 1,
+    dpr: renderer && canvas ? canvas.width / Math.max(1, boxEl.clientWidth) : 1,
   }
   const existing = window.__hero3d
   if (existing) {
@@ -124,6 +139,9 @@ function bindQa() {
       progress = Math.min(1, Math.max(0, p))
       introOn = false
       paint()
+    },
+    dispose() {
+      teardownGpu()
     },
   } as Hero3dQa
   Object.defineProperty(hook, 'ends', {
@@ -182,6 +200,7 @@ function tick(now: number) {
 
 function requestLoop() {
   if (raf || !renderer || !visible) return
+  last = 0
   raf = requestAnimationFrame(tick)
 }
 
@@ -199,7 +218,9 @@ function onVis() {
     return
   }
   visible = true
+  last = 0
   paint()
+  if (introOn) requestLoop()
 }
 
 function onLost(event: Event) {
@@ -210,35 +231,74 @@ function onLost(event: Event) {
 
 function fallbackStatic() {
   if (qa && boxEl) boxEl.dataset.hero3dTier = 'static'
-  stopView()
+  teardownGpu()
 }
 
 function onTheme() {
   if (!k1 || !boxEl) return
-  setK1Colors(k1, readColors(boxEl))
+  setK1Colors(k1, readColors(boxEl), isDark())
   paint()
 }
 
-export async function startView(box: HTMLElement) {
-  if (renderer) return
+async function compileQuiet(r: WebGLRenderer, sc: Scene, cam: K1Scene['camera']) {
+  const warn = console.warn
+  console.warn = (...args: unknown[]) => {
+    if (String(args[0] ?? '').includes('KHR_parallel_shader_compile')) return
+    warn(...(args as Parameters<typeof console.warn>))
+  }
+  try {
+    await r.compileAsync(sc, cam)
+  } catch {
+    r.compile(sc, cam)
+  } finally {
+    console.warn = warn
+  }
+}
+
+function teardownGpu() {
+  gen += 1
+  booting = false
+  if (raf) cancelAnimationFrame(raf)
+  raf = 0
+  last = 0
+  introOn = false
+  boxEl?.classList.remove('is-ready')
+  if (k1) disposeK1(k1)
+  k1 = null
+  scene = null
+  if (qa && window.__hero3d && renderer) {
+    window.__hero3d.info = snapshotInfo()
+    window.__hero3d.rafCount = rafCount
+  }
+  if (renderer) {
+    renderer.domElement.removeEventListener('webglcontextlost', onLost, false)
+    renderer.dispose()
+    renderer.forceContextLoss()
+  }
+  renderer = null
+  canvas?.remove()
+  canvas = null
+}
+
+async function bootScene() {
+  if (renderer || booting || !boxEl) return
+  booting = true
   const my = ++gen
   const tier = hero3dTier()
-  if (tier === 'static') return
-  qa = isQa3d()
-  boxEl = box
-  if (qa) box.dataset.hero3dTier = tier
+  if (tier === 'static') {
+    booting = false
+    return
+  }
+  if (qa) boxEl.dataset.hero3dTier = tier
 
   const el = document.createElement('canvas')
   el.setAttribute('aria-hidden', 'true')
   el.tabIndex = -1
   el.width = 2
   el.height = 2
-  box.appendChild(el)
+  boxEl.appendChild(el)
   canvas = el
-  if (qa) {
-    box.querySelector('.hero-3d-poster')?.setAttribute('data-pose', '100')
-    el.setAttribute('data-pose', '0')
-  }
+  if (qa) el.setAttribute('data-pose', '0')
 
   const lite = tier === 'lite'
   const r = new WebGLRenderer({
@@ -253,34 +313,60 @@ export async function startView(box: HTMLElement) {
   renderer = r
   r.domElement.addEventListener('webglcontextlost', onLost, false)
 
-  const built = createK1Scene(readColors(box), lite)
-  if (my !== gen) {
-    disposeK1(built)
+  let built: K1Scene
+  try {
+    built = await createK1Scene(readColors(boxEl), lite, async () => {
+      if (my !== gen) throw new Error('abort')
+      await yieldSlice()
+    })
+  } catch {
+    if (my === gen) {
+      renderer?.dispose()
+      canvas?.remove()
+      renderer = null
+      canvas = null
+    }
+    booting = false
     return
   }
+  if (my !== gen) {
+    disposeK1(built)
+    booting = false
+    return
+  }
+  setK1Colors(built, readColors(boxEl), isDark())
   k1 = built
   const sc = new Scene()
   sc.add(k1.root)
   scene = sc
   sizeCanvas()
 
-  try {
-    if (r.compileAsync) await r.compileAsync(sc, k1.camera)
-  } catch {
-    /* compile best-effort */
+  await yieldSlice()
+  if (my !== gen) {
+    booting = false
+    return
   }
-  if (my !== gen) return
+  await compileQuiet(r, sc, k1.camera)
+  if (my !== gen) {
+    booting = false
+    return
+  }
 
   introT = 0
   introOn = true
-  progress = 0
   frameMs.length = 0
   over50 = 0
   rafCount = 0
-  stopScroll = attachHeroScroll(onProgress)
+  last = 0
   paint()
-  box.classList.add('is-ready')
+  boxEl.classList.add('is-ready')
+  booting = false
+  requestLoop()
+}
 
+function setupObservers() {
+  if (observersOn || !boxEl) return
+  observersOn = true
   document.addEventListener('visibilitychange', onVis)
   themeMo = new MutationObserver(onTheme)
   themeMo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
@@ -288,7 +374,7 @@ export async function startView(box: HTMLElement) {
     sizeCanvas()
     paint()
   })
-  ro.observe(box)
+  ro.observe(boxEl)
   io = new IntersectionObserver(
     (entries) => {
       const on = entries.some((e) => e.isIntersecting)
@@ -297,23 +383,33 @@ export async function startView(box: HTMLElement) {
         if (raf) cancelAnimationFrame(raf)
         raf = 0
         last = 0
+        teardownGpu()
         return
       }
+      if (!renderer) {
+        void bootScene()
+        return
+      }
+      last = 0
       if (introOn) requestLoop()
       else paint()
     },
     { rootMargin: '0px' },
   )
-  io.observe(box)
-  requestLoop()
+  io.observe(boxEl)
+}
+
+export async function startView(box: HTMLElement) {
+  if (renderer) return
+  qa = isQa3d()
+  boxEl = box
+  if (qa) box.dataset.hero3dTier = hero3dTier()
+  stopScroll = attachHeroScroll(onProgress)
+  setupObservers()
+  await bootScene()
 }
 
 export function stopView() {
-  gen += 1
-  if (raf) cancelAnimationFrame(raf)
-  raf = 0
-  last = 0
-  introOn = false
   stopScroll()
   stopScroll = () => {}
   document.removeEventListener('visibilitychange', onVis)
@@ -323,36 +419,9 @@ export function stopView() {
   ro = null
   io?.disconnect()
   io = null
-  boxEl?.classList.remove('is-ready')
-  if (qa && window.__hero3d) {
-    window.__hero3d.info = snapshotInfo()
-    window.__hero3d.rafCount = rafCount
-  }
-  if (k1) disposeK1(k1)
-  k1 = null
-  scene = null
-  if (renderer) {
-    renderer.domElement.removeEventListener('webglcontextlost', onLost, false)
-    renderer.dispose()
-    renderer.forceContextLoss()
-  }
-  renderer = null
-  canvas?.remove()
-  canvas = null
+  observersOn = false
+  teardownGpu()
+  if (!qa) delete window.__hero3d
   boxEl = null
-  if (qa) {
-    const hook = window.__hero3d
-    if (hook) {
-      hook.info = {
-        calls: 0,
-        triangles: 0,
-        geometries: 0,
-        textures: 0,
-        memory: { geometries: 0, textures: 0 },
-      }
-    }
-  } else {
-    delete window.__hero3d
-  }
   frameMs.length = 0
 }
