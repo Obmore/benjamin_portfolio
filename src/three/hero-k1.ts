@@ -215,7 +215,8 @@ function mergeMesh(geos: BufferGeometry[]) {
 
 function worldY(scene: K1Scene, layer: 'top' | 'bot') {
   const v = scene.uLayerY.value
-  return layer === 'bot' ? v.x + BOT_Y : v.z + TOP_Y
+  const local = scene.lite ? 0 : layer === 'bot' ? BOT_Y : TOP_Y
+  return layer === 'bot' ? v.x + local : v.z + local
 }
 
 export async function createK1Scene(
@@ -243,6 +244,9 @@ export async function createK1Scene(
 
   await pause()
 
+  const topY = lite ? 0 : TOP_Y
+  const botY = lite ? 0 : BOT_Y
+
   const fillGeos = [
     taggedBox(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z, LY.top),
     ...passives.map((p) => taggedBox(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z, LY.top)),
@@ -254,9 +258,9 @@ export async function createK1Scene(
   await pause()
 
   const inkBuf: LineBuf = { pos: [], layer: [] }
-  addPolys(inkBuf, [boardOutline], BOT_Y, LY.bot)
-  addPolys(inkBuf, [boardOutline], TOP_Y, LY.top)
-  addPolys(inkBuf, [...botTraces, ...allBotPads()], BOT_Y, LY.bot)
+  addPolys(inkBuf, [boardOutline], botY, LY.bot)
+  addPolys(inkBuf, [boardOutline], topY, LY.top)
+  addPolys(inkBuf, [...botTraces, ...allBotPads()], botY, LY.bot)
   addEdges(inkBuf, boxEdges(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z), LY.top)
   for (const p of passives) {
     addEdges(inkBuf, boxEdges(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z), LY.top)
@@ -269,9 +273,9 @@ export async function createK1Scene(
   await pause()
 
   const accentBuf: LineBuf = { pos: [], layer: [] }
-  addPolys(accentBuf, [...topTraces, ...allTopPads()], TOP_Y, LY.top)
+  addPolys(accentBuf, [...topTraces, ...allTopPads()], topY, LY.top)
   for (const [x, z] of vias) {
-    accentBuf.pos.push(x, TOP_Y, z, x, BOT_Y, z)
+    accentBuf.pos.push(x, topY, z, x, botY, z)
     accentBuf.layer.push(LY.top, LY.bot)
   }
   const pulseOffset = accentBuf.pos.length

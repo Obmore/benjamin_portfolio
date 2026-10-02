@@ -1,13 +1,11 @@
 import {
   allBotPads,
   allTopPads,
-  BD,
   boardOutline,
   BOT_Y,
   botTraces,
   boxEdges,
   BT,
-  BW,
   CHIP,
   CHIP_Y,
   conn,
@@ -61,7 +59,6 @@ export function buildPosterSvg(w = POSTER_W, h = POSTER_H) {
     .slice(0, 4)
     .map(([x, z]) => worldToSvg(x, subY, z))
   const subPoly = subFill.map((p, i) => `${i === 0 ? 'M' : 'L'}${r(p.x)},${r(p.y)}`).join('') + 'Z'
-  const subEdge = pathFromEdges(boxEdges(BW, BT, BD, 0, subY, 0))
 
   const viaPath = vias
     .map(([x, z]) => {
@@ -79,13 +76,20 @@ export function buildPosterSvg(w = POSTER_W, h = POSTER_H) {
   }
   const partsPath = pathFromEdges(partEdges)
   const chipPath = pathFromEdges(boxEdges(CHIP, 0.1, CHIP, 0, chipY, 0))
+  const chipFillPts = [
+    [-CHIP / 2, -CHIP / 2],
+    [CHIP / 2, -CHIP / 2],
+    [CHIP / 2, CHIP / 2],
+    [-CHIP / 2, CHIP / 2],
+  ].map(([x, z]) => worldToSvg(x, chipY, z))
+  const chipFill = chipFillPts.map((p, i) => `${i === 0 ? 'M' : 'L'}${r(p.x)},${r(p.y)}`).join('') + 'Z'
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" class="hero-3d-poster" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" fill="none" aria-hidden="true" focusable="false" data-pose="100">`,
     `<g stroke="var(--color-ink)" stroke-opacity=".55" stroke-width="1" stroke-linejoin="round"><path d="${botOutline}"/><path d="${botCopper}"/></g>`,
-    `<g fill="var(--color-surface)" fill-opacity=".18" stroke="var(--color-ink)" stroke-opacity=".55" stroke-width="1" stroke-linejoin="round"><path d="${subPoly}"/><path fill="none" d="${subEdge}"/></g>`,
+    `<g fill="var(--color-surface)" fill-opacity=".18" stroke="var(--color-ink)" stroke-opacity=".55" stroke-width="1" stroke-linejoin="round"><path d="${subPoly}"/></g>`,
     `<g stroke="var(--color-accent)" stroke-opacity="1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="${topCopper}"/><path d="${viaPath}"/></g>`,
-    `<g stroke="var(--color-ink)" stroke-opacity=".55" stroke-width="1" stroke-linejoin="round"><path d="${topOutline}"/><path d="${partsPath}"/><path d="${chipPath}"/></g>`,
+    `<g fill="var(--color-surface)" stroke="var(--color-ink)" stroke-opacity=".55" stroke-width="1" stroke-linejoin="round"><path fill="none" d="${topOutline}"/><path d="${chipFill}"/><path fill="none" d="${partsPath}"/><path fill="none" d="${chipPath}"/></g>`,
     `</svg>`,
   ].join('')
 }
