@@ -1,6 +1,18 @@
 import { hero3dWidthTier, isQa3d, mark3dWatchdog } from '@/lib/three-gate'
-import { nextFrame } from '@/lib/after-lcp'
 import type { K1Scene } from './hero-k1'
+
+function nextFrame(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      const sched = (globalThis as unknown as { scheduler?: { yield?: () => Promise<void> } }).scheduler
+      if (typeof sched?.yield === 'function') {
+        void sched.yield().then(resolve)
+        return
+      }
+      setTimeout(resolve, 0)
+    })
+  })
+}
 
 type HeroMod = typeof import('./hero-k1')
 type Hero3dInfo = {
@@ -13,6 +25,7 @@ type Hero3dInfo = {
 
 type Hero3dQa = {
   tier: string
+  layers: number
   info: Hero3dInfo
   rafCount: number
   progress: number
@@ -20,6 +33,7 @@ type Hero3dQa = {
   readonly ends: ReturnType<HeroMod['projectEnds']>
   seek?: (p: number) => void
   dispose?: () => void
+  qaShiftEnd?: (index: number, dx: number, dy: number) => void
 }
 
 declare global {
@@ -28,7 +42,8 @@ declare global {
   }
 }
 
-const INTRO_MS = 1100
+const SWAP_MS = 200
+const PROBE_FRAMES = 12
 let hero: HeroMod | null = null
 let renderer: InstanceType<HeroMod['WebGLRenderer']> | null = null
 let canvas: HTMLCanvasElement | null = null
@@ -38,12 +53,11 @@ let k1: K1Scene | null = null
 let raf = 0
 let gen = 0
 let progress = 0
-let introT = 0
-let introOn = true
 let last = 0
 let rafCount = 0
 const frameMs: number[] = []
 let over50 = 0
+let probeLeft = 0
 let stopScroll = () => {}
 let io: IntersectionObserver | null = null
 let visible = true
@@ -53,6 +67,10 @@ let ro: ResizeObserver | null = null
 let observersOn = false
 let booting = false
 let scrollBound = false
+let swapped = false
+let swapTimer = 0
+let disposing = false
+const endShift: { dx: number; dy: number }[] = []
 
 function aborted(my: number) {
   return my !== gen
@@ -88,7 +106,7 @@ function sizeCanvas() {
   const lite = k1.lite
   renderer.setPixelRatio(dprCap(lite))
   renderer.setSize(w, h, false)
-  hero.setK1Aspect(k1, w / h)
+  hero.setK1Aspect(k1)
 }
 
 function snapshotInfo(): Hero3dInfo {
@@ -108,6 +126,7 @@ function bindQa() {
   if (!qa || !boxEl) return
   const next = {
     tier: boxEl.dataset.hero3dTier || (k1?.lite ? 'lite' : 'full'),
+    layers: 3,
     info: snapshotInfo(),
     rafCount,
     progress,
@@ -116,6 +135,7 @@ function bindQa() {
   const existing = window.__hero3d
   if (existing) {
     existing.tier = next.tier
+    existing.layers = next.layers
     existing.info = next.info
     existing.rafCount = next.rafCount
     existing.progress = next.progress
@@ -126,11 +146,14 @@ function bindQa() {
     ...next,
     seek(p: number) {
       progress = Math.min(1, Math.max(0, p))
-      introOn = false
       paint()
     },
     dispose() {
-      teardownGpu()
+      disposeHero()
+    },
+    qaShiftEnd(index: number, dx: number, dy: number) {
+      const cur = endShift[index] ?? { dx: 0, dy: 0 }
+      endShift[index] = { dx: cur.dx + dx, dy: cur.dy + dy }
     },
   } as Hero3dQa
   Object.defineProperty(hook, 'ends', {
@@ -138,21 +161,21 @@ function bindQa() {
     configurable: true,
     get() {
       if (!k1 || !boxEl || !hero) return []
-      return hero.projectEnds(k1, boxEl.clientWidth, boxEl.clientHeight)
+      const rows = hero.projectEnds(k1, boxEl.clientWidth, boxEl.clientHeight)
+      return rows.map((row, i) => {
+        const sh = endShift[i]
+        if (!sh) return row
+        return { ...row, x: row.x + sh.dx, y: row.y + sh.dy }
+      })
     },
   })
   window.__hero3d = hook
 }
 
-function pulseU() {
-  if (introOn) return Math.min(1, introT / INTRO_MS)
-  return progress
-}
-
 function paint() {
   if (!renderer || !scene || !k1 || !hero) return
   renderer.info.reset()
-  hero.applyK1Progress(k1, progress, pulseU())
+  hero.applyK1Progress(k1, progress, progress)
   renderer.render(scene, k1.camera)
   bindQa()
 }
@@ -179,23 +202,22 @@ function tick(now: number) {
     fallbackStatic()
     return
   }
-  if (introOn) {
-    introT += dt
-    if (introT >= INTRO_MS) introOn = false
-  }
   paint()
-  if (introOn) requestLoop()
+  if (probeLeft > 0) {
+    probeLeft -= 1
+    requestLoop()
+  }
 }
 
 function requestLoop() {
   if (raf || !renderer || !visible) return
-  last = 0
   raf = requestAnimationFrame(tick)
 }
 
 function onProgress(p: number) {
   progress = p
-  if (!introOn) requestLoop()
+  last = 0
+  paint()
 }
 
 function onVis() {
@@ -209,18 +231,113 @@ function onVis() {
   visible = true
   last = 0
   paint()
-  if (introOn) requestLoop()
 }
 
 function onLost(event: Event) {
   event.preventDefault()
+  disposing = true
   mark3dWatchdog()
-  fallbackStatic()
+  if (qa && boxEl) boxEl.dataset.hero3dTier = 'static'
+  showPosterImmediate()
+  teardownGpu()
+  disposing = false
+}
+
+function posterHost(): HTMLElement | null {
+  return boxEl?.querySelector<HTMLElement>('.hero-3d-poster-host') ?? null
+}
+
+function clearSwapTimer() {
+  if (swapTimer) window.clearTimeout(swapTimer)
+  swapTimer = 0
+}
+
+function showPosterImmediate() {
+  if (!boxEl) return
+  clearSwapTimer()
+  boxEl.classList.add('is-poster-snap')
+  boxEl.classList.remove('is-ready', 'is-swapped', 'is-swapping-back')
+  swapped = false
+}
+
+function haltLoop() {
+  if (raf) cancelAnimationFrame(raf)
+  raf = 0
+  probeLeft = 0
+  last = 0
+  stopScroll()
+  stopScroll = () => {}
+  scrollBound = false
+}
+
+function disposeHero() {
+  if (disposing) return
+  disposing = true
+  haltLoop()
+  swapBackPoster(true, () => {
+    teardownGpu()
+    disposing = false
+  })
+}
+
+function startPosterSwap() {
+  if (!boxEl || !canvas) return
+  clearSwapTimer()
+  let done = false
+  const finish = () => {
+    if (done) return
+    done = true
+    canvas?.removeEventListener('transitionend', onEnd)
+    if (!canvas || !boxEl || disposing) return
+    boxEl.classList.add('is-swapped')
+    swapped = true
+    void bindScroll()
+  }
+  const onEnd = (event: TransitionEvent) => {
+    if (event.propertyName !== 'opacity') return
+    finish()
+  }
+  canvas.addEventListener('transitionend', onEnd)
+  boxEl.classList.remove('is-poster-snap', 'is-swapping-back', 'is-swapped')
+  boxEl.classList.add('is-ready')
+  swapTimer = window.setTimeout(finish, SWAP_MS + 120)
+}
+
+function swapBackPoster(animated: boolean, after: () => void) {
+  if (!boxEl) {
+    after()
+    return
+  }
+  if (!animated || !swapped) {
+    showPosterImmediate()
+    after()
+    return
+  }
+  clearSwapTimer()
+  progress = 1
+  paint()
+  let done = false
+  const host = posterHost()
+  const finish = () => {
+    if (done) return
+    done = true
+    host?.removeEventListener('transitionend', onEnd)
+    showPosterImmediate()
+    after()
+  }
+  const onEnd = (event: TransitionEvent) => {
+    if (event.propertyName !== 'opacity') return
+    finish()
+  }
+  host?.addEventListener('transitionend', onEnd)
+  boxEl.classList.remove('is-swapped')
+  boxEl.classList.add('is-swapping-back')
+  swapTimer = window.setTimeout(finish, SWAP_MS + 120)
 }
 
 function fallbackStatic() {
   if (qa && boxEl) boxEl.dataset.hero3dTier = 'static'
-  teardownGpu()
+  disposeHero()
 }
 
 function onTheme() {
@@ -251,11 +368,9 @@ async function compileQuiet(
 function teardownGpu() {
   gen += 1
   booting = false
-  if (raf) cancelAnimationFrame(raf)
-  raf = 0
-  last = 0
-  introOn = false
-  boxEl?.classList.remove('is-ready')
+  haltLoop()
+  clearSwapTimer()
+  showPosterImmediate()
   if (k1 && hero) hero.disposeK1(k1)
   k1 = null
   scene = null
@@ -274,15 +389,36 @@ function teardownGpu() {
 }
 
 async function bindScroll() {
-  if (scrollBound) return
+  if (scrollBound || disposing) return
   scrollBound = true
   await nextFrame()
+  if (disposing || !renderer || !boxEl) {
+    scrollBound = false
+    return
+  }
   const { attachHeroScroll } = await import('./hero-scroll')
-  stopScroll = attachHeroScroll(onProgress)
+  if (disposing || !renderer || !boxEl) {
+    scrollBound = false
+    return
+  }
+  stopScroll = attachHeroScroll(onProgress, { skipInitial: true })
+}
+
+function watchdogOn() {
+  try {
+    return sessionStorage.getItem('ob-3d-off') === '1'
+  } catch {
+    return false
+  }
 }
 
 async function bootScene() {
-  if (renderer || booting || !boxEl) return
+  if (renderer || booting || disposing || !boxEl) return
+  if (watchdogOn()) {
+    if (qa) boxEl.dataset.hero3dTier = 'static'
+    showPosterImmediate()
+    return
+  }
   booting = true
   const my = ++gen
   const tier = hero3dWidthTier()
@@ -404,17 +540,18 @@ async function bootScene() {
     return
   }
 
-  introT = 0
-  introOn = true
+  progress = 1
   frameMs.length = 0
   over50 = 0
+  probeLeft = PROBE_FRAMES
   rafCount = 0
   last = 0
+  endShift.length = 0
+  swapped = false
   paint()
-  boxEl.classList.add('is-ready')
+  startPosterSwap()
   booting = false
   requestLoop()
-  void bindScroll()
 }
 
 function setupObservers() {
@@ -444,8 +581,7 @@ function setupObservers() {
         return
       }
       last = 0
-      if (introOn) requestLoop()
-      else paint()
+      paint()
     },
     { rootMargin: '0px' },
   )

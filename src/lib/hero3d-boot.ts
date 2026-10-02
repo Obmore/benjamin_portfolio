@@ -1,4 +1,5 @@
-import { afterLcpAndIdle, nextFrame } from '@/lib/after-lcp'
+import { afterLcpAndIdle, importHeroView, nextFrame } from '@/lib/after-lcp'
+import { mark3dWatchdog } from '@/lib/three-gate'
 
 type NavMem = Navigator & {
   deviceMemory?: number
@@ -33,6 +34,26 @@ function widthTier(): 'lite' | 'full' {
   return 'full'
 }
 
+function framesTooSlow(): Promise<boolean> {
+  return new Promise((resolve) => {
+    const dts: number[] = []
+    let prev = 0
+    let n = 0
+    const step = (now: number) => {
+      if (prev) dts.push(now - prev)
+      prev = now
+      n += 1
+      if (n < 5) {
+        requestAnimationFrame(step)
+        return
+      }
+      const slow = dts.filter((d) => d > 50).length >= 3 || dts.some((d) => d > 180)
+      resolve(slow)
+    }
+    requestAnimationFrame(step)
+  })
+}
+
 export function bootHero3d(): () => void {
   const box = document.querySelector<HTMLElement>('.hero-3d')
   const qa = isQa3d()
@@ -49,6 +70,15 @@ export function bootHero3d(): () => void {
   let stopView = () => {}
 
   void (async () => {
+    if (await framesTooSlow()) {
+      mark3dWatchdog()
+      writeTier('static')
+      return
+    }
+    if (stopped || mediaStatic()) {
+      writeTier('static')
+      return
+    }
     await afterLcpAndIdle()
     if (stopped) return
     if (mediaStatic()) {
@@ -81,7 +111,7 @@ export function bootHero3d(): () => void {
     }
     await nextFrame()
     if (stopped) return
-    const mod = await import('@/three/view-manager')
+    const mod = await importHeroView()
     await nextFrame()
     if (stopped) return
     await mod.startView(box)

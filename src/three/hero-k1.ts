@@ -35,6 +35,8 @@ import {
   FRUSTUM,
   loop,
   passives,
+  POSTER_H,
+  POSTER_W,
   poseYs,
   TOP_Y,
   topFaceEdges,
@@ -48,7 +50,9 @@ import {
 
 export type K1Colors = { surface: Color; ink: Color; accent: Color; line: Color }
 
-export { Color, Scene, WebGLRenderer }
+export { Color, Scene, WebGLRenderer, POSTER_W, POSTER_H }
+
+export const POSTER_ASPECT = POSTER_W / POSTER_H
 
 export type HeroEnd = {
   x: number
@@ -56,6 +60,7 @@ export type HeroEnd = {
   ax: number
   ay: number
   id: string
+  targetId: string
   kind: 'pad' | 'via' | 'pin'
 }
 
@@ -233,8 +238,8 @@ export async function createK1Scene(
   const fill = new MeshBasicMaterial({
     color: colors.surface,
     polygonOffset: true,
-    polygonOffsetFactor: 2,
-    polygonOffsetUnits: 2,
+    polygonOffsetFactor: 8,
+    polygonOffsetUnits: 8,
   })
   const subMat = new MeshBasicMaterial({
     color: colors.surface,
@@ -242,20 +247,22 @@ export async function createK1Scene(
     opacity: 0.92,
     depthWrite: true,
     polygonOffset: true,
-    polygonOffsetFactor: 2,
-    polygonOffsetUnits: 2,
+    polygonOffsetFactor: 8,
+    polygonOffsetUnits: 8,
   })
   const ink = new LineBasicMaterial({
     color: colors.ink,
     transparent: true,
     opacity: 0.55,
     depthWrite: false,
+    depthTest: false,
   })
   const accent = new LineBasicMaterial({
     color: colors.ink,
     transparent: true,
     opacity: 0.55,
     depthWrite: false,
+    depthTest: false,
   })
   bindLayer(fill, uLayerY)
   bindLayer(subMat, uLayerY)
@@ -273,7 +280,7 @@ export async function createK1Scene(
   const fillGeos = [
     taggedBox(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z, LY.top),
     ...passives.map((p) => taggedBox(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z, LY.top)),
-    taggedBox(CHIP, 0.1, CHIP, 0, CHIP_Y, 0, LY.chip),
+    taggedBox(CHIP * 0.92, 0.08, CHIP * 0.92, 0, CHIP_Y, 0, LY.chip),
   ]
   await pause()
   const fillMesh = new Mesh(mergeMesh(fillGeos), fill)
@@ -293,7 +300,7 @@ export async function createK1Scene(
   for (const p of passives) {
     addEdges(inkBuf, boxEdges(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z), LY.top)
   }
-  addEdges(inkBuf, topFaceEdges(CHIP, 0.1, CHIP, 0, CHIP_Y, 0), LY.chip)
+  addEdges(inkBuf, topFaceEdges(CHIP, 0.1, CHIP, 0, CHIP_Y + 0.006, 0), LY.chip)
   await pause()
   const inkLines = new LineSegments(lineGeometry(inkBuf), ink)
   inkLines.frustumCulled = false
@@ -363,7 +370,7 @@ export function setK1Colors(scene: K1Scene, colors: K1Colors, dark = false) {
   scene.mats.ink.color.copy(colors.ink)
 }
 
-export function setK1Aspect(scene: K1Scene, aspect: number) {
+export function setK1Aspect(scene: K1Scene, aspect = POSTER_ASPECT) {
   const f = scene.frustum
   scene.camera.left = -f * aspect
   scene.camera.right = f * aspect
@@ -435,11 +442,27 @@ export function projectEnds(scene: K1Scene, width: number, height: number): Hero
     const end = mapPt(ve)
     const anc = anchorById(rec.id, rec.layer, scene.anchors)
     if (!anc) {
-      return { x: end.x, y: end.y, ax: end.x + 99, ay: end.y + 99, id: rec.id, kind: 'pad' as const }
+      return {
+        x: end.x,
+        y: end.y,
+        ax: end.x + 99,
+        ay: end.y + 99,
+        id: rec.id,
+        targetId: rec.id,
+        kind: 'pad' as const,
+      }
     }
     va.set(anc.x, worldY(scene, anc.layer), anc.z)
     const a = mapPt(va)
-    return { x: end.x, y: end.y, ax: a.x, ay: a.y, id: anc.id, kind: anc.kind }
+    return {
+      x: end.x,
+      y: end.y,
+      ax: a.x,
+      ay: a.y,
+      id: anc.id,
+      targetId: rec.id,
+      kind: anc.kind,
+    }
   })
 }
 

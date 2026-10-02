@@ -99,12 +99,7 @@ export default defineConfig({
     },
   },
   build: {
-    modulePreload: {
-      polyfill: false,
-      resolveDependencies(_filename, deps) {
-        return deps.filter((dep) => !/(?:^|\/)(?:three|gsap|hero3d-boot|after-lcp)/.test(dep))
-      },
-    },
+    modulePreload: false,
     rollupOptions: {
       input: {
         main: path.resolve(root, 'index.html'),
@@ -113,6 +108,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           const n = id.replaceAll('\\', '/')
+          if (n.includes('/src/lib/after-lcp')) return 'after-lcp'
           if (n.includes('node_modules/three') || n.includes('/src/three/three-core')) return 'three'
           if (n.includes('node_modules/gsap')) return 'gsap'
           if (n.includes('/src/three/view-manager')) return 'three-view'

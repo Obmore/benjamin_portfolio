@@ -120,7 +120,7 @@ function pixelDiff(aBuf, bBuf) {
 
 async function waitReady(page) {
   await page.waitForFunction(
-    () => Boolean(document.querySelector('.hero-3d')?.classList.contains('is-ready') && window.__hero3d?.seek),
+    () => Boolean(document.querySelector('.hero-3d')?.classList.contains('is-swapped') && window.__hero3d?.seek),
     null,
     { timeout: 30000 },
   )
@@ -179,13 +179,19 @@ async function main() {
         ['p100', 1],
       ]
       for (const [key, progress] of poses) {
-        await page.evaluate(() => {
+        await page.evaluate((live) => {
           const box = document.querySelector('.hero-3d')
           const canvas = box?.querySelector('canvas')
           const poster = box?.querySelector('.hero-3d-poster-host')
-          if (canvas) canvas.style.opacity = '1'
-          if (poster) poster.style.opacity = '0'
-        })
+          if (canvas) {
+            canvas.style.opacity = live ? '1' : '0'
+            canvas.style.visibility = live ? 'visible' : 'hidden'
+          }
+          if (poster) {
+            poster.style.opacity = live ? '0' : '1'
+            poster.style.visibility = live ? 'hidden' : 'visible'
+          }
+        }, true)
         await page.evaluate((p) => window.__hero3d.seek(p), progress)
         await page.waitForTimeout(50)
         const name = `hero_${key}_${vp.name}_${theme}.png`
@@ -197,13 +203,19 @@ async function main() {
         }
       }
 
-      await page.evaluate(() => {
+      await page.evaluate((live) => {
         const box = document.querySelector('.hero-3d')
         const canvas = box?.querySelector('canvas')
         const poster = box?.querySelector('.hero-3d-poster-host')
-        if (canvas) canvas.style.opacity = '0'
-        if (poster) poster.style.opacity = '1'
-      })
+        if (canvas) {
+          canvas.style.opacity = live ? '1' : '0'
+          canvas.style.visibility = live ? 'visible' : 'hidden'
+        }
+        if (poster) {
+          poster.style.opacity = live ? '0' : '1'
+          poster.style.visibility = live ? 'hidden' : 'visible'
+        }
+      }, false)
       await page.waitForTimeout(50)
       const posterName = `hero_poster_${vp.name}_${theme}.png`
       await page.locator('.hero-3d').screenshot({
@@ -226,23 +238,35 @@ async function main() {
 
       const liveCrop = `crop_p100_live_${vp.name}_${theme}@2x.png`
       const posterCrop = `crop_p100_poster_${vp.name}_${theme}@2x.png`
-      await page.evaluate(() => {
+      await page.evaluate((live) => {
         const box = document.querySelector('.hero-3d')
         const canvas = box?.querySelector('canvas')
         const poster = box?.querySelector('.hero-3d-poster-host')
-        if (canvas) canvas.style.opacity = '1'
-        if (poster) poster.style.opacity = '0'
-      })
+        if (canvas) {
+          canvas.style.opacity = live ? '1' : '0'
+          canvas.style.visibility = live ? 'visible' : 'hidden'
+        }
+        if (poster) {
+          poster.style.opacity = live ? '0' : '1'
+          poster.style.visibility = live ? 'hidden' : 'visible'
+        }
+      }, true)
       await page.evaluate(() => window.__hero3d.seek(1))
       await page.waitForTimeout(40)
       await shotClip(page, path.join(outDir, liveCrop), CHIP_P100)
-      await page.evaluate(() => {
+      await page.evaluate((live) => {
         const box = document.querySelector('.hero-3d')
         const canvas = box?.querySelector('canvas')
         const poster = box?.querySelector('.hero-3d-poster-host')
-        if (canvas) canvas.style.opacity = '0'
-        if (poster) poster.style.opacity = '1'
-      })
+        if (canvas) {
+          canvas.style.opacity = live ? '1' : '0'
+          canvas.style.visibility = live ? 'visible' : 'hidden'
+        }
+        if (poster) {
+          poster.style.opacity = live ? '0' : '1'
+          poster.style.visibility = live ? 'hidden' : 'visible'
+        }
+      }, false)
       await page.waitForTimeout(40)
       await shotClip(page, path.join(outDir, posterCrop), CHIP_P100)
       const cropDiff = pixelDiff(readFileSync(path.join(outDir, liveCrop)), readFileSync(path.join(outDir, posterCrop)))

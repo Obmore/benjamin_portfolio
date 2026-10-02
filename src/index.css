@@ -432,6 +432,8 @@ html.js [data-reveal][data-revealed="instant"] {
   max-height: 320px;
   min-height: 0;
   overflow: clip;
+  contain: paint;
+  isolation: isolate;
 }
 
 .hero-3d-poster-host,
@@ -445,19 +447,51 @@ html.js [data-reveal][data-revealed="instant"] {
   pointer-events: none;
 }
 
-.hero-3d canvas {
-  opacity: 0;
-}
-
-.hero-3d.is-ready canvas {
+.hero-3d-poster-host {
+  z-index: 0;
+  visibility: visible;
   opacity: 1;
   transition-property: opacity;
-  transition-duration: 300ms;
+  transition-duration: 200ms;
   transition-timing-function: linear;
 }
 
-.hero-3d.is-ready .hero-3d-poster-host {
+.hero-3d canvas {
+  z-index: 1;
   opacity: 0;
+  visibility: hidden;
+}
+
+.hero-3d.is-ready canvas {
+  visibility: visible;
+  opacity: 1;
+  transition-property: opacity;
+  transition-duration: 200ms;
+  transition-timing-function: linear;
+}
+
+.hero-3d.is-swapped .hero-3d-poster-host {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.hero-3d.is-swapping-back .hero-3d-poster-host {
+  z-index: 2;
+  visibility: visible;
+  opacity: 1;
+}
+
+.hero-3d.is-poster-snap .hero-3d-poster-host {
+  z-index: 2;
+  visibility: visible;
+  opacity: 1;
+  transition-duration: 0ms;
+}
+
+.hero-3d.is-poster-snap canvas {
+  visibility: hidden;
+  opacity: 0;
+  transition-duration: 0ms;
 }
 
 .hero-titleblock {

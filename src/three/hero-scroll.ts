@@ -3,7 +3,10 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
-export function attachHeroScroll(onProgress: (progress: number) => void) {
+export function attachHeroScroll(
+  onProgress: (progress: number) => void,
+  opts: { skipInitial?: boolean } = {},
+) {
   const trigger = document.querySelector('#hero') || document.querySelector('.hero-visual')
   if (!trigger) return () => {}
 
@@ -16,7 +19,7 @@ export function attachHeroScroll(onProgress: (progress: number) => void) {
       onProgress(self.progress)
     },
   })
-  onProgress(st.progress)
+  if (!opts.skipInitial) onProgress(st.progress)
 
   let timer = 0
   const refresh = () => {

@@ -7,6 +7,39 @@ async function gotoHome(page: Page, query = '') {
   await page.waitForSelector('#hero', { timeout: 8000 })
 }
 
+type HeroEnd = {
+  x: number
+  y: number
+  ax: number
+  ay: number
+  id: string
+  targetId: string
+  kind: string
+}
+
+type Hero3dHook = {
+  seek?: (p: number) => void
+  dispose?: () => void
+  qaShiftEnd?: (index: number, dx: number, dy: number) => void
+  ends: HeroEnd[]
+  progress: number
+  layers: number
+  tier: string
+  info: { calls: number; memory: { geometries: number; textures: number } }
+}
+
+async function waitHero3d(page: Page) {
+  await page.waitForFunction(
+    () => {
+      const box = document.querySelector('.hero-3d')
+      const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
+      return Boolean(box?.classList.contains('is-swapped') && hook?.seek && hook.dispose)
+    },
+    null,
+    { timeout: 20000 },
+  )
+}
+
 test.describe('hero 3D K1', () => {
   test('old circuit and braces are gone; titleblock remains', async ({ page }) => {
     await gotoHome(page)
@@ -123,31 +156,23 @@ test.describe('hero 3D K1', () => {
     test(`T3-ends coincide at 100% (${vp.w}x${vp.h} light)`, async ({ page }) => {
       await page.setViewportSize({ width: vp.w, height: vp.h })
       await gotoHome(page, '?qa3d=1')
-      await page.waitForFunction(
-        () => {
-          const box = document.querySelector('.hero-3d')
-          const hook = (window as Window & { __hero3d?: { seek?: (p: number) => void } }).__hero3d
-          return Boolean(box?.classList.contains('is-ready') && hook?.seek)
-        },
-        null,
-        { timeout: 20000 },
-      )
+      await waitHero3d(page)
+      await expect(page.locator('.hero-3d-poster')).toHaveCount(1)
       await expect(page.locator('.hero-3d-poster')).toHaveAttribute('data-pose', '100')
       await expect(page.locator('.hero-3d canvas')).toHaveAttribute('data-pose', '0')
 
-      type End = { x: number; y: number; ax: number; ay: number; id: string; kind: string }
+      const posterHidden = await page.locator('.hero-3d-poster').evaluate((el) => getComputedStyle(el).visibility)
+      expect(posterHidden).toBe('hidden')
+
       const read = (progress: number) =>
         page.evaluate((p) => {
-          const hook = (
-            window as Window & {
-              __hero3d?: { seek: (n: number) => void; ends: End[]; progress: number }
-            }
-          ).__hero3d
+          const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
           if (!hook) return null
-          hook.seek(p)
+          hook.seek?.(p)
           const ends = hook.ends
           return {
             progress: hook.progress,
+            layers: hook.layers,
             n: ends.length,
             ends,
             sample: ends[0],
@@ -167,18 +192,42 @@ test.describe('hero 3D K1', () => {
           ax: expect.any(Number),
           ay: expect.any(Number),
           id: expect.any(String),
+          targetId: expect.any(String),
           kind: expect.stringMatching(/^(pad|via|pin)$/),
         }),
       )
       expect(at100?.progress).toBeCloseTo(1, 5)
+      expect(at100?.layers).toBe(3)
       for (const end of at100?.ends ?? []) {
         expect(end.id.length).toBeGreaterThan(0)
+        expect(end.targetId).toBe(end.id)
         expect(['pad', 'via', 'pin']).toContain(end.kind)
         expect(Math.abs(end.x - end.ax)).toBeLessThanOrEqual(1)
         expect(Math.abs(end.y - end.ay)).toBeLessThanOrEqual(1)
       }
     })
   }
+
+  test('qaShiftEnd mutates app state so the ±1px check fails', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await gotoHome(page, '?qa3d=1')
+    await waitHero3d(page)
+    const probe = await page.evaluate(() => {
+      const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
+      if (!hook?.qaShiftEnd) return null
+      hook.seek?.(1)
+      const before = hook.ends[0]
+      hook.qaShiftEnd(0, 2, 0)
+      const after = hook.ends[0]
+      const rest = hook.ends.slice(1)
+      return { before, after, restOk: rest.every((e) => Math.abs(e.x - e.ax) <= 1 && Math.abs(e.y - e.ay) <= 1) }
+    })
+    expect(probe?.before).toBeTruthy()
+    expect(Math.abs((probe?.before.x ?? 0) - (probe?.before.ax ?? 0))).toBeLessThanOrEqual(1)
+    expect(Math.abs((probe?.after.x ?? 0) - (probe?.after.ax ?? 0))).toBeGreaterThan(1)
+    expect(probe?.after.x).toBe((probe?.before.x ?? 0) + 2)
+    expect(probe?.restOk).toBe(true)
+  })
 
   test('poster data-pose is a literal on the cloned SVG', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
@@ -228,25 +277,127 @@ test.describe('hero 3D K1', () => {
     expect(state.canvas).toBe(true)
   })
 
-  test('dispose frees every geometry and texture', async ({ page }) => {
+  test('dispose swap-back fades poster then hides canvas and frees GPU', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await gotoHome(page, '?qa3d=1')
-    await page.waitForFunction(
-      () => Boolean((window as Window & { __hero3d?: { dispose?: () => void } }).__hero3d?.dispose),
-      null,
-      { timeout: 20000 },
-    )
-    const mem = await page.evaluate(() => {
-      const hook = (
-        window as Window & {
-          __hero3d?: { dispose: () => void; info: { memory: { geometries: number; textures: number } } }
-        }
-      ).__hero3d
-      if (!hook) return null
+    await waitHero3d(page)
+    const started = await page.evaluate(() => {
+      const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
+      if (!hook?.dispose) return null
       hook.dispose()
-      return hook.info.memory
+      const box = document.querySelector('.hero-3d')
+      const poster = document.querySelector('.hero-3d-poster')
+      const host = document.querySelector('.hero-3d-poster-host')
+      const canvas = document.querySelector('.hero-3d canvas')
+      return {
+        canvas: Boolean(canvas),
+        swapping: box?.classList.contains('is-swapping-back') ?? false,
+        pose: poster?.getAttribute('data-pose'),
+        hostVis: host ? getComputedStyle(host).visibility : null,
+        posterVis: poster ? getComputedStyle(poster).visibility : null,
+        posterCount: document.querySelectorAll('.hero-3d-poster').length,
+      }
     })
-    expect(mem).toEqual({ geometries: 0, textures: 0 })
+    expect(started?.canvas).toBe(true)
+    expect(started?.swapping).toBe(true)
+    expect(started?.pose).toBe('100')
+    expect(started?.hostVis).toBe('visible')
+    expect(started?.posterVis).toBe('visible')
+    expect(started?.posterCount).toBe(1)
+
+    await page.waitForFunction(() => !document.querySelector('.hero-3d canvas'), null, { timeout: 2000 })
+    const after = await page.evaluate(() => {
+      const box = document.querySelector('.hero-3d')
+      const poster = document.querySelector('.hero-3d-poster')
+      const host = document.querySelector('.hero-3d-poster-host')
+      const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
+      if (!box || !poster || !host || !hook) return null
+      const pr = poster.getBoundingClientRect()
+      const br = box.getBoundingClientRect()
+      return {
+        vis: getComputedStyle(poster).visibility,
+        hostVis: getComputedStyle(host).visibility,
+        op: getComputedStyle(poster).opacity,
+        hostOp: getComputedStyle(host).opacity,
+        pose: poster.getAttribute('data-pose'),
+        dx: Math.abs(pr.left - br.left),
+        dy: Math.abs(pr.top - br.top),
+        dw: Math.abs(pr.width - br.width),
+        dh: Math.abs(pr.height - br.height),
+        mem: hook.info.memory,
+        posterCount: document.querySelectorAll('.hero-3d-poster').length,
+      }
+    })
+    expect(after?.vis).toBe('visible')
+    expect(after?.hostVis).toBe('visible')
+    expect(after?.op).toBe('1')
+    expect(after?.hostOp).toBe('1')
+    expect(after?.pose).toBe('100')
+    expect(after?.dx).toBeLessThanOrEqual(0.5)
+    expect(after?.dy).toBeLessThanOrEqual(0.5)
+    expect(after?.dw).toBeLessThanOrEqual(0.5)
+    expect(after?.dh).toBeLessThanOrEqual(0.5)
+    expect(after?.mem).toEqual({ geometries: 0, textures: 0 })
+    expect(after?.posterCount).toBe(1)
+  })
+
+  test('webglcontextlost restores the poster immediately', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await gotoHome(page, '?qa3d=1')
+    await waitHero3d(page)
+    const probe = await page.evaluate(() => {
+      const canvas = document.querySelector('.hero-3d canvas') as HTMLCanvasElement | null
+      if (!canvas) return null
+      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
+      gl?.getExtension('WEBGL_lose_context')?.loseContext()
+      const poster = document.querySelector('.hero-3d-poster')
+      const host = document.querySelector('.hero-3d-poster-host')
+      const left = document.querySelector('.hero-3d canvas')
+      return {
+        pose: poster?.getAttribute('data-pose'),
+        vis: poster ? getComputedStyle(poster).visibility : null,
+        op: poster ? getComputedStyle(poster).opacity : null,
+        hostVis: host ? getComputedStyle(host).visibility : null,
+        hostOp: host ? getComputedStyle(host).opacity : null,
+        canvas: Boolean(left),
+        canvasVis: left ? getComputedStyle(left).visibility : 'gone',
+        flag: sessionStorage.getItem('ob-3d-off'),
+      }
+    })
+    expect(probe?.pose).toBe('100')
+    expect(probe?.vis).toBe('visible')
+    expect(probe?.op).toBe('1')
+    expect(probe?.hostVis).toBe('visible')
+    expect(probe?.hostOp).toBe('1')
+    expect(probe?.canvas === false || probe?.canvasVis === 'hidden').toBeTruthy()
+    expect(probe?.flag).toBe('1')
+    await page.waitForFunction(() => !document.querySelector('.hero-3d canvas'), null, { timeout: 2000 })
+    await expect(page.locator('.hero-3d-poster')).toBeVisible()
+  })
+
+  test('20x CPU watchdog falls back to the poster within 10s', async ({ page }) => {
+    test.setTimeout(30000)
+    await page.setViewportSize({ width: 390, height: 844 })
+    const client = await page.context().newCDPSession(page)
+    await client.send('Emulation.setCPUThrottlingRate', { rate: 20 })
+    await page.addInitScript(() => {
+      try {
+        sessionStorage.removeItem('ob-3d-off')
+      } catch {
+        /* ignore */
+      }
+    })
+    await gotoHome(page, '?qa3d=1')
+    await page.waitForFunction(
+      () =>
+        sessionStorage.getItem('ob-3d-off') === '1' &&
+        document.querySelector('.hero-3d')?.getAttribute('data-hero3d-tier') === 'static',
+      null,
+      { timeout: 10000 },
+    )
+    const poster = page.locator('.hero-3d-poster')
+    await expect(poster).toBeVisible()
+    await expect(poster).toHaveAttribute('data-pose', '100')
     await expect(page.locator('.hero-3d canvas')).toHaveCount(0)
   })
 
@@ -355,37 +506,46 @@ test.describe('hero 3D K1', () => {
   }
 
   test('390 LCP with WebGL stays within 10% of reduced-motion LCP', async ({ browser }) => {
+    test.setTimeout(120000)
     const collect = async (reduced: boolean, query: string) => {
-      const context = await browser.newContext({
-        viewport: { width: 390, height: 844 },
-        reducedMotion: reduced ? 'reduce' : 'no-preference',
-      })
-      const p = await context.newPage()
-      const client = await context.newCDPSession(p)
-      await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
-      await p.addInitScript(() => {
-        const w = window as Window & { __lcp: number | null }
-        w.__lcp = null
-        try {
-          new PerformanceObserver((list) => {
-            for (const e of list.getEntries()) w.__lcp = e.startTime
-          }).observe({ type: 'largest-contentful-paint', buffered: true })
-        } catch {
-          /* ignore */
+      const samples: number[] = []
+      for (let i = 0; i < 3; i += 1) {
+        const context = await browser.newContext({
+          viewport: { width: 390, height: 844 },
+          reducedMotion: reduced ? 'reduce' : 'no-preference',
+        })
+        const p = await context.newPage()
+        const client = await context.newCDPSession(p)
+        await client.send('Network.enable')
+        await client.send('Network.setCacheDisabled', { cacheDisabled: true })
+        await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+        await p.addInitScript(() => {
+          const w = window as Window & { __lcp: number | null }
+          w.__lcp = null
+          try {
+            new PerformanceObserver((list) => {
+              for (const e of list.getEntries()) w.__lcp = e.startTime
+            }).observe({ type: 'largest-contentful-paint', buffered: true })
+          } catch {
+            /* ignore */
+          }
+        })
+        await p.goto(`/${query}`, { waitUntil: 'domcontentloaded' })
+        if (!reduced) {
+          await p.waitForFunction(
+            () => document.querySelector('.hero-3d')?.classList.contains('is-ready'),
+            null,
+            { timeout: 30000 },
+          )
         }
-      })
-      await p.goto(`/${query}`, { waitUntil: 'domcontentloaded' })
-      if (!reduced) {
-        await p.waitForFunction(
-          () => document.querySelector('.hero-3d')?.classList.contains('is-ready'),
-          null,
-          { timeout: 30000 },
-        )
+        await p.waitForTimeout(800)
+        const lcp = await p.evaluate(() => (window as Window & { __lcp: number | null }).__lcp)
+        await context.close()
+        if (lcp != null) samples.push(lcp)
       }
-      await p.waitForTimeout(800)
-      const lcp = await p.evaluate(() => (window as Window & { __lcp: number | null }).__lcp)
-      await context.close()
-      return lcp
+      samples.sort((a, b) => a - b)
+      const mid = Math.floor(samples.length / 2)
+      return samples.length % 2 ? samples[mid] : (samples[mid - 1] + samples[mid]) / 2
     }
 
     const rm = await collect(true, '')

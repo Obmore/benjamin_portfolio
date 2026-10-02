@@ -117,6 +117,8 @@ async function measure(browser, { width, height, query, reducedMotion, label }) 
   })
   const page = await context.newPage()
   const cdp = await context.newCDPSession(page)
+  await cdp.send('Network.enable')
+  await cdp.send('Network.setCacheDisabled', { cacheDisabled: true })
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU })
   await page.addInitScript(INIT)
 
@@ -220,7 +222,21 @@ function printRun(run) {
       run.threeRes.map((r) => `${r.name} @${r.start.toFixed(0)}ms`).join(', '),
     )
   }
-  console.log(`max longtask ${run.maxTask.toFixed(1)} ms; tasks >${TASK_REPORT} ms (${run.over50.length}):`)
+  if (run.lcpSamples) {
+    console.log(
+      `samples LCP [${run.lcpSamples.map((n) => n.toFixed(0)).join(', ')}] ms  maxTask [${run.maxTaskSamples.map((n) => n.toFixed(0)).join(', ')}] ms`,
+    )
+  }
+  if (run.samples) {
+    run.samples.forEach((sample, i) => {
+      const rows = sample.over50.length
+        ? sample.over50.map(fmtTask).join('\n    ')
+        : '(none)'
+      console.log(`  sample ${i + 1} LCP ${sample.lcpMs?.toFixed(1) ?? 'n/a'} max ${sample.maxTask.toFixed(1)}:\n    ${rows}`)
+    })
+    return
+  }
+  console.log(`max longtask ${run.maxTask.toFixed(1)} ms; tasks >${TASK_REPORT} ms (${run.over50.length}) (first sample):`)
   if (run.over50.length === 0) console.log('  (none)')
   for (const e of run.over50) console.log(`  ${fmtTask(e)}`)
 }
@@ -232,6 +248,11 @@ async function main() {
     args: GL_ARGS,
   })
 
+  const warm = await browser.newContext({ viewport: { width: 390, height: 844 } })
+  const warmPage = await warm.newPage()
+  await warmPage.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 60000 })
+  await warm.close()
+
   const jobs = [
     { width: 390, height: 844, query: '', reducedMotion: true, label: '390 reduced-motion' },
     { width: 390, height: 844, query: '?qa3d=1', reducedMotion: false, label: '390 qa3d=1' },
@@ -241,9 +262,30 @@ async function main() {
     { width: 1440, height: 900, query: '', reducedMotion: false, label: '1440 default (WebGL)' },
   ]
 
+  const repeats = Number(process.env.SAMPLES || 3)
   const runs = []
   for (const job of jobs) {
-    runs.push(await measure(browser, job))
+    const samples = []
+    for (let i = 0; i < repeats; i += 1) {
+      samples.push(await measure(browser, job))
+    }
+    const lcpVals = samples.map((s) => s.lcpMs).filter((n) => n != null).sort((a, b) => a - b)
+    const maxTasks = samples.map((s) => s.maxTask)
+    const mid = Math.floor(lcpVals.length / 2)
+    const medianLcp =
+      lcpVals.length === 0
+        ? null
+        : lcpVals.length % 2
+          ? lcpVals[mid]
+          : (lcpVals[mid - 1] + lcpVals[mid]) / 2
+    runs.push({
+      ...samples[0],
+      lcpMs: medianLcp,
+      maxTask: Math.max(...maxTasks),
+      samples,
+      lcpSamples: lcpVals,
+      maxTaskSamples: maxTasks,
+    })
   }
   await browser.close()
 

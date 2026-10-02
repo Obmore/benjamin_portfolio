@@ -25,8 +25,7 @@ export function HeroVisual() {
     let cancelled = false
     const id = requestAnimationFrame(() => {
       void import('@/lib/hero3d-boot').then((mod) => {
-        if (cancelled) return
-        stop = mod.bootHero3d()
+        if (!cancelled) stop = mod.bootHero3d()
       })
     })
     return () => {
