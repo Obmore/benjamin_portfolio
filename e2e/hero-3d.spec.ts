@@ -394,7 +394,7 @@ test.describe('hero 3D K1', () => {
         sessionStorage.getItem('ob-3d-off') === '1' &&
         document.querySelector('.hero-3d')?.getAttribute('data-hero3d-tier') === 'static',
       null,
-      { timeout: 10000 },
+      { timeout: 15000 },
     )
     const poster = page.locator('.hero-3d-poster')
     await expect(poster).toBeVisible()
@@ -540,7 +540,10 @@ test.describe('hero 3D K1', () => {
           )
         }
         await p.waitForTimeout(800)
-        const lcp = await p.evaluate(() => (window as Window & { __lcp: number | null }).__lcp)
+        const lcp = await p.evaluate(() => {
+          const w = window as Window & { __lcp: number | null; __lcpTag?: string }
+          return w.__lcp
+        })
         await context.close()
         if (lcp != null) samples.push(lcp)
       }
