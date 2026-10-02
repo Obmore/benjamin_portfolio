@@ -15,8 +15,9 @@
     "check:motion": "node scripts/check-motion.mjs",
     "check:cv": "node scripts/check-cv-size.mjs",
     "check:megrendeles": "node scripts/check-megrendeles.mjs",
+    "check:static": "node scripts/check-static-pages.mjs",
     "test:e2e": "playwright test",
-    "check": "npm run lint && npm run build && npm run check:size && npm run check:motion && npm run check:cv && npm run check:megrendeles"
+    "check": "npm run lint && npm run build && npm run check:size && npm run check:motion && npm run check:cv && npm run check:megrendeles && npm run check:static"
   },
   "dependencies": {
     "gsap": "^3.15.0",
