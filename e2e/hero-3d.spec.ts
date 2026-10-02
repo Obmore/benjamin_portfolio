@@ -350,6 +350,7 @@ test.describe('hero 3D K1', () => {
       if (!canvas) return null
       const gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
       gl?.getExtension('WEBGL_lose_context')?.loseContext()
+      canvas.dispatchEvent(new Event('webglcontextlost', { cancelable: true }))
       const poster = document.querySelector('.hero-3d-poster')
       const host = document.querySelector('.hero-3d-poster-host')
       const left = document.querySelector('.hero-3d canvas')

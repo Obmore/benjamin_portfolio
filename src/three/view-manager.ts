@@ -180,13 +180,13 @@ function paint() {
   bindQa()
 }
 
-function watchdog(dt: number) {
-  frameMs.push(dt)
-  if (dt > 50) over50 += 1
+function watchdog(dt: number, work: number) {
+  frameMs.push(work)
+  if (work > 50 || dt > 80) over50 += 1
   if (over50 >= 3) return true
-  if (frameMs.length >= 60) {
+  if (frameMs.length >= 12) {
     const sorted = [...frameMs].sort((a, b) => a - b)
-    const mid = (sorted[29] + sorted[30]) / 2
+    const mid = sorted[Math.floor((sorted.length - 1) / 2)]
     if (mid > 24) return true
   }
   return false
@@ -197,12 +197,14 @@ function tick(now: number) {
   rafCount += 1
   const dt = last ? now - last : 16
   last = now
-  if (watchdog(dt)) {
+  const t0 = performance.now()
+  paint()
+  const work = performance.now() - t0
+  if (watchdog(dt, work)) {
     mark3dWatchdog()
     fallbackStatic()
     return
   }
-  paint()
   if (probeLeft > 0) {
     probeLeft -= 1
     requestLoop()
@@ -390,7 +392,7 @@ function teardownGpu() {
     window.__hero3d.rafCount = rafCount
   }
   if (renderer) {
-    renderer.domElement.removeEventListener('webglcontextlost', onLost, false)
+    renderer.domElement.removeEventListener('webglcontextlost', onLost, true)
     renderer.dispose()
     renderer.forceContextLoss()
   }
@@ -489,7 +491,7 @@ async function bootScene() {
   r.setPixelRatio(dprCap(lite))
   r.autoClear = true
   renderer = r
-  r.domElement.addEventListener('webglcontextlost', onLost, false)
+  r.domElement.addEventListener('webglcontextlost', onLost, true)
 
   await nextFrame()
   if (aborted(my)) {

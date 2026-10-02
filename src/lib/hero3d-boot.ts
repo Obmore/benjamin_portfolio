@@ -1,5 +1,4 @@
 import { afterLcpAndIdle, importHeroView, nextFrame } from '@/lib/after-lcp'
-import { mark3dWatchdog } from '@/lib/three-gate'
 
 type NavMem = Navigator & {
   deviceMemory?: number
@@ -34,24 +33,20 @@ function widthTier(): 'lite' | 'full' {
   return 'full'
 }
 
-function framesTooSlow(): Promise<boolean> {
-  return new Promise((resolve) => {
-    const dts: number[] = []
-    let prev = 0
-    let n = 0
-    const step = (now: number) => {
-      if (prev) dts.push(now - prev)
-      prev = now
-      n += 1
-      if (n < 5) {
-        requestAnimationFrame(step)
-        return
-      }
-      const slow = dts.filter((d) => d > 50).length >= 3 || dts.some((d) => d > 180)
-      resolve(slow)
-    }
-    requestAnimationFrame(step)
-  })
+function tripWatchdog() {
+  try {
+    sessionStorage.setItem(WATCHDOG_KEY, '1')
+  } catch {
+    /* ignore */
+  }
+}
+
+function cpuTooSlow() {
+  const t0 = performance.now()
+  let s = 0
+  for (let i = 0; i < 1_000_000; i += 1) s = (s + i) | 0
+  void s
+  return performance.now() - t0 > 90
 }
 
 export function bootHero3d(): () => void {
@@ -68,20 +63,27 @@ export function bootHero3d(): () => void {
 
   let stopped = false
   let stopView = () => {}
+  const deadline = window.setTimeout(() => {
+    if (stopped) return
+    tripWatchdog()
+    writeTier('static')
+    stopped = true
+    stopView()
+  }, 9000)
 
   void (async () => {
-    if (await framesTooSlow()) {
-      mark3dWatchdog()
+    await afterLcpAndIdle()
+    if (stopped) return
+    if (mediaStatic()) {
+      writeTier('static')
+      return
+    }
+    if (cpuTooSlow()) {
+      tripWatchdog()
       writeTier('static')
       return
     }
     if (stopped || mediaStatic()) {
-      writeTier('static')
-      return
-    }
-    await afterLcpAndIdle()
-    if (stopped) return
-    if (mediaStatic()) {
       writeTier('static')
       return
     }
@@ -112,15 +114,24 @@ export function bootHero3d(): () => void {
     await nextFrame()
     if (stopped) return
     const mod = await importHeroView()
-    await nextFrame()
-    if (stopped) return
-    await mod.startView(box)
     stopView = () => mod.stopView()
+    await nextFrame()
+    if (stopped) {
+      mod.stopView()
+      return
+    }
+    await mod.startView(box)
+    if (stopped) {
+      mod.stopView()
+      return
+    }
+    window.clearTimeout(deadline)
     writeTier(widthTier())
   })()
 
   return () => {
     stopped = true
+    window.clearTimeout(deadline)
     stopView()
   }
 }
