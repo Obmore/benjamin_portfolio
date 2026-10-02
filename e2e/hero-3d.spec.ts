@@ -4,6 +4,7 @@ async function gotoHome(page: Page, query = '') {
   const response = await page.goto(`/${query}`, { waitUntil: 'domcontentloaded' })
   expect(response?.status()).toBe(200)
   await page.evaluate(() => document.fonts.ready)
+  await page.waitForSelector('#hero', { timeout: 8000 })
 }
 
 test.describe('hero 3D K1', () => {
@@ -345,6 +346,7 @@ test.describe('hero 3D K1', () => {
       const max = Math.max(0, ...tasks.map((e) => e.d))
       return { max, n: tasks.length, tasks: [...tasks].sort((a, b) => b.d - a.d).slice(0, 8) }
     })
+    console.log('LONG_TASK_NAV_START', JSON.stringify(probe))
     expect(probe.max, JSON.stringify(probe.tasks)).toBeLessThanOrEqual(120)
   })
 })

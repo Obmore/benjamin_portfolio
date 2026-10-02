@@ -101,8 +101,20 @@ function fillPaths(
   want: (layer: number) => boolean,
 ) {
   const { pos, layer, count, index } = attrArrays(geo)
-  const v = new Vector3()
-  const parts: string[] = []
+  const parent = new Int32Array(count).fill(-1)
+  const find = (i: number): number => {
+    let x = i
+    while (parent[x] !== x && parent[x] >= 0) x = parent[x]
+    if (parent[i] >= 0) parent[i] = x
+    return parent[x] === -1 ? i : x
+  }
+  const unite = (a: number, b: number) => {
+    const pa = find(a)
+    const pb = find(b)
+    if (parent[pa] === -1) parent[pa] = pa
+    if (parent[pb] === -1) parent[pb] = pb
+    if (pa !== pb) parent[pa] = pb
+  }
   const triCount = index ? index.length / 3 : count / 3
   for (let t = 0; t < triCount; t++) {
     const ia = index ? (index[t * 3] as number) : t * 3
@@ -110,14 +122,32 @@ function fillPaths(
     const ic = index ? (index[t * 3 + 2] as number) : t * 3 + 2
     const la = layer ? layer[ia] : 0
     if (!want(la)) continue
-    const oy = layerOffset(la, u)
-    if (oy === null) continue
-    const a = project(cam, pos[ia * 3], pos[ia * 3 + 1] + oy, pos[ia * 3 + 2], w, h, v)
-    const b = project(cam, pos[ib * 3], pos[ib * 3 + 1] + oy, pos[ib * 3 + 2], w, h, v)
-    const c = project(cam, pos[ic * 3], pos[ic * 3 + 1] + oy, pos[ic * 3 + 2], w, h, v)
-    const area = (b.ndcX - a.ndcX) * (c.ndcY - a.ndcY) - (b.ndcY - a.ndcY) * (c.ndcX - a.ndcX)
-    if (area <= 1e-8) continue
-    parts.push(`M${r(a.x)},${r(a.y)}L${r(b.x)},${r(b.y)}L${r(c.x)},${r(c.y)}Z`)
+    unite(ia, ib)
+    unite(ib, ic)
+  }
+  const groups = new Map<number, number[]>()
+  for (let i = 0; i < count; i++) {
+    if (parent[i] === -1) continue
+    const la = layer ? layer[i] : 0
+    if (!want(la)) continue
+    const root = find(i)
+    const list = groups.get(root)
+    if (list) list.push(i)
+    else groups.set(root, [i])
+  }
+  const v = new Vector3()
+  const parts: string[] = []
+  for (const verts of groups.values()) {
+    const pts: Pt[] = []
+    for (const i of verts) {
+      const oy = layerOffset(layer ? layer[i] : 0, u)
+      if (oy === null) continue
+      const p = project(cam, pos[i * 3], pos[i * 3 + 1] + oy, pos[i * 3 + 2], w, h, v)
+      pts.push({ x: r(p.x), y: r(p.y) })
+    }
+    const hull = convexHull(pts)
+    if (hull.length < 3) continue
+    parts.push(`${hull.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join('')}Z`)
   }
   return parts.join('')
 }
@@ -164,15 +194,15 @@ export function svgFromK1Scene(scene: K1Scene, w = POSTER_W, h = POSTER_H) {
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" class="hero-3d-poster" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" fill="none" aria-hidden="true" focusable="false" data-pose="100">`,
-    `<style>.hero-3d-poster .k1-ink{stroke:var(--color-ink);stroke-opacity:.55;stroke-width:1;stroke-linejoin:round;fill:none}html[data-theme=dark] .hero-3d-poster .k1-ink{stroke-opacity:.7}.hero-3d-poster .k1-accent{stroke:var(--color-accent);stroke-opacity:1;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;fill:none}.hero-3d-poster .k1-fill{fill:var(--color-surface);stroke:none}.hero-3d-poster .k1-sub{fill:var(--color-surface);fill-opacity:.18;stroke:none}html[data-theme=dark] .hero-3d-poster .k1-sub{fill-opacity:.18}</style>`,
-    ink0 ? `<path class="k1-ink" d="${ink0}"/>` : '',
+    `<style>.hero-3d-poster .k1-ink{stroke:var(--color-ink);stroke-opacity:.55;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linejoin:round;fill:none}html[data-theme=dark] .hero-3d-poster .k1-ink{stroke-opacity:.7}.hero-3d-poster .k1-accent{stroke:var(--color-accent);stroke-opacity:1;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;fill:none}.hero-3d-poster .k1-fill{fill:var(--color-surface);stroke:none}.hero-3d-poster .k1-sub{fill:var(--color-surface);fill-opacity:.18;stroke:none}</style>`,
+    ink0 ? `<path class="k1-ink" vector-effect="non-scaling-stroke" d="${ink0}"/>` : '',
     subPath ? `<path class="k1-sub" d="${subPath}"/>` : '',
-    ink1 ? `<path class="k1-ink" d="${ink1}"/>` : '',
+    ink1 ? `<path class="k1-ink" vector-effect="non-scaling-stroke" d="${ink1}"/>` : '',
     fill2 ? `<path class="k1-fill" d="${fill2}"/>` : '',
-    ink2 ? `<path class="k1-ink" d="${ink2}"/>` : '',
-    acc ? `<path class="k1-accent" d="${acc}"/>` : '',
+    ink2 ? `<path class="k1-ink" vector-effect="non-scaling-stroke" d="${ink2}"/>` : '',
+    acc ? `<path class="k1-accent" vector-effect="non-scaling-stroke" d="${acc}"/>` : '',
     fill3 ? `<path class="k1-fill" d="${fill3}"/>` : '',
-    ink3 ? `<path class="k1-ink" d="${ink3}"/>` : '',
+    ink3 ? `<path class="k1-ink" vector-effect="non-scaling-stroke" d="${ink3}"/>` : '',
     `</svg>`,
   ]
     .filter(Boolean)
