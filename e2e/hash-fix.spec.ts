@@ -1,5 +1,236 @@
 import fs from 'node:fs'
+import { inflateSync } from 'node:zlib'
 import { expect, test, type Page } from '@playwright/test'
+
+type Rgb = [number, number, number]
+
+function parseCssRgb(value: string): Rgb {
+  const trim = value.trim()
+  if (trim.startsWith('#')) {
+    const body =
+      trim.length === 4
+        ? [...trim.slice(1)].map((ch) => ch + ch).join('')
+        : trim.slice(1)
+    const n = Number.parseInt(body, 16)
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+  }
+  const match = trim.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+  if (!match) throw new Error(`unparsed color ${value}`)
+  return [Number(match[1]), Number(match[2]), Number(match[3])]
+}
+
+function rgbClose(a: Rgb, b: Rgb, tol = 12) {
+  return Math.abs(a[0] - b[0]) <= tol && Math.abs(a[1] - b[1]) <= tol && Math.abs(a[2] - b[2]) <= tol
+}
+
+function paeth(a: number, b: number, c: number) {
+  const p = a + b - c
+  const pa = Math.abs(p - a)
+  const pb = Math.abs(p - b)
+  const pc = Math.abs(p - c)
+  if (pa <= pb && pa <= pc) return a
+  if (pb <= pc) return b
+  return c
+}
+
+function decodePngRgba(png: Buffer) {
+  if (png.subarray(1, 4).toString('ascii') !== 'PNG') throw new Error('not png')
+  let offset = 8
+  let width = 0
+  let height = 0
+  let bitDepth = 0
+  let colorType = 0
+  const chunks: Buffer[] = []
+  while (offset + 8 <= png.length) {
+    const length = png.readUInt32BE(offset)
+    const type = png.toString('ascii', offset + 4, offset + 8)
+    const data = png.subarray(offset + 8, offset + 8 + length)
+    if (type === 'IHDR') {
+      width = data.readUInt32BE(0)
+      height = data.readUInt32BE(4)
+      bitDepth = data[8]
+      colorType = data[9]
+      if (data[12] !== 0) throw new Error('interlaced png')
+    } else if (type === 'IDAT') {
+      chunks.push(Buffer.from(data))
+    } else if (type === 'IEND') {
+      break
+    }
+    offset += 12 + length
+  }
+  if (bitDepth !== 8 || (colorType !== 2 && colorType !== 6)) {
+    throw new Error(`unsupported png ${bitDepth}/${colorType}`)
+  }
+  const bpp = colorType === 6 ? 4 : 3
+  const stride = width * bpp
+  const inflated = inflateSync(Buffer.concat(chunks))
+  const pixels = Buffer.alloc(width * height * 4)
+  let src = 0
+  let prev = Buffer.alloc(stride)
+  for (let y = 0; y < height; y += 1) {
+    const filter = inflated[src]
+    src += 1
+    const row = Buffer.alloc(stride)
+    const raw = inflated.subarray(src, src + stride)
+    src += stride
+    for (let i = 0; i < stride; i += 1) {
+      const left = i >= bpp ? row[i - bpp] : 0
+      const up = prev[i]
+      const upLeft = i >= bpp ? prev[i - bpp] : 0
+      const x = raw[i]
+      if (filter === 0) row[i] = x
+      else if (filter === 1) row[i] = (x + left) & 255
+      else if (filter === 2) row[i] = (x + up) & 255
+      else if (filter === 3) row[i] = (x + ((left + up) >> 1)) & 255
+      else if (filter === 4) row[i] = (x + paeth(left, up, upLeft)) & 255
+      else throw new Error(`png filter ${filter}`)
+    }
+    for (let x = 0; x < width; x += 1) {
+      const o = (y * width + x) * 4
+      const i = x * bpp
+      pixels[o] = row[i]
+      pixels[o + 1] = row[i + 1]
+      pixels[o + 2] = row[i + 2]
+      pixels[o + 3] = bpp === 4 ? row[i + 3] : 255
+    }
+    prev = row
+  }
+  return { width, height, data: pixels }
+}
+
+function countAccentOnRow(
+  image: { width: number; data: Buffer },
+  row: number,
+  accent: Rgb,
+) {
+  if (row < 0 || row >= image.data.length / (image.width * 4)) return 0
+  let count = 0
+  for (let x = 0; x < image.width; x += 1) {
+    const i = (row * image.width + x) * 4
+    if (rgbClose([image.data[i], image.data[i + 1], image.data[i + 2]], accent)) count += 1
+  }
+  return count
+}
+
+async function installClsProbe(page: Page) {
+  await page.evaluate(() => {
+    const state = { value: 0 }
+    ;(window as unknown as { __skipBarCls: { value: number } }).__skipBarCls = state
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        const shift = entry as PerformanceEntry & { hadRecentInput?: boolean; value: number }
+        if (!shift.hadRecentInput) state.value += shift.value
+      }
+    }).observe({ type: 'layout-shift', buffered: true })
+  })
+}
+
+async function headerBottomBand(page: Page, accent: Rgb) {
+  const header = await page.evaluate(() => {
+    const el = document.querySelector('header.site-header')
+    if (!(el instanceof HTMLElement)) return null
+    const rect = el.getBoundingClientRect()
+    return {
+      top: rect.top,
+      bottom: rect.bottom,
+      height: rect.height,
+      headerH: getComputedStyle(document.documentElement).getPropertyValue('--header-h'),
+      vw: window.innerWidth,
+      dpr: window.devicePixelRatio,
+    }
+  })
+  expect(header, 'site-header').toBeTruthy()
+  const png = await page.screenshot({ type: 'png', animations: 'disabled' })
+  const image = decodePngRgba(png)
+  const viewport = page.viewportSize()
+  expect(viewport).toBeTruthy()
+  const scaleY = image.height / viewport!.height
+  const yCss = header!.bottom
+  const rows: number[] = []
+  for (let d = -2; d <= 2; d += 1) {
+    rows.push(Math.round((yCss + d) * scaleY))
+  }
+  const uniqueRows = [...new Set(rows.filter((row) => row >= 0 && row < image.height))]
+  const counts = uniqueRows.map((row) => countAccentOnRow(image, row, accent))
+  const best = Math.max(0, ...counts)
+  return { header: header!, image, best, counts, uniqueRows, yCss }
+}
+
+async function assertAccentBarVisible(page: Page, label: string) {
+  const styles = await page.locator('main').evaluate((el) => {
+    const bar = getComputedStyle(el, '::before')
+    const header = document.querySelector('header.site-header')
+    return {
+      focusVisible: el.matches(':focus-visible'),
+      content: bar.content,
+      position: bar.position,
+      top: bar.top,
+      height: bar.height,
+      zIndex: bar.zIndex,
+      pointerEvents: bar.pointerEvents,
+      backgroundColor: bar.backgroundColor,
+      transitionDuration: bar.transitionDuration,
+      transitionProperty: bar.transitionProperty,
+      willChange: bar.willChange,
+      headerH: getComputedStyle(document.documentElement).getPropertyValue('--header-h'),
+      headerHeight: header instanceof HTMLElement ? header.getBoundingClientRect().height : 0,
+      headerBottom: header instanceof HTMLElement ? header.getBoundingClientRect().bottom : 0,
+    }
+  })
+  expect(styles.focusVisible, `${label} :focus-visible`).toBe(true)
+  expect(styles.position, `${label} position`).toBe('fixed')
+  expect(parseFloat(styles.height), `${label} height`).toBe(2)
+  expect(Number(styles.zIndex), `${label} z-index`).toBeGreaterThan(50)
+  expect(styles.pointerEvents, `${label} pointer-events`).toBe('none')
+  expect(
+    styles.willChange === 'auto' || styles.willChange === 'none' || styles.willChange === '',
+    `${label} will-change ${styles.willChange}`,
+  ).toBe(true)
+  const durations = styles.transitionDuration.split(',').map((part) => part.trim())
+  expect(
+    durations.every((part) => part === '0s' || part === '0ms'),
+    `${label} transition-duration ${styles.transitionDuration}`,
+  ).toBe(true)
+  const headerH = parseFloat(styles.headerH)
+  expect(headerH, `${label} --header-h`).toBe(64)
+  expect(styles.headerHeight, `${label} header height`).toBe(headerH)
+  expect(parseFloat(styles.top), `${label} bar top`).toBe(headerH)
+  expect(Math.abs(styles.headerBottom - headerH), `${label} header bottom`).toBeLessThanOrEqual(0.5)
+
+  const accent = parseCssRgb(styles.backgroundColor)
+  const band = await headerBottomBand(page, accent)
+  expect(band.best, `${label} accent pixels at header bottom±2 (${band.counts.join(',')})`).toBeGreaterThanOrEqual(
+    Math.ceil(0.9 * band.image.width),
+  )
+}
+
+async function assertNoAccentAtHeaderBottom(page: Page, label: string) {
+  const accent = parseCssRgb(
+    await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--color-accent'),
+    ),
+  )
+  const band = await headerBottomBand(page, accent)
+  expect(Math.max(0, ...band.counts), `${label} no accent at header bottom±2 (${band.counts.join(',')})`).toBe(0)
+}
+
+async function mainRect(page: Page) {
+  return page.locator('main').evaluate((el) => {
+    const rect = el.getBoundingClientRect()
+    return { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+  })
+}
+
+async function focusMainViaSkip(page: Page) {
+  await page.evaluate(() => {
+    const active = document.activeElement
+    if (active instanceof HTMLElement) active.blur()
+  })
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('link', { name: 'Ugrás a tartalomra' })).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('main')).toBeFocused()
+}
 
 const ARTIFACTS = '/opt/cursor/artifacts'
 const VIEWPORTS = [
@@ -193,11 +424,25 @@ test.describe('hash-fix PR7', () => {
         barHeight: bar.height,
         barColor: bar.backgroundColor,
         barPosition: bar.position,
+        barTop: bar.top,
+        barZ: bar.zIndex,
+        pointerEvents: bar.pointerEvents,
+        willChange: bar.willChange,
+        transitionDuration: bar.transitionDuration,
       }
     })
     expect(focused.focusVisible).toBe(true)
     expect(parseFloat(focused.barHeight)).toBe(2)
-    expect(focused.barPosition).toBe('absolute')
+    expect(focused.barPosition).toBe('fixed')
+    expect(parseFloat(focused.barTop)).toBe(64)
+    expect(Number(focused.barZ)).toBeGreaterThan(50)
+    expect(focused.pointerEvents).toBe('none')
+    expect(focused.willChange === 'auto' || focused.willChange === 'none' || focused.willChange === '').toBe(
+      true,
+    )
+    expect(focused.transitionDuration.split(',').every((part) => part.trim() === '0s' || part.trim() === '0ms')).toBe(
+      true,
+    )
     expect(focused.barColor).not.toBe('rgba(0, 0, 0, 0)')
     expect(focused.barColor).not.toBe('transparent')
     expect(focused.top).toBe(mainRectBefore.top)
@@ -208,6 +453,80 @@ test.describe('hash-fix PR7', () => {
     expect(page.url()).not.toContain('#')
     expect(errors, errors.join('\n')).toEqual([])
   })
+
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 1440, height: 900 },
+  ] as const) {
+    test(`${viewport.width}: skip-focus bar pixels at header bottom, both themes`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport)
+      await gotoHome(page)
+      await installClsProbe(page)
+
+      for (const theme of ['light', 'dark'] as const) {
+        if (theme === 'dark') {
+          await page.getByRole('button', { name: 'Sötét mód' }).click()
+          await page.waitForFunction(
+            () => document.documentElement.getAttribute('data-theme') === 'dark',
+          )
+        }
+
+        await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+        await assertNoAccentAtHeaderBottom(page, `${viewport.width} ${theme} idle`)
+
+        const rectBefore = await mainRect(page)
+        await focusMainViaSkip(page)
+        const rectAfter = await mainRect(page)
+        expect(rectAfter, `${viewport.width} ${theme} main rect`).toEqual(rectBefore)
+        await assertAccentBarVisible(page, `${viewport.width} ${theme} top`)
+
+        await page.mouse.click(Math.min(48, viewport.width - 8), 120)
+        await page.waitForFunction(() => !document.querySelector('main')?.matches(':focus-visible'))
+        await assertNoAccentAtHeaderBottom(page, `${viewport.width} ${theme} mouse`)
+
+        await focusMainViaSkip(page)
+        await page.evaluate(() => window.scrollTo({ top: 520, behavior: 'instant' }))
+        const scrolledBefore = await mainRect(page)
+        await page.evaluate(() => {
+          const main = document.querySelector('main')
+          if (main instanceof HTMLElement) main.focus({ preventScroll: true })
+        })
+        await expect(page.locator('main')).toBeFocused()
+        const scrolledAfter = await mainRect(page)
+        expect(scrolledAfter, `${viewport.width} ${theme} scrolled main rect`).toEqual(scrolledBefore)
+        await assertAccentBarVisible(page, `${viewport.width} ${theme} scrolled`)
+
+        await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+        await page.mouse.click(Math.min(48, viewport.width - 8), 120)
+      }
+
+      if (viewport.width === 390) {
+        await focusMainViaSkip(page)
+        await expect(page.locator('main')).toHaveCSS('outline-style', 'none')
+        await page.evaluate(() => {
+          document.querySelector('.mobile-nav')?.classList.add('is-open')
+        })
+        await expect(page.locator('main')).toBeFocused()
+        await page.waitForFunction(() => document.querySelector('main')?.matches(':focus-visible'))
+        await assertNoAccentAtHeaderBottom(page, `${viewport.width} menu open while focused`)
+
+        await page.evaluate(() => {
+          document.querySelector('.mobile-nav')?.classList.remove('is-open')
+        })
+        await page.mouse.click(Math.min(48, viewport.width - 8), 120)
+        await page.getByRole('button', { name: 'Menü megnyitása' }).click()
+        await expect(page.getByRole('navigation', { name: 'Mobil navigáció' })).toBeVisible()
+        await assertNoAccentAtHeaderBottom(page, `${viewport.width} menu open after click`)
+      }
+
+      const cls = await page.evaluate(
+        () => (window as unknown as { __skipBarCls: { value: number } }).__skipBarCls.value,
+      )
+      expect(cls, `${viewport.width} CLS`).toBe(0)
+    })
+  }
 
   test('name link, junk hashes, work index replaceState, language switch', async ({
     page,

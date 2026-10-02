@@ -110,6 +110,7 @@
 
 :root {
   color-scheme: light;
+  --header-h: 64px;
   --shadow-ink: 0 16px 40px color-mix(in srgb, var(--color-foreground) 12%, transparent);
   --shadow-card: 0 1px 2px color-mix(in srgb, var(--color-foreground) 12%, transparent);
   --color-domain: #475569;
@@ -1175,6 +1176,10 @@ html[data-theme="dark"] .skip-link {
   color: #0b1a2e;
 }
 
+.site-header {
+  height: var(--header-h, 64px);
+}
+
 .site-name {
   text-decoration: none;
   white-space: nowrap;
@@ -1191,10 +1196,6 @@ html[data-theme="dark"] .skip-link {
   outline-offset: 4px;
 }
 
-main {
-  position: relative;
-}
-
 main:focus,
 main:focus-visible {
   outline: none;
@@ -1202,11 +1203,16 @@ main:focus-visible {
 
 main:focus-visible::before {
   content: "";
-  position: absolute;
-  pointer-events: none;
-  top: 0;
+  position: fixed;
+  top: var(--header-h, 64px);
   left: 0;
   right: 0;
   height: 2px;
   background: var(--color-accent);
+  z-index: 51;
+  pointer-events: none;
+}
+
+html:has(.mobile-nav.is-open) main:focus-visible::before {
+  content: none;
 }
