@@ -8,14 +8,12 @@ const WATCHDOG_KEY = 'ob-3d-off'
 export type Hero3dTier = 'static' | 'lite' | 'full'
 
 export function hasWebGL(): boolean {
-  try {
-    const el = document.createElement('canvas')
-    const ok = Boolean(el.getContext('webgl2') || el.getContext('webgl'))
-    el.remove()
-    return ok
-  } catch {
-    return false
-  }
+  return typeof WebGLRenderingContext !== 'undefined'
+}
+
+export function hero3dWidthTier(): 'lite' | 'full' {
+  if (window.matchMedia('(max-width: 1023px), (pointer: coarse)').matches) return 'lite'
+  return 'full'
 }
 
 export function isQa3d(): boolean {
@@ -41,6 +39,5 @@ export function hero3dTier(): Hero3dTier {
     /* ignore */
   }
   if (!hasWebGL()) return 'static'
-  if (window.matchMedia('(max-width: 1023px), (pointer: coarse)').matches) return 'lite'
-  return 'full'
+  return hero3dWidthTier()
 }

@@ -22,10 +22,18 @@ export function HeroVisual() {
 
   useEffect(() => {
     let stop = () => {}
-    void import('@/lib/hero3d-boot').then((mod) => {
-      stop = mod.bootHero3d()
+    let cancelled = false
+    const id = requestAnimationFrame(() => {
+      void import('@/lib/hero3d-boot').then((mod) => {
+        if (cancelled) return
+        stop = mod.bootHero3d()
+      })
     })
-    return () => stop()
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(id)
+      stop()
+    }
   }, [])
 
   return (

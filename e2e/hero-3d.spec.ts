@@ -96,7 +96,7 @@ test.describe('hero 3D K1', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await gotoHome(page, '?qa3d=1')
     const canvas = page.locator('.hero-3d canvas')
-    await canvas.waitFor({ state: 'attached', timeout: 8000 })
+    await canvas.waitFor({ state: 'attached', timeout: 20000 })
     await expect(canvas).toHaveAttribute('aria-hidden', 'true')
     const tabIndex = await canvas.evaluate((el) => (el as HTMLCanvasElement).tabIndex)
     expect(tabIndex).toBe(-1)
@@ -130,7 +130,7 @@ test.describe('hero 3D K1', () => {
           return Boolean(box?.classList.contains('is-ready') && hook?.seek)
         },
         null,
-        { timeout: 15000 },
+        { timeout: 20000 },
       )
       await expect(page.locator('.hero-3d-poster')).toHaveAttribute('data-pose', '100')
       await expect(page.locator('.hero-3d canvas')).toHaveAttribute('data-pose', '0')
@@ -318,35 +318,83 @@ test.describe('hero 3D K1', () => {
     expect(chipHits, JSON.stringify(axe.violations, null, 2)).toEqual([])
   })
 
-  test('page-load long tasks stay under 120 ms at 390 from navigation start', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 })
-    const client = await page.context().newCDPSession(page)
-    await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
-    await page.addInitScript(() => {
-      const w = window as Window & { __lt: { d: number; t: number }[] }
-      w.__lt = []
-      try {
-        new PerformanceObserver((list) => {
-          for (const e of list.getEntries()) w.__lt.push({ d: e.duration, t: e.startTime })
-        }).observe({ type: 'longtask', buffered: true })
-      } catch {
-        /* ignore */
+  for (const query of ['?qa3d=1', ''] as const) {
+    test(`page-load long tasks stay under 120 ms at 390 from navigation start (${query || 'default'})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 390, height: 844 })
+      const client = await page.context().newCDPSession(page)
+      await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+      await page.addInitScript(() => {
+        const w = window as Window & { __lt: { d: number; t: number }[] }
+        w.__lt = []
+        try {
+          new PerformanceObserver((list) => {
+            for (const e of list.getEntries()) w.__lt.push({ d: e.duration, t: e.startTime })
+          }).observe({ type: 'longtask', buffered: true })
+        } catch {
+          /* ignore */
+        }
+      })
+      await gotoHome(page, query)
+      await page.waitForFunction(
+        () => document.querySelector('.hero-3d')?.classList.contains('is-ready'),
+        null,
+        { timeout: 30000 },
+      )
+      await page.waitForTimeout(800)
+      const probe = await page.evaluate(() => {
+        const w = window as Window & { __lt?: { d: number; t: number }[] }
+        const tasks = w.__lt ?? []
+        const max = Math.max(0, ...tasks.map((e) => e.d))
+        return { max, n: tasks.length, tasks: [...tasks].sort((a, b) => b.d - a.d).slice(0, 8) }
+      })
+      console.log('LONG_TASK_NAV_START', query || 'default', JSON.stringify(probe))
+      expect(probe.max, JSON.stringify(probe.tasks)).toBeLessThanOrEqual(120)
+    })
+  }
+
+  test('390 LCP with WebGL stays within 10% of reduced-motion LCP', async ({ browser }) => {
+    const collect = async (reduced: boolean, query: string) => {
+      const context = await browser.newContext({
+        viewport: { width: 390, height: 844 },
+        reducedMotion: reduced ? 'reduce' : 'no-preference',
+      })
+      const p = await context.newPage()
+      const client = await context.newCDPSession(p)
+      await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+      await p.addInitScript(() => {
+        const w = window as Window & { __lcp: number | null }
+        w.__lcp = null
+        try {
+          new PerformanceObserver((list) => {
+            for (const e of list.getEntries()) w.__lcp = e.startTime
+          }).observe({ type: 'largest-contentful-paint', buffered: true })
+        } catch {
+          /* ignore */
+        }
+      })
+      await p.goto(`/${query}`, { waitUntil: 'domcontentloaded' })
+      if (!reduced) {
+        await p.waitForFunction(
+          () => document.querySelector('.hero-3d')?.classList.contains('is-ready'),
+          null,
+          { timeout: 30000 },
+        )
       }
-    })
-    await gotoHome(page, '?qa3d=1')
-    await page.waitForFunction(
-      () => document.querySelector('.hero-3d')?.classList.contains('is-ready'),
-      null,
-      { timeout: 30000 },
-    )
-    await page.waitForTimeout(800)
-    const probe = await page.evaluate(() => {
-      const w = window as Window & { __lt?: { d: number; t: number }[] }
-      const tasks = w.__lt ?? []
-      const max = Math.max(0, ...tasks.map((e) => e.d))
-      return { max, n: tasks.length, tasks: [...tasks].sort((a, b) => b.d - a.d).slice(0, 8) }
-    })
-    console.log('LONG_TASK_NAV_START', JSON.stringify(probe))
-    expect(probe.max, JSON.stringify(probe.tasks)).toBeLessThanOrEqual(120)
+      await p.waitForTimeout(800)
+      const lcp = await p.evaluate(() => (window as Window & { __lcp: number | null }).__lcp)
+      await context.close()
+      return lcp
+    }
+
+    const rm = await collect(true, '')
+    const qa = await collect(false, '?qa3d=1')
+    const live = await collect(false, '')
+    expect(rm, 'reduced-motion LCP').toBeTruthy()
+    expect(qa, 'qa3d LCP').toBeTruthy()
+    expect(live, 'default LCP').toBeTruthy()
+    expect(Math.abs(qa! / rm! - 1), `qa3d LCP ${qa} vs RM ${rm}`).toBeLessThanOrEqual(0.1)
+    expect(Math.abs(live! / rm! - 1), `default LCP ${live} vs RM ${rm}`).toBeLessThanOrEqual(0.1)
   })
 })

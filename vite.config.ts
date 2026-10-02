@@ -33,7 +33,7 @@ export default defineConfig({
     modulePreload: {
       polyfill: false,
       resolveDependencies(_filename, deps) {
-        return deps.filter((dep) => !/(?:^|\/)(?:three|gsap|hero3d-boot)/.test(dep))
+        return deps.filter((dep) => !/(?:^|\/)(?:three|gsap|hero3d-boot|after-lcp)/.test(dep))
       },
     },
     rollupOptions: {
@@ -44,8 +44,10 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           const n = id.replaceAll('\\', '/')
-          if (n.includes('node_modules/three')) return 'three'
+          if (n.includes('node_modules/three') || n.includes('/src/three/three-core')) return 'three'
           if (n.includes('node_modules/gsap')) return 'gsap'
+          if (n.includes('/src/three/view-manager')) return 'three-view'
+          if (n.includes('/src/three/hero-scroll')) return 'gsap'
           if (n.includes('/src/three/')) return 'three-hero'
           return undefined
         },

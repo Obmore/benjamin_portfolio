@@ -9,8 +9,10 @@ import {
   Mesh,
   MeshBasicMaterial,
   OrthographicCamera,
+  Scene,
   Vector3,
   Vector4,
+  WebGLRenderer,
 } from 'three'
 import {
   allAnchors,
@@ -45,6 +47,8 @@ import {
 } from './k1-layout'
 
 export type K1Colors = { surface: Color; ink: Color; accent: Color; line: Color }
+
+export { Color, Scene, WebGLRenderer }
 
 export type HeroEnd = {
   x: number
@@ -271,6 +275,7 @@ export async function createK1Scene(
     ...passives.map((p) => taggedBox(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z, LY.top)),
     taggedBox(CHIP, 0.1, CHIP, 0, CHIP_Y, 0, LY.chip),
   ]
+  await pause()
   const fillMesh = new Mesh(mergeMesh(fillGeos), fill)
   fillMesh.frustumCulled = false
   fillMesh.renderOrder = 0
@@ -279,14 +284,17 @@ export async function createK1Scene(
 
   const inkBuf: LineBuf = { pos: [], layer: [] }
   addPolys(inkBuf, [boardOutline], botY, LY.bot)
-  addPolys(inkBuf, [boardOutline], 0, LY.sub)
-  addPolys(inkBuf, [boardOutline], topY, LY.top)
   addPolys(inkBuf, [...botTraces, ...allBotPads()], botY, LY.bot)
+  await pause()
+  addPolys(inkBuf, [boardOutline], 0, LY.sub)
+  await pause()
+  addPolys(inkBuf, [boardOutline], topY, LY.top)
   addEdges(inkBuf, boxEdges(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z), LY.top)
   for (const p of passives) {
     addEdges(inkBuf, boxEdges(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z), LY.top)
   }
   addEdges(inkBuf, topFaceEdges(CHIP, 0.1, CHIP, 0, CHIP_Y, 0), LY.chip)
+  await pause()
   const inkLines = new LineSegments(lineGeometry(inkBuf), ink)
   inkLines.frustumCulled = false
   inkLines.renderOrder = 2
@@ -295,6 +303,7 @@ export async function createK1Scene(
 
   const accentBuf: LineBuf = { pos: [], layer: [] }
   addPolys(accentBuf, [...topTraces, ...allTopPads()], topY, LY.top)
+  await pause()
   for (const [x, z] of vias) {
     accentBuf.pos.push(x, topY, z, x, botY, z)
     accentBuf.layer.push(LY.top, LY.bot)
@@ -304,9 +313,12 @@ export async function createK1Scene(
     accentBuf.pos.push(0, 0, 0)
     accentBuf.layer.push(-1)
   }
+  await pause()
   const accentLines = new LineSegments(lineGeometry(accentBuf), accent)
   accentLines.frustumCulled = false
   accentLines.renderOrder = 3
+
+  await pause()
 
   let subMesh: Mesh | null = null
   if (!lite) {
@@ -318,6 +330,7 @@ export async function createK1Scene(
   }
 
   root.add(fillMesh, inkLines, accentLines, carrier)
+  await pause()
 
   const scene: K1Scene = {
     root,

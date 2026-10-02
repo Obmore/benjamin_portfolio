@@ -1,3 +1,5 @@
+import { afterLcpAndIdle, nextFrame } from '@/lib/after-lcp'
+
 type NavMem = Navigator & {
   deviceMemory?: number
   connection?: { saveData?: boolean }
@@ -5,102 +7,86 @@ type NavMem = Navigator & {
 
 const WATCHDOG_KEY = 'ob-3d-off'
 
-function hasWebGL(): boolean {
-  try {
-    const el = document.createElement('canvas')
-    const ok = Boolean(el.getContext('webgl2') || el.getContext('webgl'))
-    el.remove()
-    return ok
-  } catch {
-    return false
-  }
+function canWebGL(): boolean {
+  return typeof WebGLRenderingContext !== 'undefined'
 }
 
 function isQa3d(): boolean {
   return new URLSearchParams(location.search).get('qa3d') === '1'
 }
 
-function tier(): 'static' | 'lite' | 'full' {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 'static'
+function mediaStatic(): boolean {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true
   const n = navigator as NavMem
-  if (n.connection?.saveData) return 'static'
-  if (typeof n.deviceMemory === 'number' && n.deviceMemory < 4) return 'static'
+  if (n.connection?.saveData) return true
+  if (typeof n.deviceMemory === 'number' && n.deviceMemory < 4) return true
   try {
-    if (sessionStorage.getItem(WATCHDOG_KEY)) return 'static'
+    if (sessionStorage.getItem(WATCHDOG_KEY)) return true
   } catch {
     /* ignore */
   }
-  if (!hasWebGL()) return 'static'
+  return false
+}
+
+function widthTier(): 'lite' | 'full' {
   if (window.matchMedia('(max-width: 1023px), (pointer: coarse)').matches) return 'lite'
   return 'full'
-}
-
-function afterLoad(): Promise<void> {
-  if (document.readyState === 'complete') return Promise.resolve()
-  return new Promise((resolve) => {
-    window.addEventListener('load', () => resolve(), { once: true })
-  })
-}
-
-function afterIdle(): Promise<void> {
-  return new Promise((resolve) => {
-    const ric = window.requestIdleCallback
-    if (typeof ric === 'function') ric(() => resolve(), { timeout: 2000 })
-    else window.setTimeout(resolve, 200)
-  })
-}
-
-function nearBox(el: Element): Promise<void> {
-  return new Promise((resolve) => {
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          io.disconnect()
-          resolve()
-        }
-      },
-      { rootMargin: '200px 0px' },
-    )
-    io.observe(el)
-  })
-}
-
-function yieldMain(): Promise<void> {
-  const sched = (globalThis as unknown as { scheduler?: { yield?: () => Promise<void> } }).scheduler
-  if (typeof sched?.yield === 'function') return sched.yield()
-  return new Promise((resolve) => {
-    setTimeout(resolve, 0)
-  })
 }
 
 export function bootHero3d(): () => void {
   const box = document.querySelector<HTMLElement>('.hero-3d')
   const qa = isQa3d()
-  const writeTier = (value: ReturnType<typeof tier>) => {
+  const writeTier = (value: 'static' | 'lite' | 'full') => {
     if (qa && box) box.dataset.hero3dTier = value
   }
 
-  writeTier(tier())
-  if (!box || tier() === 'static') return () => {}
+  if (!box || mediaStatic()) {
+    writeTier('static')
+    return () => {}
+  }
 
   let stopped = false
   let stopView = () => {}
 
   void (async () => {
-    await afterLoad()
-    await afterIdle()
+    await afterLcpAndIdle()
     if (stopped) return
-    await nearBox(box)
-    if (stopped || tier() === 'static') {
-      writeTier(tier())
+    if (mediaStatic()) {
+      writeTier('static')
       return
     }
+    await nextFrame()
+    if (stopped) return
+    if (!canWebGL()) {
+      writeTier('static')
+      return
+    }
+    writeTier(widthTier())
+    const near = new Promise<void>((resolve) => {
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            io.disconnect()
+            resolve()
+          }
+        },
+        { rootMargin: '200px 0px' },
+      )
+      io.observe(box)
+    })
+    await near
+    if (stopped || mediaStatic()) {
+      writeTier(mediaStatic() ? 'static' : widthTier())
+      return
+    }
+    await nextFrame()
+    if (stopped) return
     const mod = await import('@/three/view-manager')
-    await yieldMain()
+    await nextFrame()
     if (stopped) return
     await mod.startView(box)
     stopView = () => mod.stopView()
-    writeTier(tier())
+    writeTier(widthTier())
   })()
 
   return () => {

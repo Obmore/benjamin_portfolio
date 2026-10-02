@@ -192,6 +192,7 @@ declare module 'three' {
       alpha?: boolean
       antialias?: boolean
       powerPreference?: string
+      failIfMajorPerformanceCaveat?: boolean
     })
     setClearColor(color: number, alpha: number): void
     setPixelRatio(value: number): void

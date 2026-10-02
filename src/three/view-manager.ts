@@ -1,16 +1,8 @@
-import { Color, Scene, WebGLRenderer } from 'three'
-import { hero3dTier, isQa3d, mark3dWatchdog } from '@/lib/three-gate'
-import {
-  applyK1Progress,
-  createK1Scene,
-  disposeK1,
-  projectEnds,
-  setK1Aspect,
-  setK1Colors,
-  type K1Scene,
-} from './hero-k1'
-import { attachHeroScroll } from './hero-scroll'
+import { hero3dWidthTier, isQa3d, mark3dWatchdog } from '@/lib/three-gate'
+import { nextFrame } from '@/lib/after-lcp'
+import type { K1Scene } from './hero-k1'
 
+type HeroMod = typeof import('./hero-k1')
 type Hero3dInfo = {
   calls: number
   triangles: number
@@ -25,7 +17,7 @@ type Hero3dQa = {
   rafCount: number
   progress: number
   dpr: number
-  readonly ends: ReturnType<typeof projectEnds>
+  readonly ends: ReturnType<HeroMod['projectEnds']>
   seek?: (p: number) => void
   dispose?: () => void
 }
@@ -37,10 +29,11 @@ declare global {
 }
 
 const INTRO_MS = 1100
-let renderer: WebGLRenderer | null = null
+let hero: HeroMod | null = null
+let renderer: InstanceType<HeroMod['WebGLRenderer']> | null = null
 let canvas: HTMLCanvasElement | null = null
 let boxEl: HTMLElement | null = null
-let scene: Scene | null = null
+let scene: InstanceType<HeroMod['Scene']> | null = null
 let k1: K1Scene | null = null
 let raf = 0
 let gen = 0
@@ -59,8 +52,14 @@ let themeMo: MutationObserver | null = null
 let ro: ResizeObserver | null = null
 let observersOn = false
 let booting = false
+let scrollBound = false
+
+function aborted(my: number) {
+  return my !== gen
+}
 
 function readColors(el: HTMLElement) {
+  const Color = hero!.Color
   const css = getComputedStyle(el)
   const tok = (name: string, fb: string) => css.getPropertyValue(name).trim() || fb
   return {
@@ -80,18 +79,8 @@ function dprCap(lite: boolean) {
   return Math.min(window.devicePixelRatio || 1, lite ? 1.5 : wide ? 2 : 1.5)
 }
 
-function yieldSlice() {
-  return new Promise<void>((resolve) => {
-    requestAnimationFrame(() => {
-      const ric = window.requestIdleCallback
-      if (typeof ric === 'function') ric(() => resolve(), { timeout: 16 })
-      else window.setTimeout(resolve, 0)
-    })
-  })
-}
-
 function sizeCanvas() {
-  if (!renderer || !canvas || !boxEl || !k1) return
+  if (!renderer || !canvas || !boxEl || !k1 || !hero) return
   const w = Math.max(1, boxEl.clientWidth)
   const h = Math.max(1, boxEl.clientHeight)
   canvas.style.width = '100%'
@@ -99,7 +88,7 @@ function sizeCanvas() {
   const lite = k1.lite
   renderer.setPixelRatio(dprCap(lite))
   renderer.setSize(w, h, false)
-  setK1Aspect(k1, w / h)
+  hero.setK1Aspect(k1, w / h)
 }
 
 function snapshotInfo(): Hero3dInfo {
@@ -148,8 +137,8 @@ function bindQa() {
     enumerable: true,
     configurable: true,
     get() {
-      if (!k1 || !boxEl) return []
-      return projectEnds(k1, boxEl.clientWidth, boxEl.clientHeight)
+      if (!k1 || !boxEl || !hero) return []
+      return hero.projectEnds(k1, boxEl.clientWidth, boxEl.clientHeight)
     },
   })
   window.__hero3d = hook
@@ -161,9 +150,9 @@ function pulseU() {
 }
 
 function paint() {
-  if (!renderer || !scene || !k1) return
+  if (!renderer || !scene || !k1 || !hero) return
   renderer.info.reset()
-  applyK1Progress(k1, progress, pulseU())
+  hero.applyK1Progress(k1, progress, pulseU())
   renderer.render(scene, k1.camera)
   bindQa()
 }
@@ -235,12 +224,16 @@ function fallbackStatic() {
 }
 
 function onTheme() {
-  if (!k1 || !boxEl) return
-  setK1Colors(k1, readColors(boxEl), isDark())
+  if (!k1 || !boxEl || !hero) return
+  hero.setK1Colors(k1, readColors(boxEl), isDark())
   paint()
 }
 
-async function compileQuiet(r: WebGLRenderer, sc: Scene, cam: K1Scene['camera']) {
+async function compileQuiet(
+  r: InstanceType<HeroMod['WebGLRenderer']>,
+  sc: InstanceType<HeroMod['Scene']>,
+  cam: K1Scene['camera'],
+) {
   const warn = console.warn
   console.warn = (...args: unknown[]) => {
     if (String(args[0] ?? '').includes('KHR_parallel_shader_compile')) return
@@ -263,7 +256,7 @@ function teardownGpu() {
   last = 0
   introOn = false
   boxEl?.classList.remove('is-ready')
-  if (k1) disposeK1(k1)
+  if (k1 && hero) hero.disposeK1(k1)
   k1 = null
   scene = null
   if (qa && window.__hero3d && renderer) {
@@ -280,16 +273,38 @@ function teardownGpu() {
   canvas = null
 }
 
+async function bindScroll() {
+  if (scrollBound) return
+  scrollBound = true
+  await nextFrame()
+  const { attachHeroScroll } = await import('./hero-scroll')
+  stopScroll = attachHeroScroll(onProgress)
+}
+
 async function bootScene() {
   if (renderer || booting || !boxEl) return
   booting = true
   const my = ++gen
-  const tier = hero3dTier()
-  if (tier === 'static') {
+  const tier = hero3dWidthTier()
+  if (qa) boxEl.dataset.hero3dTier = tier
+
+  await nextFrame()
+  if (aborted(my)) {
     booting = false
     return
   }
-  if (qa) boxEl.dataset.hero3dTier = tier
+  await import('./three-core')
+  await nextFrame()
+  if (aborted(my)) {
+    booting = false
+    return
+  }
+  if (!hero) hero = await import('./hero-k1')
+  await nextFrame()
+  if (aborted(my)) {
+    booting = false
+    return
+  }
 
   const el = document.createElement('canvas')
   el.setAttribute('aria-hidden', 'true')
@@ -301,28 +316,45 @@ async function bootScene() {
   if (qa) el.setAttribute('data-pose', '0')
 
   const lite = tier === 'lite'
-  await yieldSlice()
-  if (my !== gen) {
+  await nextFrame()
+  if (aborted(my)) {
     booting = false
     return
   }
-  const r = new WebGLRenderer({
-    canvas: el,
-    alpha: true,
-    antialias: !lite,
-    powerPreference: 'low-power',
-  })
+
+  let r: InstanceType<HeroMod['WebGLRenderer']>
+  try {
+    r = new hero.WebGLRenderer({
+      canvas: el,
+      alpha: true,
+      antialias: !lite,
+      powerPreference: 'low-power',
+      failIfMajorPerformanceCaveat: false,
+    })
+  } catch {
+    el.remove()
+    canvas = null
+    if (qa) boxEl.dataset.hero3dTier = 'static'
+    booting = false
+    return
+  }
   r.setClearColor(0x000000, 0)
   r.setPixelRatio(dprCap(lite))
   r.autoClear = true
   renderer = r
   r.domElement.addEventListener('webglcontextlost', onLost, false)
 
+  await nextFrame()
+  if (aborted(my)) {
+    booting = false
+    return
+  }
+
   let built: K1Scene
   try {
-    built = await createK1Scene(readColors(boxEl), lite, async () => {
-      if (my !== gen) throw new Error('abort')
-      await yieldSlice()
+    built = await hero.createK1Scene(readColors(boxEl), lite, async () => {
+      if (aborted(my)) throw new Error('abort')
+      await nextFrame()
     })
   } catch {
     if (my === gen) {
@@ -334,25 +366,40 @@ async function bootScene() {
     booting = false
     return
   }
-  if (my !== gen) {
-    disposeK1(built)
+  if (aborted(my)) {
+    hero.disposeK1(built)
     booting = false
     return
   }
-  setK1Colors(built, readColors(boxEl), isDark())
+
+  await nextFrame()
+  if (aborted(my)) {
+    hero.disposeK1(built)
+    booting = false
+    return
+  }
+  hero.setK1Colors(built, readColors(boxEl), isDark())
   k1 = built
-  const sc = new Scene()
+  const sc = new hero.Scene()
   sc.add(k1.root)
   scene = sc
+
+  await nextFrame()
+  if (aborted(my)) {
+    booting = false
+    return
+  }
   sizeCanvas()
 
-  await yieldSlice()
-  if (my !== gen) {
+  await nextFrame()
+  if (aborted(my)) {
     booting = false
     return
   }
   await compileQuiet(r, sc, k1.camera)
-  if (my !== gen) {
+
+  await nextFrame()
+  if (aborted(my)) {
     booting = false
     return
   }
@@ -367,6 +414,7 @@ async function bootScene() {
   boxEl.classList.add('is-ready')
   booting = false
   requestLoop()
+  void bindScroll()
 }
 
 function setupObservers() {
@@ -408,8 +456,6 @@ export async function startView(box: HTMLElement) {
   if (renderer) return
   qa = isQa3d()
   boxEl = box
-  if (qa) box.dataset.hero3dTier = hero3dTier()
-  stopScroll = attachHeroScroll(onProgress)
   setupObservers()
   await bootScene()
 }
@@ -417,6 +463,7 @@ export async function startView(box: HTMLElement) {
 export function stopView() {
   stopScroll()
   stopScroll = () => {}
+  scrollBound = false
   document.removeEventListener('visibilitychange', onVis)
   themeMo?.disconnect()
   themeMo = null
