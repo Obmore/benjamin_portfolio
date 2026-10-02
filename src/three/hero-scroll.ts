@@ -4,7 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 gsap.registerPlugin(ScrollTrigger)
 
 export function attachHeroScroll(onProgress: (progress: number) => void) {
-  const trigger = document.querySelector('.hero-visual')
+  const trigger = document.querySelector('#hero') || document.querySelector('.hero-visual')
   if (!trigger) return () => {}
 
   const st = ScrollTrigger.create({

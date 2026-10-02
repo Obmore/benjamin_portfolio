@@ -45,6 +45,7 @@ declare module 'three' {
     position: Vector3
     rotation: { x: number; y: number; z: number; set(x: number, y: number, z: number): void }
     frustumCulled: boolean
+    visible: boolean
     add(...object: Object3D[]): this
     traverse(callback: (object: Object3D) => void): void
     lookAt(x: number, y: number, z: number): void
@@ -99,6 +100,7 @@ declare module 'three' {
   export class Material {
     color: Color
     opacity: number
+    depthWrite?: boolean
     dispose(): void
   }
 
@@ -109,6 +111,7 @@ declare module 'three' {
       opacity?: number
       depthWrite?: boolean
     })
+    depthWrite: boolean
   }
 
   export class LineBasicMaterial extends Material {

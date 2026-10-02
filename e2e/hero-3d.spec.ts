@@ -66,7 +66,7 @@ test.describe('hero 3D K1', () => {
     const requests: string[] = []
     page.on('request', (req) => {
       const url = req.url()
-      if (/\b(three|gsap)/i.test(url) && url.endsWith('.js')) requests.push(url)
+      if (/\/assets\/(three|gsap)[^/]*\.js$/.test(url)) requests.push(url)
     })
     await gotoHome(page, '?qa3d=1')
     await page.waitForTimeout(2500)

@@ -1,4 +1,39 @@
-import { hero3dTier, isQa3d } from '@/lib/three-gate'
+type NavMem = Navigator & {
+  deviceMemory?: number
+  connection?: { saveData?: boolean }
+}
+
+const WATCHDOG_KEY = 'ob-3d-off'
+
+function hasWebGL(): boolean {
+  try {
+    const el = document.createElement('canvas')
+    const ok = Boolean(el.getContext('webgl2') || el.getContext('webgl'))
+    el.remove()
+    return ok
+  } catch {
+    return false
+  }
+}
+
+function isQa3d(): boolean {
+  return new URLSearchParams(location.search).get('qa3d') === '1'
+}
+
+function tier(): 'static' | 'lite' | 'full' {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 'static'
+  const n = navigator as NavMem
+  if (n.connection?.saveData) return 'static'
+  if (typeof n.deviceMemory === 'number' && n.deviceMemory < 4) return 'static'
+  try {
+    if (sessionStorage.getItem(WATCHDOG_KEY)) return 'static'
+  } catch {
+    /* ignore */
+  }
+  if (!hasWebGL()) return 'static'
+  if (window.matchMedia('(max-width: 1023px), (pointer: coarse)').matches) return 'lite'
+  return 'full'
+}
 
 function afterLoad(): Promise<void> {
   if (document.readyState === 'complete') return Promise.resolve()
@@ -33,12 +68,12 @@ function nearBox(el: Element): Promise<void> {
 export function bootHero3d(): () => void {
   const box = document.querySelector<HTMLElement>('.hero-3d')
   const qa = isQa3d()
-  const writeTier = (tier: ReturnType<typeof hero3dTier>) => {
-    if (qa && box) box.dataset.hero3dTier = tier
+  const writeTier = (value: ReturnType<typeof tier>) => {
+    if (qa && box) box.dataset.hero3dTier = value
   }
 
-  writeTier(hero3dTier())
-  if (!box || hero3dTier() === 'static') return () => {}
+  writeTier(tier())
+  if (!box || tier() === 'static') return () => {}
 
   let stopped = false
   let stopView = () => {}
@@ -48,15 +83,15 @@ export function bootHero3d(): () => void {
     if (!qa) await afterIdle()
     if (stopped) return
     await nearBox(box)
-    if (stopped || hero3dTier() === 'static') {
-      writeTier(hero3dTier())
+    if (stopped || tier() === 'static') {
+      writeTier(tier())
       return
     }
     const mod = await import('@/three/view-manager')
     if (stopped) return
     await mod.startView(box)
     stopView = () => mod.stopView()
-    writeTier(hero3dTier())
+    writeTier(tier())
   })()
 
   return () => {

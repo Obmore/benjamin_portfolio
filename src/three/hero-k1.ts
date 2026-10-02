@@ -58,7 +58,7 @@ export type K1Scene = {
   endsLocal: { traces: Vector3[]; pads: Vector3[]; vias: Vector3[]; pins: Vector3[] }
 }
 
-const FRUSTUM = 1.62
+const FRUSTUM = 1.38
 const CAM_D = 12
 
 function box(w: number, h: number, d: number, x: number, y: number, z: number) {
@@ -185,8 +185,8 @@ export function createK1Scene(colors: K1Colors, lite: boolean): K1Scene {
   const subMat = new MeshBasicMaterial({
     color: colors.surface,
     transparent: true,
-    opacity: 0.15,
-    depthWrite: false,
+    opacity: 0.92,
+    depthWrite: true,
   })
   const ink = new LineBasicMaterial({ color: colors.ink, transparent: true, opacity: 0.7 })
   const accent = new LineBasicMaterial({ color: colors.accent })
@@ -194,7 +194,7 @@ export function createK1Scene(colors: K1Colors, lite: boolean): K1Scene {
   const botTrace = new LineBasicMaterial({ color: colors.ink, transparent: true, opacity: 0.7 })
   const gridMat = new PointsMaterial({
     color: colors.line,
-    size: 1.6,
+    size: 2.2,
     sizeAttenuation: false,
   })
 
@@ -210,6 +210,7 @@ export function createK1Scene(colors: K1Colors, lite: boolean): K1Scene {
   for (const p of chipPins()) partGeos.push(box(p.w, 0.028, p.d, p.x, BT / 2 + 0.02, p.z))
   for (const p of connPins()) partGeos.push(box(0.05, 0.03, 0.04, p.x, BT / 2 + 0.03, p.z))
   for (const p of passives) partGeos.push(box(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z))
+  if (lite) partGeos.push(box(BW, 0.02, BD, 0, 0, 0))
 
   const partsMesh = mergeMesh(partGeos.map((g) => g.clone()))
   const partsEdge = mergeEdges(partGeos)
@@ -343,8 +344,11 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   scene.layers.top.position.y = ys.top
   scene.layers.sub.position.y = ys.sub
   scene.layers.bot.position.y = ys.bot
-  if (scene.lite) scene.layers.parts.position.y = chipLift
+  if (scene.lite) scene.layers.parts.position.y = 0
 
+  scene.vias.visible = explode > 0.04
+  scene.mats.sub.opacity = 0.92 - 0.77 * explode
+  scene.mats.sub.depthWrite = explode < 0.35
   const viaAttr = scene.vias.geometry.getAttribute('position')
   const va = viaAttr.array as Float32Array
   const topY = ys.top + BT / 2 + 0.004
@@ -367,7 +371,7 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   scene.mats.botTrace.color.lerpColors(scene.mats.ink.color, scene.mats.accent.color, Math.max(0, (p - 0.5) * 2))
   scene.mats.botTrace.opacity = 0.7 + 0.3 * Math.max(0, (p - 0.5) * 2)
 
-  const trail = 0.08
+  const trail = 0.12
   const pa = scene.pulse.geometry.getAttribute('position')
   const arr = pa.array as Float32Array
   const a = new Vector3()
