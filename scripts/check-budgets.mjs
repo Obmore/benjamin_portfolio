@@ -10,9 +10,9 @@ const orderHtmlPath = path.join(dist, 'megrendeles/index.html')
 const posterPath = path.join(root, 'src/components/visuals/hero-k1-poster.svg')
 
 const MAIN_BUDGETS = {
-  entryJs: 72 * 1024,
+  entryJs: 73728,
   allJs: 160 * 1024,
-  css: Math.round(9.2 * 1024),
+  css: 9420,
   fonts: 120 * 1024,
   preloadFonts: 60 * 1024,
   three: 140 * 1024,

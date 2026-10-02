@@ -262,7 +262,7 @@ export const contentEn: SiteContent = {
     langToEn: ', switch to English',
     langToHu: ', switch to Hungarian',
     themeDark: 'Dark mode',
-    orderLink: 'Megrendelés',
+    orderLink: 'Order',
     navMain: 'Main navigation',
     navMobile: 'Mobile navigation',
     skipToContent: 'Skip to content',

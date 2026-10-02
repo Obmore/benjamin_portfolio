@@ -89,6 +89,25 @@ if (order) {
 
 const assetsDir = path.join(dist, 'assets')
 if (fs.existsSync(assetsDir)) {
+  const mainJs = fs
+    .readdirSync(assetsDir)
+    .filter((name) => name.endsWith('.js') && !name.startsWith('megrendeles-'))
+    .map((name) => fs.readFileSync(path.join(assetsDir, name), 'utf8'))
+    .join('\n')
+  mustInclude('main js', mainJs, '/megrendeles/')
+  mustNotInclude('main js', mainJs, 'VITE_SHOW_ORDER_LINK')
+  mustNotInclude('main js', mainJs, 'SHOW_ORDER_LINK')
+  mustNotInclude('main js', mainJs, '59 000')
+  mustNotInclude('main js', mainJs, '59000')
+  mustNotInclude('main js', mainJs, '4 900')
+  mustNotInclude('main js', mainJs, '4900')
+  mustNotInclude('main js', mainJs, 'Egyedi webes megoldás')
+  mustNotInclude('main js', mainJs, 'Bemutatkozó oldal vállalkozásoknak')
+  const ajanlatOnHome = [...mainJs.matchAll(/ajánlat/gi)].length
+  if (ajanlatOnHome !== 0) {
+    errors.push(`S1: főoldal JS „ajánlat” találat ${ajanlatOnHome}, elvárt 0`)
+  }
+
   const orderJs = fs
     .readdirSync(assetsDir)
     .filter((name) => name.startsWith('megrendeles-') && name.endsWith('.js'))
@@ -97,19 +116,6 @@ if (fs.existsSync(assetsDir)) {
   mustInclude('megrendeles js', orderJs, 'E-mail-cím a vágólapra másolva')
   mustNotInclude('megrendeles js', orderJs, 'Az e-mail-cím a vágólapra került.')
   mustNotInclude('megrendeles js', orderJs, 'Aj%C3%A1nlatk%C3%A9r%C3%A9s')
-
-  const mainJs = fs
-    .readdirSync(assetsDir)
-    .filter((name) => name.endsWith('.js') && !name.startsWith('megrendeles-'))
-    .map((name) => fs.readFileSync(path.join(assetsDir, name), 'utf8'))
-    .join('\n')
-  const ajanlatOnHome = [...mainJs.matchAll(/ajánlat/gi)].length
-  if (ajanlatOnHome !== 0) {
-    errors.push(`S1: főoldal JS „ajánlat” találat ${ajanlatOnHome}, elvárt 0`)
-  }
-  if (!mainJs.includes('/megrendeles/')) {
-    errors.push('main js: a production bundle-nek tartalmaznia kell a /megrendeles/ href-et')
-  }
 }
 
 if (errors.length > 0) {

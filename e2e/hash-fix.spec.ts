@@ -684,10 +684,13 @@ test.describe('hash-fix PR7', () => {
       await expect(nav).toBeVisible()
       const buttons = nav.getByRole('button')
       await expect(buttons).toHaveCount(6)
-      const tops = await buttons.evaluateAll((els) =>
-        els.map((el) => Math.round(el.getBoundingClientRect().top)),
+      await expect(nav.locator('a[href="/megrendeles/"]')).toHaveCount(1)
+      const items = nav.locator('button, a')
+      await expect(items).toHaveCount(7)
+      const tops = await items.evaluateAll((els) =>
+        els.map((el) => el.getBoundingClientRect().top),
       )
-      expect(new Set(tops).size, `nav wrap at ${width}: ${tops.join(',')}`).toBe(1)
+      expect(Math.max(...tops) - Math.min(...tops), `nav wrap at ${width}: ${tops.join(',')}`).toBeLessThan(2)
       await assertNoHorizontalScroll(page, String(width))
     }
   })

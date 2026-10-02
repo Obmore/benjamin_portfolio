@@ -5,6 +5,7 @@ import { scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
 import { goToPageTop, navigateTo } from '@/lib/anchors'
 import { LangToggle } from '@/components/ui/LangToggle'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { OrderLink } from '@/components/ui/OrderLink'
 
 const navItems = [
   { id: SECTION_IDS.projects, key: 'projects' as const },
@@ -104,7 +105,7 @@ export function Navbar() {
           : 'bg-transparent'
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 md:px-8">
+      <div className="mx-auto flex h-16 max-w-6xl flex-nowrap items-center justify-between gap-2 px-5 md:px-8">
         <a
           href="/"
           aria-label={content.common.backToTop}
@@ -114,13 +115,16 @@ export function Navbar() {
           OB<span className="text-accent">.</span>
         </a>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label={content.common.navMain}>
+        <nav
+          className="hidden min-w-0 flex-nowrap items-center gap-0 whitespace-nowrap lg:flex xl:gap-1"
+          aria-label={content.common.navMain}
+        >
           {navItems.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => handleNavClick(item.id)}
-              className={`rounded-lg px-3 py-2 text-sm ${
+              className={`shrink-0 rounded-lg px-2 py-2 text-sm xl:px-3 ${
                 activeId === item.id
                   ? 'text-accent'
                   : 'text-muted hover:text-foreground'
@@ -130,9 +134,10 @@ export function Navbar() {
               {content.nav[item.key]}
             </button>
           ))}
+          <OrderLink className="nav-order-link shrink-0" />
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <ThemeToggle />
           <LangToggle />
           <button
@@ -175,6 +180,10 @@ export function Navbar() {
               {content.nav[item.key]}
             </button>
           ))}
+          <OrderLink
+            className="nav-order-link nav-order-link-mobile"
+            tabIndex={menuOpen ? 0 : -1}
+          />
         </div>
       </nav>
     </header>
