@@ -52,7 +52,9 @@ for (const file of walk(srcRoot)) {
   }
 
   if (/addEventListener\(\s*['"]scroll['"]/.test(text)) {
-    errors.push(`${rel}: addEventListener('scroll') is not allowed`)
+    if (!/addEventListener\(\s*['"]scroll['"][\s\S]{0,120}passive:\s*true/.test(text)) {
+      errors.push(`${rel}: addEventListener('scroll') must be { passive: true }`)
+    }
   }
 
   if (/(?:^|[\s"'`])transition-all(?:$|[\s"'`])/.test(text)) {

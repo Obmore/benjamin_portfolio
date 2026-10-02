@@ -36,7 +36,6 @@ if (main) {
   mustInclude('main', main, '<link rel="canonical" href="https://ottbenjamin.hu/" />')
   mustInclude('main', main, '<meta property="og:url" content="https://ottbenjamin.hu/" />')
   mustInclude('main', main, '<title>Ott Benjámin, villamosmérnök és szoftverfejlesztő</title>')
-  mustNotInclude('main', main, '/megrendeles/')
   mustNotInclude('main', main, 'VITE_SHOW_ORDER_LINK')
 }
 
@@ -90,6 +89,25 @@ if (order) {
 
 const assetsDir = path.join(dist, 'assets')
 if (fs.existsSync(assetsDir)) {
+  const mainJs = fs
+    .readdirSync(assetsDir)
+    .filter((name) => name.endsWith('.js') && !name.startsWith('megrendeles-'))
+    .map((name) => fs.readFileSync(path.join(assetsDir, name), 'utf8'))
+    .join('\n')
+  mustInclude('main js', mainJs, '/megrendeles/')
+  mustNotInclude('main js', mainJs, 'VITE_SHOW_ORDER_LINK')
+  mustNotInclude('main js', mainJs, 'SHOW_ORDER_LINK')
+  mustNotInclude('main js', mainJs, '59 000')
+  mustNotInclude('main js', mainJs, '59000')
+  mustNotInclude('main js', mainJs, '4 900')
+  mustNotInclude('main js', mainJs, '4900')
+  mustNotInclude('main js', mainJs, 'Egyedi webes megoldás')
+  mustNotInclude('main js', mainJs, 'Bemutatkozó oldal vállalkozásoknak')
+  const ajanlatOnHome = [...mainJs.matchAll(/ajánlat/gi)].length
+  if (ajanlatOnHome !== 0) {
+    errors.push(`S1: főoldal JS „ajánlat” találat ${ajanlatOnHome}, elvárt 0`)
+  }
+
   const orderJs = fs
     .readdirSync(assetsDir)
     .filter((name) => name.startsWith('megrendeles-') && name.endsWith('.js'))

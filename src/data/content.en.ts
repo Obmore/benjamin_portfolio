@@ -261,7 +261,11 @@ export const contentEn: SiteContent = {
     menuToggle: 'Open menu',
     langToEn: ', switch to English',
     langToHu: ', switch to Hungarian',
+    themeDark: 'Dark mode',
+    orderLink: 'Order',
     navMain: 'Main navigation',
     navMobile: 'Mobile navigation',
+    skipToContent: 'Skip to content',
+    backToTop: 'OB. – Ott Benjámin, back to top',
   },
 }

@@ -220,12 +220,10 @@ for (const font of FONTS) {
 
 const files = FONTS.map((font) => path.join(outDir, `${font.id}.woff2`))
 const total = files.reduce((sum, file) => sum + fs.statSync(file).size, 0)
-const preload =
-  fs.statSync(path.join(outDir, 'dm-sans-400.woff2')).size +
-  fs.statSync(path.join(outDir, 'dm-sans-600.woff2')).size
+const preload = fs.statSync(path.join(outDir, 'dm-sans-600.woff2')).size
 
 console.log(`\nTotal woff2: ${total} bytes (limit 122880)`)
-console.log(`Preload 400+600: ${preload} bytes (limit 61440)`)
+console.log(`Preload 600: ${preload} bytes (limit 61440)`)
 
 const dmFallback = fallbackOverrides(dmSansMetrics, arialMetrics)
 const monoFallback = fallbackOverrides(jetBrainsMetrics, courierNewMetrics)

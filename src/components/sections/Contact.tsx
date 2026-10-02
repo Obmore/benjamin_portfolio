@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { copyTextWithClipboardApi, isClipboardWriteAvailable } from '@/lib/contact'
 import { LINKEDIN_URL, SECTION_IDS, SECTION_SHEETS } from '@/lib/constants'
+import { OrderLink } from '@/components/ui/OrderLink'
 
 export function Contact() {
   const { content } = useI18n()
@@ -14,7 +15,10 @@ export function Contact() {
     <SectionWrapper id={SECTION_IDS.contact}>
       <SectionHeading title={content.contact.title} label={content.nav.contact} sheet={SECTION_SHEETS.contact} />
       <p className="mb-10 max-w-2xl text-muted leading-relaxed">{content.contact.text}</p>
-      <div className="rounded-2xl border border-[#d7e2ef] bg-surface/90 p-6 md:p-8">
+      <p className="mb-10">
+        <OrderLink className="text-accent underline-offset-4 hover:underline focus-visible:underline" />
+      </p>
+      <div className="rounded-2xl border border-line bg-surface/90 p-6 md:p-8">
         <p className="mb-8 max-w-2xl text-muted leading-relaxed">{content.contact.prompt}</p>
         <ContactInfo
           email={content.contact.email}

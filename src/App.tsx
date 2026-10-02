@@ -1,3 +1,4 @@
+import type { MouseEvent } from 'react'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { SeoHead } from '@/components/SeoHead'
@@ -9,8 +10,26 @@ import { Skills } from '@/components/sections/Skills'
 import { Projects } from '@/components/sections/Projects'
 import { CvDownload } from '@/components/sections/CvDownload'
 import { Contact } from '@/components/sections/Contact'
-import { I18nProvider } from '@/context/I18nContext'
+import { I18nProvider, useI18n } from '@/context/I18nContext'
+import { ThemeProvider } from '@/context/ThemeContext'
 import { useInitialHash } from '@/hooks/useInitialHash'
+
+function SkipLink() {
+  const { content } = useI18n()
+
+  const onClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    const main = document.querySelector('main')
+    if (!(main instanceof HTMLElement)) return
+    main.focus({ preventScroll: true })
+  }
+
+  return (
+    <a href="#main" className="skip-link" onClick={onClick}>
+      {content.common.skipToContent}
+    </a>
+  )
+}
 
 function AppShell() {
   useInitialHash()
@@ -18,9 +37,10 @@ function AppShell() {
   return (
     <>
       <SeoHead />
+      <SkipLink />
       <GridBackground />
       <Navbar />
-      <main>
+      <main id="main" tabIndex={-1} className="outline-none">
         <Hero />
         <Projects />
         <About />
@@ -37,7 +57,9 @@ function AppShell() {
 function App() {
   return (
     <I18nProvider>
-      <AppShell />
+      <ThemeProvider>
+        <AppShell />
+      </ThemeProvider>
     </I18nProvider>
   )
 }

@@ -108,7 +108,11 @@ export interface SiteContent {
     menuToggle: string
     langToEn: string
     langToHu: string
+    themeDark: string
+    orderLink: string
     navMain: string
     navMobile: string
+    skipToContent: string
+    backToTop: string
   }
 }

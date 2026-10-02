@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { SECTION_IDS } from '@/lib/constants'
 import { scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
-import { navigateTo } from '@/lib/anchors'
+import { goToPageTop, navigateTo } from '@/lib/anchors'
 import { LangToggle } from '@/components/ui/LangToggle'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { OrderLink } from '@/components/ui/OrderLink'
 
 const navItems = [
   { id: SECTION_IDS.projects, key: 'projects' as const },
@@ -13,6 +15,8 @@ const navItems = [
   { id: SECTION_IDS.cv, key: 'cv' as const },
   { id: SECTION_IDS.contact, key: 'contact' as const },
 ]
+
+const navSectionIds = navItems.map((item) => item.id)
 
 function useHeaderScrolled() {
   const [scrolled, setScrolled] = useState(false)
@@ -44,7 +48,7 @@ export function Navbar() {
   const scrolled = useHeaderScrolled()
   const [menuOpen, setMenuOpen] = useState(false)
   const [pendingScrollId, setPendingScrollId] = useState<string | null>(null)
-  const activeId = useActiveSection(navItems.map((item) => item.id))
+  const activeId = useActiveSection(navSectionIds)
 
   useEffect(() => {
     if (!menuOpen) return
@@ -84,45 +88,61 @@ export function Navbar() {
     navigateTo(id)
   }
 
+  const handleNameClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    if (menuOpen) {
+      document.body.style.overflow = ''
+      setMenuOpen(false)
+    }
+    goToPageTop()
+  }
+
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 h-16 transition-colors duration-300 ${
+      className={`site-header fixed inset-x-0 top-0 z-50 overflow-visible ${
         scrolled
           ? 'border-b border-border/60 bg-background/80 backdrop-blur-xl'
           : 'bg-transparent'
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 md:px-8">
-        <button
-          type="button"
-          onClick={() => scrollToSection('hero')}
-          className="font-mono text-sm font-semibold tracking-wide text-foreground"
+      <div className="mx-auto flex h-16 max-w-6xl flex-nowrap items-center justify-between gap-2 px-5 md:px-8">
+        <a
+          href="/"
+          aria-label={content.common.backToTop}
+          onClick={handleNameClick}
+          className="site-name inline-flex h-11 min-h-11 w-11 min-w-11 shrink-0 items-center font-mono text-sm font-semibold tracking-wide text-foreground"
         >
           OB<span className="text-accent">.</span>
-        </button>
+        </a>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label={content.common.navMain}>
+        <nav
+          className="hidden min-w-0 flex-nowrap items-center gap-0 whitespace-nowrap lg:flex xl:gap-1"
+          aria-label={content.common.navMain}
+        >
           {navItems.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => handleNavClick(item.id)}
-              className={`rounded-lg px-3 py-2 text-sm transition-colors ${
+              className={`shrink-0 rounded-lg px-2 py-2 text-sm xl:px-3 ${
                 activeId === item.id
                   ? 'text-accent'
                   : 'text-muted hover:text-foreground'
               }`}
+              aria-current={activeId === item.id ? 'true' : undefined}
             >
               {content.nav[item.key]}
             </button>
           ))}
+          <OrderLink className="nav-order-link shrink-0" />
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
+          <ThemeToggle />
           <LangToggle />
           <button
             type="button"
-            className="rounded-lg border border-border/70 p-2 text-muted lg:hidden"
+            className="inline-flex h-11 min-h-11 w-11 min-w-11 items-center justify-center rounded-lg border border-border/70 text-muted lg:hidden"
             aria-label={content.common.menuToggle}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((open) => !open)}
@@ -155,10 +175,15 @@ export function Navbar() {
               className={`rounded-lg px-3 py-2 text-left text-sm ${
                 activeId === item.id ? 'text-accent' : 'text-muted'
               }`}
+              aria-current={activeId === item.id ? 'true' : undefined}
             >
               {content.nav[item.key]}
             </button>
           ))}
+          <OrderLink
+            className="nav-order-link nav-order-link-mobile"
+            tabIndex={menuOpen ? 0 : -1}
+          />
         </div>
       </nav>
     </header>

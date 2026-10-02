@@ -1,6 +1,7 @@
 import type { MouseEvent } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { Button } from '@/components/ui/Button'
+import { OrderLink } from '@/components/ui/OrderLink'
 import { HeroVisual } from '@/components/visuals/HeroVisual'
 import {
   CV_EN_FILENAME,
@@ -11,6 +12,9 @@ import {
 } from '@/lib/constants'
 import { CV_SIZE_LABEL } from '@/lib/cv-size'
 import { navigateTo } from '@/lib/anchors'
+
+const HERO_ORDER_CLASS =
+  'hero-btn hero-btn-order ui-pressable inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-medium border-[1.5px] border-accent bg-surface/60 text-foreground hover:bg-accent/5'
 
 export function Hero() {
   const { content, locale } = useI18n()
@@ -34,7 +38,7 @@ export function Hero() {
             <p className="hero-sub">{content.hero.subheadline}</p>
             <div className="hero-actions">
               <Button
-                href={`#${SECTION_IDS.projects}`}
+                href={`/#${SECTION_IDS.projects}`}
                 className="hero-btn hero-btn-primary"
                 onClick={onWorkClick}
               >
@@ -51,6 +55,7 @@ export function Hero() {
                   <span className="hero-cv-meta">{CV_SIZE_LABEL[locale]}</span>
                 </span>
               </Button>
+              <OrderLink className={HERO_ORDER_CLASS} />
             </div>
             <ul className="hero-chips">
               {content.hero.chips.map((chip) => (

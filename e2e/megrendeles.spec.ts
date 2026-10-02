@@ -143,12 +143,46 @@ test.describe('/megrendeles/', () => {
     await page.close()
   })
 
-  test('main page stays isolated', async ({ page }) => {
-    const response = await page.goto('/', { waitUntil: 'domcontentloaded' })
+  test('main page has five /megrendeles/ links including one in #kapcsolat', async ({ page }) => {
+    const response = await page.goto('/', { waitUntil: 'networkidle' })
     expect(response?.status()).toBe(200)
-    await expect(page.locator('a[href="/megrendeles/"], a[href="/megrendeles"]')).toHaveCount(0)
     const canonical = page.locator('link[rel="canonical"]')
     await expect(canonical).toHaveAttribute('href', 'https://ottbenjamin.hu/')
+
+    async function assertOrderEntryPoints() {
+      const all = page.locator('a[href="/megrendeles/"]')
+      await expect(all).toHaveCount(5)
+      await expect(page.locator('#kapcsolat a[href="/megrendeles/"]')).toHaveCount(1)
+      await expect(page.locator('header a[href="/megrendeles/"]')).toHaveCount(2)
+      await expect(page.locator('.hero-actions a[href="/megrendeles/"]')).toHaveCount(1)
+      await expect(page.locator('footer a[href="/megrendeles/"]')).toHaveCount(1)
+      const contact = page.locator('#kapcsolat a[href="/megrendeles/"]')
+      const htmlLang = await page.locator('html').getAttribute('lang')
+      const orderLabel = htmlLang === 'en' ? 'Order' : 'Megrendelés'
+      const workLabel = htmlLang === 'en' ? 'My work' : 'Munkáim'
+      const cvLabel = htmlLang === 'en' ? 'Download resume' : 'Önéletrajz letöltése'
+      await expect(contact).not.toHaveAttribute('lang')
+      await expect(contact).toHaveText(orderLabel)
+      const orderCount = await all.count()
+      for (let i = 0; i < orderCount; i += 1) {
+        await expect(all.nth(i)).not.toHaveAttribute('lang')
+      }
+      const heroActions = page.locator('.hero-actions a, .hero-actions button')
+      await expect(heroActions).toHaveCount(3)
+      await expect(heroActions.nth(0)).toHaveText(workLabel)
+      await expect(heroActions.nth(1)).toContainText(cvLabel)
+      await expect(heroActions.nth(2)).toHaveText(orderLabel)
+      const bodyText = await page.locator('body').innerText()
+      expect([...bodyText.matchAll(/ajánlat/gi)].length, 'S1 ajánlat count').toBe(0)
+    }
+
+    await assertOrderEntryPoints()
+    await page.getByRole('button', { name: /^EN/ }).click()
+    await page.waitForTimeout(400)
+    await assertOrderEntryPoints()
+    await page.getByRole('button', { name: /^HU/ }).click()
+    await page.waitForTimeout(400)
+    await assertOrderEntryPoints()
   })
 
   test('copy button shows Kimásolva without CLS', async ({ page, context, browserName }) => {
