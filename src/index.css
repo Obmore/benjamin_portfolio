@@ -1191,7 +1191,22 @@ html[data-theme="dark"] .skip-link {
   outline-offset: 4px;
 }
 
+main {
+  position: relative;
+}
+
 main:focus,
 main:focus-visible {
   outline: none;
+}
+
+main:focus-visible::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-accent);
 }

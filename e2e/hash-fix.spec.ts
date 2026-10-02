@@ -167,6 +167,11 @@ test.describe('hash-fix PR7', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await gotoHome(page)
 
+    const mainRectBefore = await page.locator('main').evaluate((el) => {
+      const rect = el.getBoundingClientRect()
+      return { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+    })
+
     await page.keyboard.press('Tab')
     const skip = page.getByRole('link', { name: 'Ugrás a tartalomra' })
     await expect(skip).toBeFocused()
@@ -176,6 +181,29 @@ test.describe('hash-fix PR7', () => {
 
     await page.keyboard.press('Enter')
     await expect(page.locator('main')).toBeFocused()
+    const focused = await page.locator('main').evaluate((el) => {
+      const rect = el.getBoundingClientRect()
+      const bar = getComputedStyle(el, '::before')
+      return {
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+        focusVisible: el.matches(':focus-visible'),
+        barHeight: bar.height,
+        barColor: bar.backgroundColor,
+        barPosition: bar.position,
+      }
+    })
+    expect(focused.focusVisible).toBe(true)
+    expect(parseFloat(focused.barHeight)).toBe(2)
+    expect(focused.barPosition).toBe('absolute')
+    expect(focused.barColor).not.toBe('rgba(0, 0, 0, 0)')
+    expect(focused.barColor).not.toBe('transparent')
+    expect(focused.top).toBe(mainRectBefore.top)
+    expect(focused.left).toBe(mainRectBefore.left)
+    expect(focused.width).toBe(mainRectBefore.width)
+    expect(focused.height).toBe(mainRectBefore.height)
     expect(await page.evaluate(() => location.hash)).toBe('')
     expect(page.url()).not.toContain('#')
     expect(errors, errors.join('\n')).toEqual([])
@@ -610,6 +638,123 @@ test.describe('hash-fix PR7', () => {
       await page.getByRole('button', { name: 'Sötét mód' }).click()
       await page.waitForFunction(() => document.documentElement.getAttribute('data-theme') === 'dark')
       expect(await contrastOf(), `dark skip ${viewport.width}`).toBeGreaterThanOrEqual(4.5)
+    })
+  }
+
+  for (const viewport of [
+    { width: 1440, height: 1300 },
+    { width: 390, height: 844 },
+  ] as const) {
+    test(`${viewport.width}x${viewport.height}: no-hash load keeps above-fold reveal animation`, async ({
+      page,
+    }) => {
+      await page.addInitScript(() => {
+        const state = {
+          first: null as null | {
+            instant: number
+            inView: {
+              revealed: string | null
+              opacity: string
+              duration: string
+            }[]
+          },
+          inViewRuns: 0,
+        }
+        ;(window as unknown as { __noHashReveal: typeof state }).__noHashReveal = state
+        const inView = (el: Element) => {
+          const rect = el.getBoundingClientRect()
+          return (
+            rect.bottom > 0 &&
+            rect.top < window.innerHeight &&
+            rect.right > 0 &&
+            rect.left < window.innerWidth
+          )
+        }
+        document.addEventListener(
+          'transitionrun',
+          (event) => {
+            const el = event.target
+            if (!(el instanceof Element) || !el.hasAttribute('data-reveal')) return
+            if (el.getAttribute('data-revealed') === 'instant') return
+            if (inView(el)) state.inViewRuns += 1
+          },
+          true,
+        )
+        const sample = () => {
+          const els = document.querySelectorAll('[data-reveal]')
+          if (els.length === 0 || state.first) {
+            if (!state.first) requestAnimationFrame(sample)
+            return
+          }
+          state.first = {
+            instant: [...els].filter((el) => el.getAttribute('data-revealed') === 'instant').length,
+            inView: [...els].filter(inView).map((el) => {
+              const cs = getComputedStyle(el)
+              return {
+                revealed: el.getAttribute('data-revealed'),
+                opacity: cs.opacity,
+                duration: cs.transitionDuration,
+              }
+            }),
+          }
+        }
+        requestAnimationFrame(sample)
+      })
+
+      await page.setViewportSize(viewport)
+      await page.goto(`/?fold=${viewport.width}x${viewport.height}`, { waitUntil: 'domcontentloaded' })
+      await page.waitForFunction(
+        () => (window as unknown as { __noHashReveal?: { first: unknown } }).__noHashReveal?.first,
+      )
+
+      const first = await page.evaluate(
+        () =>
+          (window as unknown as { __noHashReveal: { first: { instant: number; inView: { revealed: string | null; opacity: string; duration: string }[] } } })
+            .__noHashReveal.first,
+      )
+      expect(first.instant, `${viewport.width} instant marks`).toBe(0)
+      expect(first.inView.length, `${viewport.width} above-fold reveals`).toBeGreaterThan(0)
+      for (const item of first.inView) {
+        expect(item.revealed, `${viewport.width} in-view data-revealed`).not.toBe('instant')
+      }
+
+      await page.waitForFunction(() => {
+        const state = (window as unknown as { __noHashReveal: { inViewRuns: number } }).__noHashReveal
+        return state.inViewRuns > 0
+      })
+
+      const later = await page.evaluate(() => {
+        const nodes = [...document.querySelectorAll<HTMLElement>('[data-reveal]')]
+        const instant = nodes.filter((el) => el.getAttribute('data-revealed') === 'instant').length
+        const inView = nodes.filter((el) => {
+          const rect = el.getBoundingClientRect()
+          return (
+            rect.bottom > 0 &&
+            rect.top < window.innerHeight &&
+            rect.right > 0 &&
+            rect.left < window.innerWidth
+          )
+        })
+        return {
+          instant,
+          runs: (window as unknown as { __noHashReveal: { inViewRuns: number } }).__noHashReveal
+            .inViewRuns,
+          inViewRevealed: inView.map((el) => el.getAttribute('data-revealed')),
+          inViewDuration: inView.map((el) => getComputedStyle(el).transitionDuration),
+        }
+      })
+      expect(later.instant, `${viewport.width} instant after settle`).toBe(0)
+      expect(later.runs, `${viewport.width} above-fold transitionrun`).toBeGreaterThan(0)
+      expect(
+        later.inViewRevealed.some((value) => value === 'true'),
+        `${viewport.width} above-fold data-revealed=true`,
+      ).toBe(true)
+      expect(
+        later.inViewDuration.some((value) =>
+          value.split(',').some((part) => Number.parseFloat(part) > 0.05),
+        ),
+        `${viewport.width} real transition duration ${later.inViewDuration.join(',')}`,
+      ).toBe(true)
     })
   }
 })

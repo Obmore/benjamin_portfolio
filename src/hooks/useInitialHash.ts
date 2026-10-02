@@ -62,7 +62,7 @@ export function useInitialHash() {
     const hadHash = Boolean(window.location.hash) || /#$/.test(window.location.href)
     if (hadHash) document.documentElement.style.scrollBehavior = 'auto'
     scrollToHashSync()
-    markViewportRevealsInstant()
+    if (hadHash) markViewportRevealsInstant()
   }, [])
 
   useEffect(() => {
