@@ -456,6 +456,10 @@ html.js [data-reveal][data-revealed="instant"] {
   transition-timing-function: linear;
 }
 
+.hero-3d.is-ready .hero-3d-poster-host {
+  opacity: 0;
+}
+
 .hero-titleblock {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

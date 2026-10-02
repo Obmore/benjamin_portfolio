@@ -63,6 +63,8 @@ export type K1Scene = {
   vias: LineSegments
   pulse: LineSegments
   grid: Points
+  topOutline: LineSegments
+  botOutline: LineSegments
   lite: boolean
   endPairs: { x: number; z: number; yLocal: number; layer: 'top' | 'bot' }[]
 }
@@ -219,7 +221,8 @@ export function createK1Scene(colors: K1Colors, lite: boolean): K1Scene {
   addLines(chip, mergeEdges(chipGeos), ink)
   for (const g of chipGeos) g.dispose()
 
-  addLines(top, polyLines([boardOutline, ...topTraces, ...allTopPads()], TOP_Y), topTrace)
+  addLines(top, polyLines([...topTraces, ...allTopPads()], TOP_Y), topTrace)
+  const topOutline = addLines(top, polyLines([boardOutline], TOP_Y), ink)
 
   if (!lite) {
     const subGeo = box(BW, BT, BD, 0, 0, 0)
@@ -227,7 +230,8 @@ export function createK1Scene(colors: K1Colors, lite: boolean): K1Scene {
     addLines(sub, new EdgesGeometry(subGeo, 20), ink)
   }
 
-  addLines(bot, polyLines([boardOutline, ...botTraces, ...allBotPads()], BOT_Y), botTrace)
+  addLines(bot, polyLines([...botTraces, ...allBotPads()], BOT_Y), botTrace)
+  const botOutline = addLines(bot, polyLines([boardOutline], BOT_Y), ink)
 
   const viaPos = new Float32Array(vias.length * 6)
   const viaLines = new LineSegments(new BufferGeometry(), accent)
@@ -261,6 +265,8 @@ export function createK1Scene(colors: K1Colors, lite: boolean): K1Scene {
     vias: viaLines,
     pulse,
     grid,
+    topOutline,
+    botOutline,
     lite,
     endPairs,
   }
@@ -311,6 +317,10 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   scene.layers.bot.position.y = ys.bot
 
   scene.vias.visible = ys.explode > 0.04
+  if (!scene.lite) {
+    scene.topOutline.visible = ys.explode > 0.06
+    scene.botOutline.visible = ys.explode > 0.06
+  }
   scene.mats.sub.opacity = 0.92 - 0.74 * ys.explode
   scene.mats.sub.depthWrite = ys.explode < 0.35
   const viaAttr = scene.vias.geometry.getAttribute('position')
