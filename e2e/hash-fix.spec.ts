@@ -613,3 +613,201 @@ test.describe('hash-fix PR7', () => {
     })
   }
 })
+
+type HeroEntryProbe = {
+  fcp: number | null
+  heroAt: number | null
+  titleFrames: number
+  titleBad: number
+  firstStart: number | null
+  lastDone: number | null
+  cls: number
+  reduceFirst: null | {
+    opacity: number
+    transform: string
+    animation: string
+    transition: string
+  }[]
+}
+
+function heroEntryInitScript() {
+  const identity = (transform: string) =>
+    transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)'
+  const zeroDuration = (value: string) =>
+    value
+      .split(',')
+      .every((part) => Number.parseFloat(part.trim()) === 0 || part.trim() === '')
+  const state = {
+    fcp: null as number | null,
+    heroAt: null as number | null,
+    titleFrames: 0,
+    titleBad: 0,
+    firstStart: null as number | null,
+    lastDone: null as number | null,
+    cls: 0,
+    reduceFirst: null as
+      | {
+          opacity: number
+          transform: string
+          animation: string
+          transition: string
+        }[]
+      | null,
+  }
+  ;(window as unknown as { __heroEntry: typeof state }).__heroEntry = state
+
+  const readFcp = () => {
+    for (const entry of performance.getEntriesByType('paint')) {
+      if (entry.name === 'first-contentful-paint') return entry.startTime
+    }
+    return null
+  }
+  const paintObs = new PerformanceObserver((list) => {
+    for (const entry of list.getEntries()) {
+      if (entry.name === 'first-contentful-paint' && state.fcp == null) {
+        state.fcp = entry.startTime
+      }
+    }
+  })
+  paintObs.observe({ type: 'paint', buffered: true })
+  state.fcp = readFcp()
+
+  const clsObs = new PerformanceObserver((list) => {
+    for (const entry of list.getEntries()) {
+      const shift = entry as PerformanceEntry & { hadRecentInput?: boolean; value: number }
+      if (!shift.hadRecentInput) state.cls += shift.value
+    }
+  })
+  clsObs.observe({ type: 'layout-shift', buffered: true })
+
+  const entryStarts: (number | null)[] = []
+  const entryDones: (number | null)[] = []
+
+  const sampleReduce = () => {
+    const nodes = [
+      ...document.querySelectorAll('#hero h1, #hero .hero-name, #hero .hero-headline'),
+      ...document.querySelectorAll('#hero .hero-sub, #hero .hero-btn, #hero .hero-chips, #hero .hero-titleblock-cell'),
+    ]
+    return nodes.map((el) => {
+      const cs = getComputedStyle(el)
+      return {
+        opacity: Number(cs.opacity),
+        transform: cs.transform,
+        animation: cs.animationName,
+        transition: cs.transitionDuration,
+      }
+    })
+  }
+
+  const tick = (now: number) => {
+    if (state.fcp == null) state.fcp = readFcp()
+    const h1 = document.querySelector('#hero h1')
+    if (!h1) {
+      requestAnimationFrame(tick)
+      return
+    }
+    if (state.heroAt == null) state.heroAt = now
+
+    const titleNodes = document.querySelectorAll('#hero h1, #hero h1 .hero-name, #hero h1 .hero-headline')
+    for (const el of titleNodes) {
+      const cs = getComputedStyle(el)
+      state.titleFrames += 1
+      const animOk = !cs.animationName || cs.animationName === 'none'
+      const transOk = zeroDuration(cs.transitionDuration)
+      if (Number(cs.opacity) !== 1 || !identity(cs.transform) || !animOk || !transOk) {
+        state.titleBad += 1
+      }
+    }
+
+    if (state.reduceFirst == null) state.reduceFirst = sampleReduce()
+
+    const movers = [
+      ...document.querySelectorAll('#hero .hero-sub'),
+      ...document.querySelectorAll('#hero .hero-btn'),
+      ...document.querySelectorAll('#hero .hero-chips'),
+    ]
+    movers.forEach((el, index) => {
+      const cs = getComputedStyle(el)
+      const opacity = Number(cs.opacity)
+      if (entryStarts[index] == null && opacity > 0.02) entryStarts[index] = now
+      if (entryDones[index] == null && opacity >= 0.995 && identity(cs.transform)) {
+        entryDones[index] = now
+      }
+    })
+    const starts = entryStarts.filter((value): value is number => value != null)
+    const dones = entryDones.filter((value): value is number => value != null)
+    state.firstStart = starts.length ? Math.min(...starts) : null
+    state.lastDone =
+      movers.length > 0 && dones.length === movers.length ? Math.max(...dones) : null
+
+    const origin = state.fcp ?? state.heroAt
+    if (origin != null && now < origin + 900) requestAnimationFrame(tick)
+  }
+  requestAnimationFrame(tick)
+}
+
+test.describe('hero entry timing', () => {
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 390, height: 844 },
+  ] as const) {
+    test(`${viewport.width}: title static from first paint; entry ≤FCP+150 / ≤FCP+800; CLS 0`, async ({
+      page,
+    }) => {
+      await page.addInitScript(heroEntryInitScript)
+      await page.setViewportSize(viewport)
+      await page.goto(`/?hero=${viewport.width}`, { waitUntil: 'domcontentloaded' })
+      await page.waitForFunction(() => {
+        const state = (window as unknown as { __heroEntry?: HeroEntryProbe }).__heroEntry
+        if (!state?.fcp || !state.heroAt || state.lastDone == null) return false
+        return performance.now() >= state.fcp + 900
+      })
+
+      const probe = await page.evaluate(
+        () => (window as unknown as { __heroEntry: HeroEntryProbe }).__heroEntry,
+      )
+      expect(probe.fcp, 'FCP').toBeTruthy()
+      expect(probe.titleFrames, 'title frames').toBeGreaterThan(0)
+      expect(probe.titleBad, 'title must stay opacity 1 / transform none / no animation').toBe(0)
+
+      const first = (probe.firstStart ?? 9e9) - probe.fcp!
+      const last = (probe.lastDone ?? 9e9) - probe.fcp!
+      expect(first, `${viewport.width} first entry start ${first}ms after FCP`).toBeLessThanOrEqual(150)
+      expect(last, `${viewport.width} last entry done ${last}ms after FCP`).toBeLessThanOrEqual(800)
+      expect(probe.cls, `${viewport.width} CLS`).toBe(0)
+    })
+
+    test(`${viewport.width}: reduced-motion hero is static on the first frame`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' })
+      await page.addInitScript(heroEntryInitScript)
+      await page.setViewportSize(viewport)
+      await page.goto(`/?hero-rm=${viewport.width}`, { waitUntil: 'domcontentloaded' })
+      await page.waitForFunction(() => {
+        const state = (window as unknown as { __heroEntry?: HeroEntryProbe }).__heroEntry
+        return Boolean(state?.reduceFirst && state.reduceFirst.length > 0)
+      })
+
+      const probe = await page.evaluate(
+        () => (window as unknown as { __heroEntry: HeroEntryProbe }).__heroEntry,
+      )
+      expect(probe.reduceFirst?.length ?? 0, 'reduced-motion hero nodes').toBeGreaterThan(0)
+      for (const item of probe.reduceFirst ?? []) {
+        expect(item.opacity, `rm opacity ${item.opacity}`).toBe(1)
+        expect(
+          item.transform === 'none' || item.transform === 'matrix(1, 0, 0, 1, 0, 0)',
+          `rm transform ${item.transform}`,
+        ).toBe(true)
+        expect(item.animation === 'none' || item.animation === '', `rm animation ${item.animation}`).toBe(
+          true,
+        )
+        const durations = item.transition.split(',').map((part) => Number.parseFloat(part.trim()) || 0)
+        expect(
+          durations.every((ms) => ms === 0),
+          `rm transition ${item.transition}`,
+        ).toBe(true)
+      }
+      expect(probe.titleBad, 'rm title frames').toBe(0)
+    })
+  }
+})
+
