@@ -26,7 +26,7 @@ type Hero3dQa = {
   rafCount: number
   progress: number
   dpr: number
-  ends?: ReturnType<typeof projectEnds>
+  readonly ends: ReturnType<typeof projectEnds>
   seek?: (p: number) => void
 }
 
@@ -100,23 +100,41 @@ function snapshotInfo(): Hero3dInfo {
   }
 }
 
-function writeQa() {
-  if (!qa || !k1 || !boxEl) return
-  const w = boxEl.clientWidth
-  const h = boxEl.clientHeight
-  window.__hero3d = {
+function bindQa() {
+  if (!qa || !boxEl || !k1) return
+  const next = {
     tier: boxEl.dataset.hero3dTier || (k1.lite ? 'lite' : 'full'),
     info: snapshotInfo(),
     rafCount,
     progress,
     dpr: renderer ? canvas!.width / Math.max(1, boxEl.clientWidth) : 1,
-    ends: projectEnds(k1, w, h, progress),
+  }
+  const existing = window.__hero3d
+  if (existing) {
+    existing.tier = next.tier
+    existing.info = next.info
+    existing.rafCount = next.rafCount
+    existing.progress = next.progress
+    existing.dpr = next.dpr
+    return
+  }
+  const hook = {
+    ...next,
     seek(p: number) {
       progress = Math.min(1, Math.max(0, p))
       introOn = false
       paint()
     },
-  }
+  } as Hero3dQa
+  Object.defineProperty(hook, 'ends', {
+    enumerable: true,
+    configurable: true,
+    get() {
+      if (!k1 || !boxEl) return []
+      return projectEnds(k1, boxEl.clientWidth, boxEl.clientHeight)
+    },
+  })
+  window.__hero3d = hook
 }
 
 function pulseU() {
@@ -129,7 +147,7 @@ function paint() {
   renderer.info.reset()
   applyK1Progress(k1, progress, pulseU())
   renderer.render(scene, k1.camera)
-  writeQa()
+  bindQa()
 }
 
 function watchdog(dt: number) {
@@ -217,6 +235,10 @@ export async function startView(box: HTMLElement) {
   el.height = 2
   box.appendChild(el)
   canvas = el
+  if (qa) {
+    box.querySelector('.hero-3d-poster')?.setAttribute('data-pose', '100')
+    el.setAttribute('data-pose', '0')
+  }
 
   const lite = tier === 'lite'
   const r = new WebGLRenderer({

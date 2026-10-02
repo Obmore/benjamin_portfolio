@@ -33,7 +33,7 @@ export default defineConfig({
     modulePreload: {
       polyfill: false,
       resolveDependencies(_filename, deps) {
-        return deps.filter((dep) => !/(?:^|\/)(?:three|gsap)/.test(dep))
+        return deps.filter((dep) => !/(?:^|\/)(?:three|gsap|hero3d-boot)/.test(dep))
       },
     },
     rollupOptions: {

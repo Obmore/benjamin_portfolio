@@ -18,18 +18,25 @@ import {
   allBotPads,
   allTopPads,
   BD,
+  boardOutline,
+  BOT_Y,
   botTraces,
   BT,
   BW,
+  CAM_AZIM,
+  CAM_DIST,
+  CAM_ELEV,
   CHIP,
-  CHIP_LIFT,
+  CHIP_Y,
   chipPins,
   conn,
-  connPins,
-  EXPLODE,
+  FRUSTUM,
   loop,
   passives,
+  poseYs,
+  TOP_Y,
   topTraces,
+  traceEnds,
   vias,
   type PathNode,
   type Poly,
@@ -37,11 +44,13 @@ import {
 
 export type K1Colors = { surface: Color; ink: Color; accent: Color; line: Color }
 
+export type HeroEnd = { x: number; y: number; ax: number; ay: number }
+
 export type K1Scene = {
   root: Group
   camera: OrthographicCamera
   frustum: number
-  layers: { parts: Group; top: Group; sub: Group; bot: Group }
+  layers: { parts: Group; chip: Group; top: Group; sub: Group; bot: Group }
   mats: {
     fill: MeshBasicMaterial
     sub: MeshBasicMaterial
@@ -55,11 +64,8 @@ export type K1Scene = {
   pulse: LineSegments
   grid: Points
   lite: boolean
-  endsLocal: { traces: Vector3[]; pads: Vector3[]; vias: Vector3[]; pins: Vector3[] }
+  endPairs: { x: number; z: number; yLocal: number; layer: 'top' | 'bot' }[]
 }
-
-const FRUSTUM = 1.38
-const CAM_D = 12
 
 function box(w: number, h: number, d: number, x: number, y: number, z: number) {
   const g = new BoxGeometry(w, h, d)
@@ -138,30 +144,27 @@ function addLines(parent: Group, geo: BufferGeometry, mat: LineBasicMaterial) {
 function placeCam(cam: OrthographicCamera, elev: number, azim: number) {
   const el = (elev * Math.PI) / 180
   const az = (azim * Math.PI) / 180
-  cam.position.set(CAM_D * Math.cos(el) * Math.sin(az), CAM_D * Math.sin(el), CAM_D * Math.cos(el) * Math.cos(az))
+  cam.position.set(
+    CAM_DIST * Math.cos(el) * Math.sin(az),
+    CAM_DIST * Math.sin(el),
+    CAM_DIST * Math.cos(el) * Math.cos(az),
+  )
   cam.lookAt(0, 0, 0)
   cam.updateProjectionMatrix()
+  cam.updateMatrixWorld()
 }
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t
 }
 
-function layerYs(explode: number, lite: boolean) {
-  const step = BW * EXPLODE * explode
-  if (lite) {
-    return { parts: step * 0.5, top: step * 0.5, sub: 0, bot: -step * 0.5 }
-  }
-  return { parts: step * 1.5, top: step * 0.5, sub: -step * 0.5, bot: -step * 1.5 }
+function nodeY(node: PathNode, ys: ReturnType<typeof poseYs>) {
+  if (node.layer === 'bot') return ys.bot + BOT_Y
+  if (node.layer === 'chip') return ys.chip + CHIP_Y
+  return ys.top + TOP_Y
 }
 
-function nodeY(node: PathNode, ys: ReturnType<typeof layerYs>, chipLift: number) {
-  if (node.layer === 'bot') return ys.bot
-  if (node.layer === 'chip') return ys.parts + BT / 2 + 0.04 + chipLift
-  return ys.top
-}
-
-function sampleLoop(u: number, ys: ReturnType<typeof layerYs>, chipLift: number, out: Vector3) {
+function sampleLoop(u: number, ys: ReturnType<typeof poseYs>, out: Vector3) {
   const pts = loop
   const n = pts.length - 1
   const t = u * n
@@ -169,13 +172,13 @@ function sampleLoop(u: number, ys: ReturnType<typeof layerYs>, chipLift: number,
   const f = t - i
   const a = pts[i]
   const b = pts[i + 1]
-  out.set(lerp(a.x, b.x, f), lerp(nodeY(a, ys, chipLift), nodeY(b, ys, chipLift), f), lerp(a.z, b.z, f))
+  out.set(lerp(a.x, b.x, f), lerp(nodeY(a, ys), nodeY(b, ys), f), lerp(a.z, b.z, f))
 }
 
 export function makeK1Camera() {
   const f = FRUSTUM
   const cam = new OrthographicCamera(-f, f, f, -f, 0.1, 40)
-  placeCam(cam, 30, 45)
+  placeCam(cam, CAM_ELEV, CAM_AZIM)
   return cam
 }
 
@@ -189,37 +192,34 @@ export function createK1Scene(colors: K1Colors, lite: boolean): K1Scene {
     depthWrite: true,
   })
   const ink = new LineBasicMaterial({ color: colors.ink, transparent: true, opacity: 0.7 })
-  const accent = new LineBasicMaterial({ color: colors.accent })
+  const accent = new LineBasicMaterial({ color: colors.accent, transparent: true, opacity: 1 })
   const topTrace = new LineBasicMaterial({ color: colors.ink, transparent: true, opacity: 0.7 })
-  const botTrace = new LineBasicMaterial({ color: colors.ink, transparent: true, opacity: 0.7 })
+  const botTrace = new LineBasicMaterial({ color: colors.ink, transparent: true, opacity: 0.55 })
   const gridMat = new PointsMaterial({
     color: colors.line,
-    size: 2.2,
+    size: 1.6,
     sizeAttenuation: false,
   })
 
   const parts = new Group()
+  const chip = new Group()
   const top = new Group()
   const sub = new Group()
   const bot = new Group()
 
-  const partGeos: BufferGeometry[] = [
-    box(CHIP, 0.1, CHIP, 0, BT / 2 + 0.05, 0),
-    box(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z),
-  ]
-  for (const p of chipPins()) partGeos.push(box(p.w, 0.028, p.d, p.x, BT / 2 + 0.02, p.z))
-  for (const p of connPins()) partGeos.push(box(0.05, 0.03, 0.04, p.x, BT / 2 + 0.03, p.z))
+  const partGeos: BufferGeometry[] = [box(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z)]
   for (const p of passives) partGeos.push(box(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z))
-  if (lite) partGeos.push(box(BW, 0.02, BD, 0, 0, 0))
-
-  const partsMesh = mergeMesh(partGeos.map((g) => g.clone()))
-  const partsEdge = mergeEdges(partGeos)
-  addMesh(parts, partsMesh, fill)
-  addLines(parts, partsEdge, ink)
+  addMesh(parts, mergeMesh(partGeos.map((g) => g.clone())), fill)
+  addLines(parts, mergeEdges(partGeos), ink)
   for (const g of partGeos) g.dispose()
 
-  const topY = BT / 2 + 0.004
-  addLines(top, polyLines([...topTraces, ...allTopPads()], topY), topTrace)
+  const chipGeos: BufferGeometry[] = [box(CHIP, 0.1, CHIP, 0, CHIP_Y, 0)]
+  for (const p of chipPins()) chipGeos.push(box(p.w, 0.028, p.d, p.x, BT / 2 + 0.02, p.z))
+  addMesh(chip, mergeMesh(chipGeos.map((g) => g.clone())), fill)
+  addLines(chip, mergeEdges(chipGeos), ink)
+  for (const g of chipGeos) g.dispose()
+
+  addLines(top, polyLines([boardOutline, ...topTraces, ...allTopPads()], TOP_Y), topTrace)
 
   if (!lite) {
     const subGeo = box(BW, BT, BD, 0, 0, 0)
@@ -227,11 +227,7 @@ export function createK1Scene(colors: K1Colors, lite: boolean): K1Scene {
     addLines(sub, new EdgesGeometry(subGeo, 20), ink)
   }
 
-  const botY = -BT / 2 - 0.004
-  const ground = box(BW * 0.92, 0.012, BD * 0.92, 0, botY, 0)
-  addMesh(bot, ground, fill)
-  if (!lite) addLines(bot, new EdgesGeometry(ground, 20), ink)
-  addLines(bot, polyLines([...botTraces, ...allBotPads()], botY), botTrace)
+  addLines(bot, polyLines([boardOutline, ...botTraces, ...allBotPads()], BOT_Y), botTrace)
 
   const viaPos = new Float32Array(vias.length * 6)
   const viaLines = new LineSegments(new BufferGeometry(), accent)
@@ -247,52 +243,26 @@ export function createK1Scene(colors: K1Colors, lite: boolean): K1Scene {
   gridGeo.setAttribute('position', new BufferAttribute(new Float32Array(3), 3))
   const grid = new Points(gridGeo, gridMat)
 
-  if (lite) {
-    top.add(parts)
-    root.add(top, bot, viaLines, pulse, grid)
-  } else {
-    root.add(parts, top, sub, bot, viaLines, pulse, grid)
-  }
+  root.add(bot, sub, top, parts, chip, viaLines, pulse, grid)
 
-  const endsLocal = {
-    traces: [] as Vector3[],
-    pads: [] as Vector3[],
-    vias: [] as Vector3[],
-    pins: [] as Vector3[],
-  }
-  const pushEnd = (list: Vector3[], x: number, y: number, z: number) => list.push(new Vector3(x, y, z))
-  for (const poly of topTraces) {
-    const a = poly[0]
-    const b = poly[poly.length - 1]
-    pushEnd(endsLocal.traces, a[0], topY, a[1])
-    pushEnd(endsLocal.traces, b[0], topY, b[1])
-  }
-  for (const poly of botTraces) {
-    const a = poly[0]
-    const b = poly[poly.length - 1]
-    pushEnd(endsLocal.traces, a[0], botY, a[1])
-    pushEnd(endsLocal.traces, b[0], botY, b[1])
-  }
-  for (const [x, z] of vias) {
-    pushEnd(endsLocal.vias, x, topY, z)
-    pushEnd(endsLocal.vias, x, botY, z)
-    pushEnd(endsLocal.pads, x, topY, z)
-    pushEnd(endsLocal.pads, x, botY, z)
-  }
-  for (const p of chipPins()) pushEnd(endsLocal.pins, p.x, BT / 2 + 0.02, p.z)
-  for (const p of connPins()) pushEnd(endsLocal.pads, p.x, BT / 2 + 0.03, p.z)
+  const endPairs = traceEnds().map((e) => ({
+    x: e.x,
+    z: e.z,
+    yLocal: e.layer === 'bot' ? BOT_Y : TOP_Y,
+    layer: e.layer,
+  }))
 
   const scene: K1Scene = {
     root,
     camera: makeK1Camera(),
     frustum: FRUSTUM,
-    layers: { parts, top, sub, bot },
+    layers: { parts, chip, top, sub, bot },
     mats: { fill, sub: subMat, ink, accent, topTrace, botTrace, grid: gridMat },
     vias: viaLines,
     pulse,
     grid,
     lite,
-    endsLocal,
+    endPairs,
   }
   applyK1Progress(scene, 0, 0)
   return scene
@@ -317,14 +287,13 @@ export function setK1Aspect(scene: K1Scene, aspect: number) {
 }
 
 export function layoutGrid(scene: K1Scene, px: number, worldH: number) {
-  const step = (24 / Math.max(px, 1)) * worldH
-  const y = -BW * EXPLODE * 1.7 - 0.15
+  const step = (28 / Math.max(px, 1)) * worldH
   const acc: number[] = []
-  const limX = 1.55
-  const limZ = 1.15
+  const limX = BW / 2 - 0.08
+  const limZ = BD / 2 - 0.08
   for (let x = -limX; x <= limX + 1e-6; x += step) {
     for (let z = -limZ; z <= limZ + 1e-6; z += step) {
-      acc.push(x, y, z)
+      acc.push(x, 0, z)
     }
   }
   scene.grid.geometry.setAttribute('position', new BufferAttribute(new Float32Array(acc), 3))
@@ -332,27 +301,22 @@ export function layoutGrid(scene: K1Scene, px: number, worldH: number) {
 }
 
 export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
-  const explode = Math.min(1, p / 0.5)
-  const rest = Math.max(0, (p - 0.5) / 0.5)
-  const azim = p <= 0.5 ? lerp(45, 20, explode) : lerp(20, 0, rest)
-  const elev = p <= 0.5 ? lerp(30, 38, explode) : lerp(38, 55, rest)
-  placeCam(scene.camera, elev, azim)
+  placeCam(scene.camera, CAM_ELEV, CAM_AZIM)
 
-  const ys = layerYs(explode, scene.lite)
-  const chipLift = rest * BW * CHIP_LIFT
-  scene.layers.parts.position.y = ys.parts + (scene.lite ? 0 : chipLift)
+  const ys = poseYs(p)
   scene.layers.top.position.y = ys.top
+  scene.layers.parts.position.y = ys.parts
+  scene.layers.chip.position.y = ys.chip
   scene.layers.sub.position.y = ys.sub
   scene.layers.bot.position.y = ys.bot
-  if (scene.lite) scene.layers.parts.position.y = 0
 
-  scene.vias.visible = explode > 0.04
-  scene.mats.sub.opacity = 0.92 - 0.77 * explode
-  scene.mats.sub.depthWrite = explode < 0.35
+  scene.vias.visible = ys.explode > 0.04
+  scene.mats.sub.opacity = 0.92 - 0.74 * ys.explode
+  scene.mats.sub.depthWrite = ys.explode < 0.35
   const viaAttr = scene.vias.geometry.getAttribute('position')
   const va = viaAttr.array as Float32Array
-  const topY = ys.top + BT / 2 + 0.004
-  const botY = ys.bot - BT / 2 - 0.004
+  const topY = ys.top + TOP_Y
+  const botY = ys.bot + BOT_Y
   for (let i = 0; i < vias.length; i++) {
     const [x, z] = vias[i]
     const o = i * 6
@@ -365,11 +329,10 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   }
   viaAttr.needsUpdate = true
 
-  const accentAmt = Math.min(1, p / 0.5)
+  const accentAmt = p >= 0.5 ? 1 : p / 0.5
   scene.mats.topTrace.color.lerpColors(scene.mats.ink.color, scene.mats.accent.color, accentAmt)
   scene.mats.topTrace.opacity = 0.7 + 0.3 * accentAmt
-  scene.mats.botTrace.color.lerpColors(scene.mats.ink.color, scene.mats.accent.color, Math.max(0, (p - 0.5) * 2))
-  scene.mats.botTrace.opacity = 0.7 + 0.3 * Math.max(0, (p - 0.5) * 2)
+  scene.mats.accent.opacity = 0.35 + 0.65 * Math.max(accentAmt, ys.explode)
 
   const trail = 0.12
   const pa = scene.pulse.geometry.getAttribute('position')
@@ -377,10 +340,10 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   const a = new Vector3()
   const b = new Vector3()
   for (let i = 0; i < 3; i++) {
-    const u0 = Math.max(0, pulseU - trail * (i + 1) / 3)
+    const u0 = Math.max(0, pulseU - (trail * (i + 1)) / 3)
     const u1 = Math.max(0, pulseU - (trail * i) / 3)
-    sampleLoop(u0, ys, chipLift, a)
-    sampleLoop(u1, ys, chipLift, b)
+    sampleLoop(u0, ys, a)
+    sampleLoop(u1, ys, b)
     const o = i * 6
     arr[o] = a.x
     arr[o + 1] = a.y
@@ -392,32 +355,22 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   pa.needsUpdate = true
 }
 
-export function projectEnds(
-  scene: K1Scene,
-  width: number,
-  height: number,
-  p: number,
-) {
-  const explode = Math.min(1, p / 0.5)
-  const rest = Math.max(0, (p - 0.5) / 0.5)
-  const ys = layerYs(explode, scene.lite)
-  const chipLift = rest * BW * CHIP_LIFT
-  const v = new Vector3()
-  const map = (src: Vector3[], kind: 'trace' | 'pad' | 'via' | 'pin') =>
-    src.map((pt) => {
-      v.copy(pt)
-      if (kind === 'pin') v.y += ys.parts + (scene.lite ? chipLift : chipLift)
-      else if (pt.y > 0) v.y += ys.top
-      else v.y += ys.bot
-      v.project(scene.camera)
-      return { x: (v.x * 0.5 + 0.5) * width, y: (-v.y * 0.5 + 0.5) * height }
-    })
-  return {
-    traces: map(scene.endsLocal.traces, 'trace'),
-    pads: map(scene.endsLocal.pads, 'pad'),
-    vias: map(scene.endsLocal.vias, 'via'),
-    pins: map(scene.endsLocal.pins, 'pin'),
+export function projectEnds(scene: K1Scene, width: number, height: number): HeroEnd[] {
+  scene.camera.updateMatrixWorld()
+  const ve = new Vector3()
+  const va = new Vector3()
+  const mapPt = (v: Vector3) => {
+    v.project(scene.camera)
+    return { x: (v.x * 0.5 + 0.5) * width, y: (-v.y * 0.5 + 0.5) * height }
   }
+  return scene.endPairs.map((rec) => {
+    const ly = rec.layer === 'bot' ? scene.layers.bot.position.y : scene.layers.top.position.y
+    ve.set(rec.x, rec.yLocal + ly, rec.z)
+    va.set(rec.x, rec.yLocal + ly, rec.z)
+    const end = mapPt(ve)
+    const anc = mapPt(va)
+    return { x: end.x, y: end.y, ax: anc.x, ay: anc.y }
+  })
 }
 
 export function disposeK1(scene: K1Scene) {

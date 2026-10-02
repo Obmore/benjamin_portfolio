@@ -113,4 +113,59 @@ test.describe('hero 3D K1', () => {
     expect(Math.abs(box.w / box.h - 4 / 3)).toBeLessThan(0.08)
     expect(box.overflow).toBe(true)
   })
+
+  for (const vp of [
+    { w: 1440, h: 900 },
+    { w: 390, h: 844 },
+  ]) {
+    test(`T3-ends coincide at 100% (${vp.w}x${vp.h} light)`, async ({ page }) => {
+      await page.setViewportSize({ width: vp.w, height: vp.h })
+      await gotoHome(page, '?qa3d=1')
+      await page.waitForFunction(
+        () => {
+          const box = document.querySelector('.hero-3d')
+          const hook = (window as Window & { __hero3d?: { seek?: (p: number) => void } }).__hero3d
+          return Boolean(box?.classList.contains('is-ready') && hook?.seek)
+        },
+        null,
+        { timeout: 15000 },
+      )
+      await expect(page.locator('.hero-3d-poster')).toHaveAttribute('data-pose', '100')
+      await expect(page.locator('.hero-3d canvas')).toHaveAttribute('data-pose', '0')
+
+      type End = { x: number; y: number; ax: number; ay: number }
+      const read = (progress: number) =>
+        page.evaluate((p) => {
+          const hook = (
+            window as Window & {
+              __hero3d?: { seek: (n: number) => void; ends: End[]; progress: number }
+            }
+          ).__hero3d
+          if (!hook) return null
+          hook.seek(p)
+          const ends = hook.ends
+          return {
+            progress: hook.progress,
+            n: ends.length,
+            ends,
+            sample: ends[0],
+          }
+        }, progress)
+
+      const at0 = await read(0)
+      const at50 = await read(0.5)
+      const at100 = await read(1)
+      expect(at0?.n).toBeGreaterThan(0)
+      expect(at50?.n).toBe(at0?.n)
+      expect(at100?.n).toBe(at0?.n)
+      expect(at0?.sample).toEqual(
+        expect.objectContaining({ x: expect.any(Number), y: expect.any(Number), ax: expect.any(Number), ay: expect.any(Number) }),
+      )
+      expect(at100?.progress).toBeCloseTo(1, 5)
+      for (const end of at100?.ends ?? []) {
+        expect(Math.abs(end.x - end.ax)).toBeLessThanOrEqual(1)
+        expect(Math.abs(end.y - end.ay)).toBeLessThanOrEqual(1)
+      }
+    })
+  }
 })

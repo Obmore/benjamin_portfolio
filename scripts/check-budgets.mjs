@@ -10,7 +10,7 @@ const orderHtmlPath = path.join(dist, 'megrendeles/index.html')
 const posterPath = path.join(root, 'src/components/visuals/hero-k1-poster.svg')
 
 const MAIN_BUDGETS = {
-  entryJs: 73728,
+  entryJs: 73083,
   allJs: 160 * 1024,
   css: 9420,
   fonts: 120 * 1024,
@@ -247,6 +247,10 @@ for (const file of main.entryJs) {
   }
   if (text.includes('ScrollTrigger') || /from["']gsap["']/.test(text) || /from["']gsap\//.test(text)) {
     console.error(`\nEntry chunk contains gsap: ${path.relative(dist, file)}`)
+    failed = true
+  }
+  if (text.includes('data-pose') || text.includes('M90.8,80.4') || text.includes('viewBox="0 0 320 240"')) {
+    console.error(`\nEntry chunk contains poster SVG or QA pose attrs: ${path.relative(dist, file)}`)
     failed = true
   }
 }
