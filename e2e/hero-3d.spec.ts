@@ -111,7 +111,9 @@ test.describe('hero 3D K1', () => {
     const requests: string[] = []
     page.on('request', (req) => {
       const url = req.url()
-      if (/\/assets\/(three|gsap)[^/]*\.js$/.test(url)) requests.push(url)
+      const file = url.split('/').pop() || ''
+      if (file.startsWith('three-gate')) return
+      if (/^(three|gsap)[-.]/.test(file)) requests.push(url)
     })
     await gotoHome(page, '?qa3d=1')
     await page.waitForTimeout(2500)
@@ -567,7 +569,9 @@ test.describe('hero 3D K1', () => {
     })
     page.on('request', (req) => {
       const url = req.url()
-      if (/\/assets\/(three|three-hero|view-manager)[^/]*\.js$/.test(url) || /node_modules\/three/.test(url)) {
+      const file = url.split('/').pop() || ''
+      if (file.startsWith('three-gate')) return
+      if (/^(three|three-hero|view-manager)[-.]/.test(file) || /node_modules\/three/.test(url)) {
         threeUrls.push(url)
       }
     })
