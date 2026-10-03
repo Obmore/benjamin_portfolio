@@ -50,7 +50,7 @@ import {
 
 export type K1Colors = { surface: Color; ink: Color; accent: Color; line: Color }
 
-export { Color, Scene, WebGLRenderer, POSTER_W, POSTER_H }
+export { Color, Scene, WebGLRenderer, Mesh, BoxGeometry, MeshBasicMaterial, Vector3, POSTER_W, POSTER_H }
 
 export const POSTER_ASPECT = POSTER_W / POSTER_H
 
@@ -87,7 +87,7 @@ export type K1Scene = {
   lite: boolean
   pulseOffset: number
   anchors: Anchor[]
-  endPairs: { x: number; z: number; layer: 'top' | 'bot'; id: string; px?: number; py?: number }[]
+  endPairs: { x: number; z: number; layer: 'top' | 'bot'; id: string }[]
 }
 
 const LY = { bot: 0, sub: 1, top: 2, chip: 3 }
@@ -290,6 +290,7 @@ export async function createK1Scene(
   const fillMesh = new Mesh(mergeMesh(fillGeos), fill)
   fillMesh.frustumCulled = false
   fillMesh.renderOrder = -1
+  fillMesh.userData.layer = 'fill'
 
   await pause()
 
@@ -309,6 +310,7 @@ export async function createK1Scene(
   const inkLines = new LineSegments(lineGeometry(inkBuf), ink)
   inkLines.frustumCulled = false
   inkLines.renderOrder = 2
+  inkLines.userData.layer = 'ink'
 
   await pause()
 
@@ -328,6 +330,7 @@ export async function createK1Scene(
   const accentLines = new LineSegments(lineGeometry(accentBuf), accent)
   accentLines.frustumCulled = false
   accentLines.renderOrder = 3
+  accentLines.userData.layer = 'accent'
 
   await pause()
 
@@ -337,10 +340,12 @@ export async function createK1Scene(
     subMesh = new Mesh(subGeo, subMat)
     subMesh.frustumCulled = false
     subMesh.renderOrder = -1
+    carrier.userData.layer = 'sub'
     carrier.add(subMesh)
   }
 
-  root.add(fillMesh, inkLines, accentLines, carrier)
+  root.add(fillMesh, inkLines, accentLines)
+  if (subMesh) root.add(carrier)
   await pause()
 
   const scene: K1Scene = {
@@ -447,8 +452,8 @@ export function projectEnds(scene: K1Scene, width: number, height: number): Hero
     const anc = anchorById(rec.id, rec.layer, scene.anchors)
     if (!anc) {
       return {
-        x: end.x + (rec.px ?? 0),
-        y: end.y + (rec.py ?? 0),
+        x: end.x,
+        y: end.y,
         ax: end.x + 99,
         ay: end.y + 99,
         id: rec.id,
@@ -459,8 +464,8 @@ export function projectEnds(scene: K1Scene, width: number, height: number): Hero
     va.set(anc.x, worldY(scene, anc.layer), anc.z)
     const a = mapPt(va)
     return {
-      x: end.x + (rec.px ?? 0),
-      y: end.y + (rec.py ?? 0),
+      x: end.x,
+      y: end.y,
       ax: a.x,
       ay: a.y,
       id: anc.id,
@@ -468,15 +473,6 @@ export function projectEnds(scene: K1Scene, width: number, height: number): Hero
       kind: anc.kind,
     }
   })
-}
-
-export function measureK1Layers(scene: K1Scene) {
-  let n = 0
-  if (scene.fill) n += 1
-  if (scene.ink) n += 1
-  if (scene.accent) n += 1
-  if (scene.subMesh) n += 1
-  return n
 }
 
 export function disposeK1(scene: K1Scene) {

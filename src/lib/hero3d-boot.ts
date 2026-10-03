@@ -1,4 +1,4 @@
-import { afterLcpAndIdle, importHeroView, nextFrame } from '@/lib/after-lcp'
+import { afterLcp, afterIdle, importHeroView, nextFrame } from '@/lib/after-lcp'
 
 type NavMem = Navigator & {
   deviceMemory?: number
@@ -41,12 +41,24 @@ function tripWatchdog() {
   }
 }
 
-function cpuTooSlow() {
-  const t0 = performance.now()
+async function cpuTooSlow() {
+  let busy = 0
   let s = 0
-  for (let i = 0; i < 1_000_000; i += 1) s = (s + i) | 0
+  const total = 1_000_000
+  const chunk = 50_000
+  for (let i = 0; i < total; i += chunk) {
+    const end = Math.min(total, i + chunk)
+    const t0 = performance.now()
+    for (let j = i; j < end; j += 1) s = (s + j) | 0
+    busy += performance.now() - t0
+    if (busy > 90) {
+      void s
+      return true
+    }
+    await nextFrame()
+  }
   void s
-  return performance.now() - t0 > 90
+  return false
 }
 
 export function bootHero3d(): () => void {
@@ -72,17 +84,19 @@ export function bootHero3d(): () => void {
   }, 9000)
 
   void (async () => {
-    await afterLcpAndIdle()
+    await afterLcp()
+    await nextFrame()
     if (stopped) return
     if (mediaStatic()) {
       writeTier('static')
       return
     }
-    if (cpuTooSlow()) {
+    if (await cpuTooSlow()) {
       tripWatchdog()
       writeTier('static')
       return
     }
+    if (!qa) await afterIdle()
     if (stopped || mediaStatic()) {
       writeTier('static')
       return

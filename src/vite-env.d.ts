@@ -32,7 +32,11 @@ declare module 'three' {
     constructor(x?: number, y?: number, z?: number)
     set(x: number, y: number, z: number): this
     copy(v: Vector3): this
+    clone(): Vector3
+    add(v: Vector3): this
+    sub(v: Vector3): this
     project(camera: Camera): this
+    unproject(camera: Camera): this
   }
 
   export class Color {
@@ -63,9 +67,15 @@ declare module 'three' {
     frustumCulled: boolean
     visible: boolean
     renderOrder: number
+    children: Object3D[]
+    parent: Object3D | null
+    userData: Record<string, unknown>
     add(...object: Object3D[]): this
     traverse(callback: (object: Object3D) => void): void
     lookAt(x: number, y: number, z: number): void
+    updateMatrixWorld(): void
+    getWorldPosition(target: Vector3): Vector3
+    remove(...object: Object3D[]): this
     geometry?: BufferGeometry
   }
 

@@ -23,25 +23,6 @@ type Hero3dInfo = {
   memory: { geometries: number; textures: number }
 }
 
-type Hero3dQa = {
-  tier: string
-  layers: number
-  info: Hero3dInfo
-  rafCount: number
-  progress: number
-  dpr: number
-  readonly ends: ReturnType<HeroMod['projectEnds']>
-  seek?: (p: number) => void
-  dispose?: () => void
-  qaShiftEnd?: (index: number, dx: number, dy: number) => void
-}
-
-declare global {
-  interface Window {
-    __hero3d?: Hero3dQa
-  }
-}
-
 const SWAP_MS = 200
 const PROBE_FRAMES = 12
 let hero: HeroMod | null = null
@@ -70,6 +51,8 @@ let scrollBound = false
 let swapped = false
 let swapTimer = 0
 let disposing = false
+let qaSync: (() => void) | null = null
+let qaDetach: (() => void) | null = null
 
 function aborted(my: number) {
   return my !== gen
@@ -121,59 +104,12 @@ function snapshotInfo(): Hero3dInfo {
   }
 }
 
-function bindQa() {
-  if (!qa || !boxEl) return
-  const next = {
-    tier: boxEl.dataset.hero3dTier || (k1?.lite ? 'lite' : 'full'),
-    layers: k1 && hero ? hero.measureK1Layers(k1) : 0,
-    info: snapshotInfo(),
-    rafCount,
-    progress,
-    dpr: renderer && canvas ? canvas.width / Math.max(1, boxEl.clientWidth) : 1,
-  }
-  const existing = window.__hero3d
-  if (existing) {
-    existing.tier = next.tier
-    existing.layers = next.layers
-    existing.info = next.info
-    existing.rafCount = next.rafCount
-    existing.progress = next.progress
-    existing.dpr = next.dpr
-    return
-  }
-  const hook = {
-    ...next,
-    seek(p: number) {
-      progress = Math.min(1, Math.max(0, p))
-      paint()
-    },
-    dispose() {
-      disposeHero()
-    },
-    qaShiftEnd(index: number, dx: number, dy: number) {
-      const rec = k1?.endPairs[index]
-      if (!rec) return
-      rec.px = (rec.px ?? 0) + dx
-      rec.py = (rec.py ?? 0) + dy
-    },
-  } as Hero3dQa
-  Object.defineProperty(hook, 'ends', {
-    enumerable: true,
-    configurable: true,
-    get() {
-      if (!k1 || !boxEl || !hero) return []
-      return hero.projectEnds(k1, boxEl.clientWidth, boxEl.clientHeight)
-    },
-  })
-  window.__hero3d = hook
-}
-
 function paint() {
   if (!renderer || !scene || !k1 || !hero) return
   renderer.info.reset()
   hero.applyK1Progress(k1, progress, progress)
   renderer.render(scene, k1.camera)
-  bindQa()
+  qaSync?.()
 }
 
 function watchdog(dt: number, work: number) {
@@ -374,19 +310,48 @@ async function compileQuiet(
   }
 }
 
+async function attachQa() {
+  if (!qa || qaDetach || !hero) return
+  const mod = await import('./hero-qa')
+  const bound = mod.attachHeroQa({
+    Vector3: hero.Vector3,
+    BoxGeometry: hero.BoxGeometry,
+    MeshBasicMaterial: hero.MeshBasicMaterial,
+    Mesh: hero.Mesh as never,
+    getRoot: () => k1?.root ?? null,
+    getCamera: () => k1?.camera ?? null,
+    getK1: () => k1,
+    getBox: () => boxEl,
+    snapshotInfo,
+    getRafCount: () => rafCount,
+    getProgress: () => progress,
+    getDpr: () => (renderer && canvas && boxEl ? canvas.width / Math.max(1, boxEl.clientWidth) : 1),
+    getTier: () => boxEl?.dataset.hero3dTier || (k1?.lite ? 'lite' : 'full'),
+    seek(p: number) {
+      progress = Math.min(1, Math.max(0, p))
+      paint()
+    },
+    dispose() {
+      disposeHero()
+    },
+    paint,
+  })
+  qaSync = bound.sync
+  qaDetach = bound.detach
+}
+
 function teardownGpu() {
   gen += 1
   booting = false
   haltLoop()
   clearSwapTimer()
   showPosterImmediate()
+  qaDetach?.()
+  qaDetach = null
+  qaSync = null
   if (k1 && hero) hero.disposeK1(k1)
   k1 = null
   scene = null
-  if (qa && window.__hero3d && renderer) {
-    window.__hero3d.info = snapshotInfo()
-    window.__hero3d.rafCount = rafCount
-  }
   if (renderer) {
     renderer.domElement.removeEventListener('webglcontextlost', onLost, true)
     renderer.dispose()
@@ -395,6 +360,7 @@ function teardownGpu() {
   renderer = null
   canvas?.remove()
   canvas = null
+  if (window.__hero3d) window.__hero3d.info = snapshotInfo()
 }
 
 async function bindScroll() {
@@ -556,6 +522,11 @@ async function bootScene() {
   rafCount = 0
   last = 0
   swapped = false
+  if (qa) await attachQa()
+  if (aborted(my)) {
+    booting = false
+    return
+  }
   paint()
   startPosterSwap()
   booting = false
@@ -617,7 +588,7 @@ export function stopView() {
   io = null
   observersOn = false
   teardownGpu()
-  if (!qa) delete window.__hero3d
+  delete window.__hero3d
   boxEl = null
   frameMs.length = 0
 }

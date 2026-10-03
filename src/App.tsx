@@ -25,14 +25,6 @@ function SkipLink() {
   )
 }
 
-function yieldMain(): Promise<void> {
-  const sched = (globalThis as unknown as { scheduler?: { yield?: () => Promise<void> } }).scheduler
-  if (typeof sched?.yield === 'function') return sched.yield()
-  return new Promise((resolve) => {
-    setTimeout(resolve, 0)
-  })
-}
-
 function AppShell() {
   useInitialHash()
   const [rest, setRest] = useState(false)
@@ -48,9 +40,35 @@ function AppShell() {
         cancelled = true
       }
     }
-    void yieldMain().then(start)
+    let po: PerformanceObserver | null = null
+    let fallback = 0
+    let idle = 0
+    const kick = () => {
+      po?.disconnect()
+      if (fallback) window.clearTimeout(fallback)
+      const ric = window.requestIdleCallback
+      if (typeof ric === 'function') {
+        idle = ric(start, { timeout: 800 }) as unknown as number
+      } else {
+        fallback = window.setTimeout(start, 800)
+      }
+    }
+    try {
+      if (performance.getEntriesByType('largest-contentful-paint').length > 0) {
+        kick()
+      } else {
+        po = new PerformanceObserver(() => kick())
+        po.observe({ type: 'largest-contentful-paint', buffered: true })
+        fallback = window.setTimeout(kick, 4000)
+      }
+    } catch {
+      kick()
+    }
     return () => {
       cancelled = true
+      po?.disconnect()
+      if (fallback) window.clearTimeout(fallback)
+      if (idle && typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idle)
     }
   }, [])
 

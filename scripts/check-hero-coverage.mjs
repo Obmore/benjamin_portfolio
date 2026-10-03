@@ -7,7 +7,7 @@ import { chromium } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parseCssColor, twoWayFillCoverage } from './k1-coverage-lib.mjs'
+import { parseCssColor, twoWayFillCoverage, chipSeeThrough } from './k1-coverage-lib.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = path.join(root, 'test-results', 'hero-k1-coverage')
@@ -66,9 +66,21 @@ async function main() {
 
     const tokens = await page.evaluate(() => {
       const css = getComputedStyle(document.documentElement)
+      const hook = window.__hero3d
+      const canvas = document.querySelector('.hero-3d canvas')
+      const pins = []
+      hook?.scene?.traverse((o) => {
+        const id = o.userData?.anchorId
+        if (typeof id === 'string' && id.startsWith('pin-') && typeof o.userData.sx === 'number') {
+          pins.push({ x: o.userData.sx, y: o.userData.sy })
+        }
+      })
       return {
         surface: css.getPropertyValue('--color-surface').trim(),
         ink: css.getPropertyValue('--color-ink').trim() || css.getPropertyValue('--color-foreground').trim(),
+        pins,
+        cssW: canvas?.clientWidth ?? 1,
+        cssH: canvas?.clientHeight ?? 1,
       }
     })
 
@@ -113,14 +125,26 @@ async function main() {
       parseCssColor(tokens.ink),
       1,
     )
-    const ok = cov.aInB >= 0.99 && cov.bInA >= 0.99 && cov.inkInside === 0
+    const pinPx = tokens.pins.map((p) => ({
+      x: (p.x / tokens.cssW) * cov.width,
+      y: (p.y / tokens.cssH) * cov.height,
+    }))
+    const chip = chipSeeThrough(
+      Buffer.from(livePng),
+      pinPx,
+      parseCssColor(tokens.surface),
+      parseCssColor(tokens.ink),
+      2,
+    )
+    const ok = cov.aInB >= 0.99 && cov.bInA >= 0.99 && chip.seeThrough <= 4
     if (!ok) failed = true
     rows.push({
       viewport: `${cfg.w}@${cfg.dsf}x`,
       theme: cfg.theme,
       liveInPoster: Number((cov.aInB * 100).toFixed(2)),
       posterInLive: Number((cov.bInA * 100).toFixed(2)),
-      inkInside: cov.inkInside,
+      chipSeeThrough: chip.seeThrough,
+      chipInterior: chip.interior,
       aFill: cov.aFill,
       bFill: cov.bFill,
       size: `${cov.width}x${cov.height}`,

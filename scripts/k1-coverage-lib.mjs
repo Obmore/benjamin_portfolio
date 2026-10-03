@@ -160,6 +160,75 @@ function erode(src, radius) {
   return { mask: out, count, width, height }
 }
 
+export function convexHull(points) {
+  const uniq = []
+  const sorted = [...points].sort((a, b) => a.x - b.x || a.y - b.y)
+  for (const p of sorted) {
+    const last = uniq[uniq.length - 1]
+    if (last && last.x === p.x && last.y === p.y) continue
+    uniq.push(p)
+  }
+  if (uniq.length <= 2) return uniq
+  const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+  const lower = []
+  for (const p of uniq) {
+    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop()
+    lower.push(p)
+  }
+  const upper = []
+  for (let i = uniq.length - 1; i >= 0; i -= 1) {
+    const p = uniq[i]
+    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop()
+    upper.push(p)
+  }
+  lower.pop()
+  upper.pop()
+  return lower.concat(upper)
+}
+
+function pointInPoly(x, y, poly) {
+  let inside = false
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i, i += 1) {
+    const xi = poly[i].x
+    const yi = poly[i].y
+    const xj = poly[j].x
+    const yj = poly[j].y
+    const hit = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi + 1e-12) + xi
+    if (hit) inside = !inside
+  }
+  return inside
+}
+
+export function chipSeeThrough(liveBuf, pinPts, surfaceRgb, inkRgb, erodePx = 2) {
+  const img = decodePngRgba(liveBuf)
+  const hull = convexHull(pinPts)
+  if (hull.length < 3) {
+    return { seeThrough: 9999, interior: 0, pins: pinPts.length, hull: hull.length }
+  }
+  const mask = new Uint8Array(img.width * img.height)
+  let count = 0
+  for (let y = 0; y < img.height; y += 1) {
+    for (let x = 0; x < img.width; x += 1) {
+      if (!pointInPoly(x + 0.5, y + 0.5, hull)) continue
+      mask[y * img.width + x] = 1
+      count += 1
+    }
+  }
+  const interior = erode({ mask, count, width: img.width, height: img.height }, erodePx)
+  let seeThrough = 0
+  for (let i = 0; i < interior.mask.length; i += 1) {
+    if (!interior.mask[i]) continue
+    const p = i * 4
+    const a = img.pixels[p + 3]
+    if (a < 160) {
+      seeThrough += 1
+      continue
+    }
+    if (maxDelta(img.pixels, p, surfaceRgb) > 28) seeThrough += 1
+  }
+  return { seeThrough, interior: interior.count, pins: pinPts.length, hull: hull.length }
+}
+
 export function twoWayFillCoverage(aBuf, bBuf, surfaceRgb, inkRgb, radius = 1) {
   const a = decodePngRgba(aBuf)
   const b = decodePngRgba(bBuf)
@@ -187,7 +256,7 @@ function twoWayFillCoverageFromImages(a, b, surfaceRgb, inkRgb, radius) {
   const bFill = fillMask(b, surfaceRgb)
   const aInB = coveredBy(aFill, bFill, radius)
   const bInA = coveredBy(bFill, aFill, radius)
-  const interior = erode(bFill, 2)
+  const interior = erode(bFill, 4)
   let inkInside = 0
   for (let i = 0; i < interior.mask.length; i += 1) {
     if (!interior.mask[i]) continue

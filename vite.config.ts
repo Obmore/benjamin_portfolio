@@ -103,7 +103,7 @@ export default defineConfig({
       resolveDependencies(_filename, deps) {
         return deps.filter((dep) => {
           const base = dep.split(/[?#]/)[0].split(/[\\/]/).pop() ?? dep
-          return !/^(after-lcp|three|gsap|below-fold|AppRest|hero3d)/.test(base)
+          return !/^(after-lcp|three|gsap|below-fold|AppRest|hero3d|hero-qa)/.test(base)
         })
       },
     },
@@ -115,6 +115,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           const n = id.replaceAll('\\', '/')
+          if (n.includes('/src/three/hero-qa')) return 'hero-qa'
           if (
             n.includes('/src/AppRest') ||
             n.includes('/src/components/sections/About') ||

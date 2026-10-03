@@ -26,14 +26,26 @@ export function HeroVisual() {
     let started = false
     let po: PerformanceObserver | null = null
     let fallback = 0
+    let idle = 0
     const start = () => {
       if (cancelled || started) return
       started = true
       po?.disconnect()
       if (fallback) window.clearTimeout(fallback)
-      void import('@/lib/hero3d-boot').then((mod) => {
-        if (!cancelled) stop = mod.bootHero3d()
-      })
+      const boot = () => {
+        if (cancelled) return
+        void import('@/lib/hero3d-boot').then((mod) => {
+          if (!cancelled) stop = mod.bootHero3d()
+        })
+      }
+      const qa = new URLSearchParams(location.search).get('qa3d') === '1'
+      if (qa) {
+        boot()
+        return
+      }
+      const ric = window.requestIdleCallback
+      if (typeof ric === 'function') idle = ric(boot, { timeout: 800 })
+      else fallback = window.setTimeout(boot, 800)
     }
     try {
       if (performance.getEntriesByType('largest-contentful-paint').length > 0) {
@@ -50,6 +62,7 @@ export function HeroVisual() {
       cancelled = true
       po?.disconnect()
       if (fallback) window.clearTimeout(fallback)
+      if (idle && typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idle)
       stop()
     }
   }, [])

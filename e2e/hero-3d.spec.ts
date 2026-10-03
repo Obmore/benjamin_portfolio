@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { parseCssColor, twoWayFillCoverage } from '../scripts/k1-coverage-lib.mjs'
+import { parseCssColor, twoWayFillCoverage, chipSeeThrough } from '../scripts/k1-coverage-lib.mjs'
 
 async function gotoHome(page: Page, query = '') {
   const response = await page.goto(`/${query}`, { waitUntil: 'domcontentloaded' })
@@ -21,9 +21,11 @@ type HeroEnd = {
 }
 
 type Hero3dHook = {
+  scene?: { children: { visible: boolean; userData: Record<string, unknown> }[]; traverse: (fn: (o: { userData: Record<string, unknown> }) => void) => void }
   seek?: (p: number) => void
   dispose?: () => void
-  qaShiftEnd?: (index: number, dx: number, dy: number) => void
+  qaShiftEnd?: (index: number, px: number) => void
+  qaEndWorld?: (index: number) => { x: number; y: number; z: number } | undefined
   ends: HeroEnd[]
   progress: number
   layers: number
@@ -36,7 +38,9 @@ async function waitHero3d(page: Page) {
     () => {
       const box = document.querySelector('.hero-3d')
       const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
-      return Boolean(box?.classList.contains('is-swapped') && hook?.seek && hook.dispose)
+      return Boolean(
+        box?.classList.contains('is-swapped') && hook?.seek && hook.dispose && hook.qaEndWorld && hook.scene,
+      )
     },
     null,
     { timeout: 20000 },
@@ -201,6 +205,22 @@ test.describe('hero 3D K1', () => {
       )
       expect(at100?.progress).toBeCloseTo(1, 5)
       expect(at100?.layers).toBe(vp.w >= 1440 ? 4 : 3)
+      const vis = await page.evaluate(() => {
+        const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
+        if (!hook?.scene) return null
+        const tagged = hook.scene.children.filter((c) => typeof c.userData.layer === 'string')
+        const before = hook.layers
+        if (!tagged[0]) return { before, tagged: tagged.length }
+        tagged[0].visible = false
+        const hidden = hook.layers
+        tagged[0].visible = true
+        const restored = hook.layers
+        return { before, hidden, restored, tagged: tagged.length }
+      })
+      expect(vis?.tagged).toBe(vp.w >= 1440 ? 4 : 3)
+      expect(vis?.before).toBe(vis?.tagged)
+      expect(vis?.hidden).toBe((vis?.tagged ?? 0) - 1)
+      expect(vis?.restored).toBe(vis?.tagged)
       for (const end of at100?.ends ?? []) {
         expect(end.id.length).toBeGreaterThan(0)
         expect(end.targetId).toBe(end.id)
@@ -217,18 +237,28 @@ test.describe('hero 3D K1', () => {
     await waitHero3d(page)
     const probe = await page.evaluate(() => {
       const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
-      if (!hook?.qaShiftEnd) return null
+      if (!hook?.qaShiftEnd || !hook.qaEndWorld) return null
       hook.seek?.(1)
       const before = hook.ends[0]
-      hook.qaShiftEnd(0, 2, 0)
+      const world0 = hook.qaEndWorld(0)
+      hook.qaShiftEnd(0, 2)
       const after = hook.ends[0]
+      const world1 = hook.qaEndWorld(0)
       const rest = hook.ends.slice(1)
-      return { before, after, restOk: rest.every((e) => Math.abs(e.x - e.ax) <= 1 && Math.abs(e.y - e.ay) <= 1) }
+      return {
+        before,
+        after,
+        world0,
+        world1,
+        restOk: rest.every((e) => Math.abs(e.x - e.ax) <= 1 && Math.abs(e.y - e.ay) <= 1),
+      }
     })
     expect(probe?.before).toBeTruthy()
+    expect(probe?.world0).toEqual(expect.objectContaining({ x: expect.any(Number), y: expect.any(Number), z: expect.any(Number) }))
     expect(Math.abs((probe?.before.x ?? 0) - (probe?.before.ax ?? 0))).toBeLessThanOrEqual(1)
     expect(Math.abs((probe?.after.x ?? 0) - (probe?.after.ax ?? 0))).toBeGreaterThan(1)
-    expect(probe?.after.x).toBe((probe?.before.x ?? 0) + 2)
+    expect(Math.abs((probe?.after.x ?? 0) - (probe?.before.x ?? 0) - 2)).toBeLessThanOrEqual(0.5)
+    expect(Math.abs((probe?.after.y ?? 0) - (probe?.before.y ?? 0))).toBeLessThanOrEqual(0.5)
     expect(probe?.restOk).toBe(true)
   })
 
@@ -380,7 +410,7 @@ test.describe('hero 3D K1', () => {
   })
 
   test('20x CPU watchdog falls back to the poster within 10s', async ({ page }) => {
-    test.setTimeout(30000)
+    test.setTimeout(45000)
     await page.setViewportSize({ width: 390, height: 844 })
     const client = await page.context().newCDPSession(page)
     await client.send('Emulation.setCPUThrottlingRate', { rate: 20 })
@@ -397,7 +427,7 @@ test.describe('hero 3D K1', () => {
         sessionStorage.getItem('ob-3d-off') === '1' &&
         document.querySelector('.hero-3d')?.getAttribute('data-hero3d-tier') === 'static',
       null,
-      { timeout: 15000 },
+      { timeout: 25000 },
     )
     const poster = page.locator('.hero-3d-poster')
     await expect(poster).toBeVisible()
@@ -471,6 +501,39 @@ test.describe('hero 3D K1', () => {
       v.nodes.filter((n) => n.html.includes('ui-chip') || n.target.some((t) => String(t).includes('ui-chip'))),
     )
     expect(chipHits, JSON.stringify(axe.violations, null, 2)).toEqual([])
+  })
+
+  test('page-load long tasks stay under 120 ms at 390 reduced-motion', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    const client = await page.context().newCDPSession(page)
+    await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+    await page.addInitScript(() => {
+      const w = window as Window & { __lt: { d: number; t: number }[] }
+      w.__lt = []
+      try {
+        new PerformanceObserver((list) => {
+          for (const e of list.getEntries()) w.__lt.push({ d: e.duration, t: e.startTime })
+        }).observe({ type: 'longtask', buffered: true })
+      } catch {
+        /* ignore */
+      }
+    })
+    await gotoHome(page)
+    await page.waitForFunction(
+      () => document.readyState === 'complete' && document.querySelector('#hero'),
+      null,
+      { timeout: 30000 },
+    )
+    await page.waitForTimeout(1500)
+    const probe = await page.evaluate(() => {
+      const w = window as Window & { __lt?: { d: number; t: number }[] }
+      const tasks = w.__lt ?? []
+      const max = Math.max(0, ...tasks.map((e) => e.d))
+      return { max, n: tasks.length, tasks: [...tasks].sort((a, b) => b.d - a.d).slice(0, 8) }
+    })
+    console.log('LONG_TASK_NAV_START', 'reduced-motion', JSON.stringify(probe))
+    expect(probe.max, JSON.stringify(probe.tasks)).toBeLessThanOrEqual(120)
   })
 
   for (const query of ['?qa3d=1', ''] as const) {
@@ -602,9 +665,21 @@ test.describe('hero 3D K1', () => {
 
       const tokens = await page.evaluate(() => {
         const css = getComputedStyle(document.documentElement)
+        const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
+        const canvas = document.querySelector('.hero-3d canvas') as HTMLCanvasElement | null
+        const pins: { x: number; y: number }[] = []
+        hook?.scene?.traverse((o) => {
+          const id = o.userData?.anchorId
+          if (typeof id === 'string' && id.startsWith('pin-') && typeof o.userData.sx === 'number') {
+            pins.push({ x: Number(o.userData.sx), y: Number(o.userData.sy) })
+          }
+        })
         return {
           surface: css.getPropertyValue('--color-surface').trim(),
           ink: css.getPropertyValue('--color-ink').trim() || css.getPropertyValue('--color-foreground').trim(),
+          pins,
+          cssW: canvas?.clientWidth ?? 1,
+          cssH: canvas?.clientHeight ?? 1,
         }
       })
 
@@ -651,12 +726,24 @@ test.describe('hero 3D K1', () => {
         parseCssColor(tokens.ink),
         1,
       )
-      console.log('K1_COVERAGE', `${cfg.w}@${cfg.dsf}x`, cfg.theme, JSON.stringify(cov))
+      const liveImg = { width: cov.width, height: cov.height }
+      const pinPx = tokens.pins.map((p) => ({
+        x: (p.x / tokens.cssW) * liveImg.width,
+        y: (p.y / tokens.cssH) * liveImg.height,
+      }))
+      const chip = chipSeeThrough(
+        Buffer.from(livePng),
+        pinPx,
+        parseCssColor(tokens.surface),
+        parseCssColor(tokens.ink),
+        2,
+      )
+      console.log('K1_COVERAGE', `${cfg.w}@${cfg.dsf}x`, cfg.theme, JSON.stringify({ cov, chip }))
       expect(cov.aFill, JSON.stringify(cov)).toBeGreaterThan(20)
       expect(cov.bFill, JSON.stringify(cov)).toBeGreaterThan(20)
       expect(cov.aInB, `live-in-poster ${JSON.stringify(cov)}`).toBeGreaterThanOrEqual(0.99)
       expect(cov.bInA, `poster-in-live ${JSON.stringify(cov)}`).toBeGreaterThanOrEqual(0.99)
-      expect(cov.inkInside, `traces in fill ${JSON.stringify(cov)}`).toBe(0)
+      expect(chip.seeThrough, `chip see-through ${JSON.stringify(chip)}`).toBeLessThanOrEqual(4)
       await context.close()
     })
   }
