@@ -8,7 +8,7 @@ import { chromium } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parseCssColor, twoWayFillCoverage, chipSeeThroughCss } from './k1-coverage-lib.mjs'
+import { parseCssColor, twoWayFillCoverage, chipSeeThroughFromPath } from './k1-coverage-lib.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = path.join(root, 'test-results', 'hero-k1-coverage')
@@ -69,37 +69,15 @@ async function main() {
 
     const tokens = await page.evaluate(() => {
       const css = getComputedStyle(document.documentElement)
-      const canvas = document.querySelector('.hero-3d canvas')
       const pathEl = document.querySelector('.hero-3d-poster path.k1-chip')
-      const br = canvas?.getBoundingClientRect()
-      const pts = []
-      if (pathEl && br && pathEl.ownerSVGElement) {
-        const svgP = pathEl.ownerSVGElement.createSVGPoint()
-        const ctm = pathEl.getScreenCTM()
-        const d = pathEl.getAttribute('d') || ''
-        const parts = d.match(/[MmLl][^MmLlZz]*|[Zz]/g) || []
-        for (const part of parts) {
-          if (part[0] === 'Z' || part[0] === 'z') continue
-          const nums = part
-            .slice(1)
-            .trim()
-            .split(/[\s,]+/)
-            .filter(Boolean)
-            .map(Number)
-          for (let i = 0; i + 1 < nums.length; i += 2) {
-            svgP.x = nums[i]
-            svgP.y = nums[i + 1]
-            const s = ctm ? svgP.matrixTransform(ctm) : svgP
-            pts.push({ x: s.x - br.left, y: s.y - br.top })
-          }
-        }
-      }
+      const svg = pathEl?.ownerSVGElement
+      const vb = svg?.viewBox?.baseVal
       return {
         surface: css.getPropertyValue('--color-surface').trim(),
         ink: css.getPropertyValue('--color-ink').trim() || css.getPropertyValue('--color-foreground').trim(),
-        chipCss: pts,
-        cssW: br?.width ?? 1,
-        cssH: br?.height ?? 1,
+        chipD: pathEl?.getAttribute('d') || '',
+        viewW: vb?.width || 320,
+        viewH: vb?.height || 240,
       }
     })
 
@@ -144,11 +122,11 @@ async function main() {
       parseCssColor(tokens.ink),
       1,
     )
-    const chip = chipSeeThroughCss(
+    const chip = chipSeeThroughFromPath(
       Buffer.from(livePng),
-      tokens.chipCss,
-      tokens.cssW,
-      tokens.cssH,
+      tokens.chipD,
+      tokens.viewW,
+      tokens.viewH,
       parseCssColor(tokens.surface),
       2,
     )

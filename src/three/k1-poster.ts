@@ -186,6 +186,46 @@ function hullPath(
   return `${hull.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join('')}Z`
 }
 
+function topFacePath(
+  geo: BufferGeometry,
+  u: { x: number; y: number; z: number; w: number },
+  cam: Camera,
+  w: number,
+  h: number,
+  want: (layer: number) => boolean,
+) {
+  const { pos, layer, count } = attrArrays(geo)
+  let maxY = -Infinity
+  for (let i = 0; i < count; i += 1) {
+    const la = layer ? layer[i] : 0
+    if (!want(la)) continue
+    maxY = Math.max(maxY, pos[i * 3 + 1])
+  }
+  const v = new Vector3()
+  const pts: Pt[] = []
+  for (let i = 0; i < count; i += 1) {
+    const la = layer ? layer[i] : 0
+    if (!want(la)) continue
+    if (pos[i * 3 + 1] < maxY - 1e-4) continue
+    const oy = layerOffset(la, u)
+    if (oy === null) continue
+    const p = project(cam, pos[i * 3], pos[i * 3 + 1] + oy, pos[i * 3 + 2], w, h, v)
+    pts.push({ x: r(p.x), y: r(p.y) })
+  }
+  const hull = convexHull(pts)
+  if (hull.length < 3) return ''
+  const cx = hull.reduce((s, p) => s + p.x, 0) / hull.length
+  const cy = hull.reduce((s, p) => s + p.y, 0) / hull.length
+  const inset = hull.map((p) => {
+    const dx = p.x - cx
+    const dy = p.y - cy
+    const len = Math.hypot(dx, dy) || 1
+    const t = Math.max(0, 1 - 1.6 / len)
+    return { x: r(cx + dx * t), y: r(cy + dy * t) }
+  })
+  return `${inset.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join('')}Z`
+}
+
 function classFromLayer(layer: string) {
   if (layer === 'accent') return 'k1-accent'
   if (layer === 'sub') return 'k1-sub'
@@ -214,6 +254,7 @@ export function svgFromK1Scene(scene: K1Scene, w = POSTER_W, h = POSTER_H) {
   const acc = linePaths(accent, u, cam, w, h, (l) => l >= 0)
   const fill2 = fillPaths(fill, u, cam, w, h, (l) => l >= 1.5 && l < 2.5)
   const fill3 = fillPaths(fill, u, cam, w, h, (l) => l >= 2.5)
+  const chipTop = topFacePath(fill, u, cam, w, h, (l) => l >= 2.5)
   const subPath = sub ? hullPath(sub, u, cam, w, h) : ''
 
   return [
@@ -221,7 +262,8 @@ export function svgFromK1Scene(scene: K1Scene, w = POSTER_W, h = POSTER_H) {
     `<style>.hero-3d-poster .k1-ink{stroke:var(--color-ink);stroke-opacity:.55;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linejoin:round;fill:none}html[data-theme=dark] .hero-3d-poster .k1-ink{stroke-opacity:.7}.hero-3d-poster .k1-accent{stroke:var(--color-accent);stroke-opacity:1;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;fill:none}.hero-3d-poster .k1-fill{fill:var(--color-surface);stroke:none}.hero-3d-poster .k1-sub{fill:var(--color-surface);fill-opacity:.18;stroke:none}@media (min-resolution:1.25dppx){.k1-ink,.k1-accent{stroke-width:.8}}@media (min-width:900px) and (min-resolution:1.5dppx){.k1-ink,.k1-accent{stroke-width:.667}}</style>`,
     subPath ? `<path class="${subClass}" d="${subPath}"/>` : '',
     fill2 ? `<path class="${fillClass}" d="${fill2}"/>` : '',
-    fill3 ? `<path class="${fillClass} k1-chip" d="${fill3}"/>` : '',
+    fill3 ? `<path class="${fillClass}" d="${fill3}"/>` : '',
+    chipTop ? `<path class="${fillClass} k1-chip" d="${chipTop}"/>` : '',
     ink0 ? `<path class="${inkClass}" vector-effect="non-scaling-stroke" d="${ink0}"/>` : '',
     ink1 ? `<path class="${inkClass}" vector-effect="non-scaling-stroke" d="${ink1}"/>` : '',
     ink2 ? `<path class="${inkClass}" vector-effect="non-scaling-stroke" d="${ink2}"/>` : '',
