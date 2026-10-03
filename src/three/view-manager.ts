@@ -74,9 +74,9 @@ function isDark() {
   return document.documentElement.getAttribute('data-theme') === 'dark'
 }
 
-function dprCap(lite: boolean) {
-  const wide = window.innerWidth >= 1440
-  return Math.min(window.devicePixelRatio || 1, lite ? 1.5 : wide ? 2 : 1.5)
+function dprCap(_lite: boolean) {
+  const dpr = Math.max(1, Math.round(window.devicePixelRatio || 1))
+  return Math.min(dpr, 2)
 }
 
 function sizeCanvas() {

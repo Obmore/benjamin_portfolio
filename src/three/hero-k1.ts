@@ -39,7 +39,6 @@ import {
   POSTER_W,
   poseYs,
   TOP_Y,
-  topFaceEdges,
   topTraces,
   traceEnds,
   vias,
@@ -98,7 +97,7 @@ function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t
 }
 
-function bindLayer(mat: LayerShaderMat, uLayerY: { value: Vector4 }) {
+function bindLayer(mat: LayerShaderMat, uLayerY: { value: Vector4 }, key: string) {
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uLayerY = uLayerY
     shader.vertexShader = shader.vertexShader
@@ -111,7 +110,7 @@ function bindLayer(mat: LayerShaderMat, uLayerY: { value: Vector4 }) {
         ].join('\n'),
       )
   }
-  mat.customProgramCacheKey = () => 'k1y'
+  mat.customProgramCacheKey = () => key
 }
 
 function placeCam(cam: OrthographicCamera, elev: number, azim: number) {
@@ -129,7 +128,7 @@ function placeCam(cam: OrthographicCamera, elev: number, azim: number) {
 
 function nodeY(node: PathNode, ys: ReturnType<typeof poseYs>) {
   if (node.layer === 'bot') return ys.bot + BOT_Y
-  if (node.layer === 'chip') return ys.chip + CHIP_Y
+  if (node.layer === 'chip') return ys.top + CHIP_Y
   return ys.top + TOP_Y
 }
 
@@ -268,10 +267,8 @@ export async function createK1Scene(
     polygonOffsetFactor: -2,
     polygonOffsetUnits: -2,
   })
-  bindLayer(fill, uLayerY)
-  bindLayer(subMat, uLayerY)
-  bindLayer(ink, uLayerY)
-  bindLayer(accent, uLayerY)
+  bindLayer(ink, uLayerY, 'k1y-ink')
+  bindLayer(accent, uLayerY, 'k1y-accent')
 
   const root = new Group()
   const carrier = new Group()
@@ -284,7 +281,7 @@ export async function createK1Scene(
   const fillGeos = [
     taggedBox(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z, LY.top),
     ...passives.map((p) => taggedBox(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z, LY.top)),
-    taggedBox(CHIP, 0.1, CHIP, 0, CHIP_Y, 0, LY.chip),
+    taggedBox(CHIP, 0.1, CHIP, 0, CHIP_Y, 0, LY.top),
   ]
   await pause()
   const fillMesh = new Mesh(mergeMesh(fillGeos), fill)
@@ -305,7 +302,6 @@ export async function createK1Scene(
   for (const p of passives) {
     addEdges(inkBuf, boxEdges(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z), LY.top)
   }
-  addEdges(inkBuf, topFaceEdges(CHIP, 0.1, CHIP, 0, CHIP_Y + 0.006, 0), LY.chip)
   await pause()
   const inkLines = new LineSegments(lineGeometry(inkBuf), ink)
   inkLines.frustumCulled = false
@@ -392,6 +388,8 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   placeCam(scene.camera, CAM_ELEV, CAM_AZIM)
   const ys = poseYs(p)
   scene.uLayerY.value.set(ys.bot, ys.sub, ys.top, ys.chip)
+  scene.fill.position.y = ys.top
+  if (scene.subMesh) scene.subMesh.position.y = ys.sub
 
   if (scene.subMesh) {
     scene.mats.sub.opacity = 0.92 - 0.74 * ys.explode

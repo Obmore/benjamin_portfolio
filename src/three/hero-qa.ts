@@ -87,16 +87,18 @@ declare global {
 
 const TOP_Y = 0.07 / 2 + 0.004
 const BOT_Y = -0.07 / 2 - 0.004
-const CHIP_HALF = 0.23
-const CHIP_TOP = 0.135
+const CHIP_HALF = 0.14
+const CHIP_Y = 0.085
+const CHIP_HH = 0.05
 
 function worldY(k1: K1Scene, layer: 'top' | 'bot') {
   const v = k1.uLayerY.value
   return layer === 'bot' ? v.x + BOT_Y : v.z + TOP_Y
 }
 
-function chipTopY(k1: K1Scene) {
-  return k1.uLayerY.value.w + CHIP_TOP
+function chipPinY(k1: K1Scene, id: string) {
+  const top = /[024]$/.test(id)
+  return k1.uLayerY.value.z + CHIP_Y + (top ? CHIP_HH : -CHIP_HH)
 }
 
 function mapPt(cam: Cam3, v: Vec3, width: number, height: number) {
@@ -124,26 +126,26 @@ export function attachHeroQa(host: HeroQaHost) {
   const root = host.getRoot()
   const fill = root?.children.find((c) => c.userData.layer === 'fill') ?? root
 
-  const makeAnchor = (id: string, x: number, y: number, z: number) => {
+  const makeAnchor = (id: string, x: number, y: number, z: number, parent: Obj3 | null | undefined = fill) => {
     const mesh = new host.Mesh(geo, mat)
     mesh.frustumCulled = false
     mesh.visible = false
     mesh.userData.anchorId = id
     mesh.position.set(x, y, z)
-    fill?.add(mesh)
+    parent?.add(mesh)
     return mesh
   }
 
   if (k1 && fill) {
     for (const rec of k1.endPairs) {
-      endMeshes.push(makeAnchor(rec.id, rec.x, worldY(k1, rec.layer), rec.z))
+      endMeshes.push(makeAnchor(rec.id, rec.x, worldY(k1, rec.layer), rec.z, root))
     }
     for (const anc of k1.anchors) {
       if (anc.kind !== 'pin' || anc.layer !== 'top') continue
       const alongX = Math.abs(anc.x) >= Math.abs(anc.z)
       const x = alongX ? Math.sign(anc.x) * CHIP_HALF : anc.x
       const z = alongX ? anc.z : Math.sign(anc.z) * CHIP_HALF
-      pinMeshes.push(makeAnchor(anc.id, x, chipTopY(k1), z))
+      pinMeshes.push(makeAnchor(anc.id, x, chipPinY(k1, anc.id), z, root))
     }
   }
 
@@ -165,7 +167,27 @@ export function attachHeroQa(host: HeroQaHost) {
     }
     for (const mesh of pinMeshes) {
       if (endMeshes.includes(mesh)) continue
-      mesh.position.y = chipTopY(scene)
+      const id = mesh.userData.anchorId
+      mesh.position.y = typeof id === 'string' ? chipPinY(scene, id) : chipPinY(scene, '')
+    }
+    const fillPos = scene.fill.geometry?.getAttribute?.('position')
+    if (fillPos) {
+      const arr = fillPos.array as ArrayLike<number>
+      const corners: { x: number; y: number; z: number }[] = []
+      for (let i = 0; i < fillPos.count; i++) {
+        const x = arr[i * 3]
+        const y = arr[i * 3 + 1]
+        const z = arr[i * 3 + 2]
+        if (Math.abs(x) > 0.26 || Math.abs(z) > 0.26) continue
+        if (corners.some((c) => Math.abs(c.x - x) + Math.abs(c.y - y) + Math.abs(c.z - z) < 1e-3)) continue
+        corners.push({ x, y, z })
+      }
+      for (let i = 0; i < pinMeshes.length; i++) {
+        const c = corners[i % Math.max(1, corners.length)]
+        if (!c) continue
+        const fy = scene.fill.position.y
+        pinMeshes[i].position.set(c.x, c.y + fy, c.z)
+      }
     }
     const box = host.getBox()
     if (!cam || !box) return
