@@ -1,18 +1,12 @@
-import type { MouseEvent } from 'react'
+import { lazy, Suspense, useEffect, useState, type MouseEvent } from 'react'
 import { Navbar } from '@/components/layout/Navbar'
-import { Footer } from '@/components/layout/Footer'
 import { SeoHead } from '@/components/SeoHead'
-import { GridBackground } from '@/components/visuals/GridBackground'
 import { Hero } from '@/components/sections/Hero'
-import { About } from '@/components/sections/About'
-import { Experience } from '@/components/sections/Experience'
-import { Skills } from '@/components/sections/Skills'
-import { Projects } from '@/components/sections/Projects'
-import { CvDownload } from '@/components/sections/CvDownload'
-import { Contact } from '@/components/sections/Contact'
 import { I18nProvider, useI18n } from '@/context/I18nContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { useInitialHash } from '@/hooks/useInitialHash'
+
+const AppRest = lazy(() => import('./AppRest'))
 
 function SkipLink() {
   const { content } = useI18n()
@@ -31,25 +25,48 @@ function SkipLink() {
   )
 }
 
+function yieldMain(): Promise<void> {
+  const sched = (globalThis as unknown as { scheduler?: { yield?: () => Promise<void> } }).scheduler
+  if (typeof sched?.yield === 'function') return sched.yield()
+  return new Promise((resolve) => {
+    setTimeout(resolve, 0)
+  })
+}
+
 function AppShell() {
   useInitialHash()
+  const [rest, setRest] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    const start = () => {
+      if (!cancelled) setRest(true)
+    }
+    if (window.location.hash) {
+      start()
+      return () => {
+        cancelled = true
+      }
+    }
+    void yieldMain().then(start)
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <>
       <SeoHead />
       <SkipLink />
-      <GridBackground />
       <Navbar />
       <main id="main" tabIndex={-1} className="outline-none">
         <Hero />
-        <Projects />
-        <About />
-        <Experience />
-        <Skills />
-        <CvDownload />
-        <Contact />
+        {rest ? (
+          <Suspense fallback={null}>
+            <AppRest />
+          </Suspense>
+        ) : null}
       </main>
-      <Footer />
     </>
   )
 }

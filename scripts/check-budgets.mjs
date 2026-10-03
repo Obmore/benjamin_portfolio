@@ -118,6 +118,11 @@ function isLazy3dJs(file) {
   return /^(three|gsap)(-|$)/.test(base)
 }
 
+function isDeferredEntry(file) {
+  const base = path.basename(file)
+  return /^(after-lcp|three|gsap|below-fold|AppRest|hero3d)(-|$)/.test(base)
+}
+
 function chunkKind(file) {
   const base = path.basename(file)
   if (base.startsWith('three-hero-')) return 'hero'
@@ -241,6 +246,10 @@ if (![...order.preloadFonts].some((file) => file.endsWith('dm-sans-400.woff2')))
 
 for (const file of main.entryJs) {
   const text = fs.readFileSync(file, 'utf8')
+  if (isDeferredEntry(file)) {
+    console.error(`\nCritical entry preloads deferred chunk: ${path.relative(dist, file)}`)
+    failed = true
+  }
   if (text.includes('WebGLRenderer') || /from["']three["']/.test(text) || /from["']three\//.test(text)) {
     console.error(`\nEntry chunk contains three: ${path.relative(dist, file)}`)
     failed = true

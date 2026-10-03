@@ -11,6 +11,7 @@
     "deploy": "npm run build && gh-pages -d dist",
     "bake:poster": "node scripts/bake-hero-poster.mjs",
     "check:size": "node scripts/check-budgets.mjs",
+    "check:coverage": "node scripts/check-hero-coverage.mjs",
     "measure:longtasks": "node scripts/measure-hero-longtasks.mjs",
     "check:motion": "node scripts/check-motion.mjs",
     "check:cv": "node scripts/check-cv-size.mjs",

@@ -1,4 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import path from 'node:path'
+import { parseCssColor, twoWayFillCoverage } from '../scripts/k1-coverage-lib.mjs'
 
 async function gotoHome(page: Page, query = '') {
   const response = await page.goto(`/${query}`, { waitUntil: 'domcontentloaded' })
@@ -197,7 +200,7 @@ test.describe('hero 3D K1', () => {
         }),
       )
       expect(at100?.progress).toBeCloseTo(1, 5)
-      expect(at100?.layers).toBe(3)
+      expect(at100?.layers).toBe(vp.w >= 1440 ? 4 : 3)
       for (const end of at100?.ends ?? []) {
         expect(end.id.length).toBeGreaterThan(0)
         expect(end.targetId).toBe(end.id)
@@ -561,4 +564,100 @@ test.describe('hero 3D K1', () => {
     expect(Math.abs(qa! / rm! - 1), `qa3d LCP ${qa} vs RM ${rm}`).toBeLessThanOrEqual(0.1)
     expect(Math.abs(live! / rm! - 1), `default LCP ${live} vs RM ${rm}`).toBeLessThanOrEqual(0.1)
   })
+
+  for (const cfg of [
+    { w: 390, h: 844, dsf: 2, theme: 'light' as const },
+    { w: 390, h: 844, dsf: 2, theme: 'dark' as const },
+    { w: 1440, h: 900, dsf: 1, theme: 'light' as const },
+    { w: 1440, h: 900, dsf: 1, theme: 'dark' as const },
+  ]) {
+    test(`p100 vs poster two-way fill coverage ${cfg.w}@${cfg.dsf}x ${cfg.theme}`, async ({
+      browser,
+    }) => {
+      const context = await browser.newContext({
+        viewport: { width: cfg.w, height: cfg.h },
+        deviceScaleFactor: cfg.dsf,
+        colorScheme: cfg.theme === 'dark' ? 'dark' : 'light',
+      })
+      const page = await context.newPage()
+      await page.addInitScript((theme) => {
+        try {
+          localStorage.setItem('theme', theme)
+          sessionStorage.removeItem('ob-3d-off')
+        } catch {
+          /* ignore */
+        }
+      }, cfg.theme)
+      await gotoHome(page, '?qa3d=1')
+      await waitHero3d(page)
+      await page.evaluate((theme) => {
+        document.documentElement.dataset.theme = theme
+        document.documentElement.style.colorScheme = theme
+      }, cfg.theme)
+      await page.evaluate(() => {
+        const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
+        hook?.seek?.(1)
+      })
+      await page.waitForTimeout(80)
+
+      const tokens = await page.evaluate(() => {
+        const css = getComputedStyle(document.documentElement)
+        return {
+          surface: css.getPropertyValue('--color-surface').trim(),
+          ink: css.getPropertyValue('--color-ink').trim() || css.getPropertyValue('--color-foreground').trim(),
+        }
+      })
+
+      const show = async (live: boolean) => {
+        await page.evaluate((on) => {
+          const box = document.querySelector('.hero-3d')
+          const canvas = box?.querySelector('canvas') as HTMLCanvasElement | null
+          const host = box?.querySelector('.hero-3d-poster-host') as HTMLElement | null
+          if (canvas) {
+            canvas.style.opacity = on ? '1' : '0'
+            canvas.style.visibility = on ? 'visible' : 'hidden'
+            canvas.style.transitionDuration = '0ms'
+          }
+          if (host) {
+            host.style.opacity = on ? '0' : '1'
+            host.style.visibility = on ? 'hidden' : 'visible'
+            host.style.transitionDuration = '0ms'
+          }
+        }, live)
+        await page.waitForTimeout(40)
+      }
+
+      await show(true)
+      const livePng = await page.locator('.hero-3d canvas').screenshot({
+        animations: 'disabled',
+        omitBackground: true,
+      })
+      await show(false)
+      const posterPng = await page.locator('.hero-3d-poster').screenshot({
+        animations: 'disabled',
+        omitBackground: true,
+      })
+
+      const outDir = path.join(process.cwd(), 'test-results', 'hero-k1-coverage')
+      mkdirSync(outDir, { recursive: true })
+      const stem = `p100_vs_poster_${cfg.w}_${cfg.theme}`
+      writeFileSync(path.join(outDir, `${stem}_live.png`), livePng)
+      writeFileSync(path.join(outDir, `${stem}_poster.png`), posterPng)
+
+      const cov = twoWayFillCoverage(
+        Buffer.from(livePng),
+        Buffer.from(posterPng),
+        parseCssColor(tokens.surface),
+        parseCssColor(tokens.ink),
+        1,
+      )
+      console.log('K1_COVERAGE', `${cfg.w}@${cfg.dsf}x`, cfg.theme, JSON.stringify(cov))
+      expect(cov.aFill, JSON.stringify(cov)).toBeGreaterThan(20)
+      expect(cov.bFill, JSON.stringify(cov)).toBeGreaterThan(20)
+      expect(cov.aInB, `live-in-poster ${JSON.stringify(cov)}`).toBeGreaterThanOrEqual(0.99)
+      expect(cov.bInA, `poster-in-live ${JSON.stringify(cov)}`).toBeGreaterThanOrEqual(0.99)
+      expect(cov.inkInside, `traces in fill ${JSON.stringify(cov)}`).toBe(0)
+      await context.close()
+    })
+  }
 })

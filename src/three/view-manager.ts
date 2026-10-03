@@ -70,7 +70,6 @@ let scrollBound = false
 let swapped = false
 let swapTimer = 0
 let disposing = false
-const endShift: { dx: number; dy: number }[] = []
 
 function aborted(my: number) {
   return my !== gen
@@ -126,7 +125,7 @@ function bindQa() {
   if (!qa || !boxEl) return
   const next = {
     tier: boxEl.dataset.hero3dTier || (k1?.lite ? 'lite' : 'full'),
-    layers: 3,
+    layers: k1 && hero ? hero.measureK1Layers(k1) : 0,
     info: snapshotInfo(),
     rafCount,
     progress,
@@ -152,8 +151,10 @@ function bindQa() {
       disposeHero()
     },
     qaShiftEnd(index: number, dx: number, dy: number) {
-      const cur = endShift[index] ?? { dx: 0, dy: 0 }
-      endShift[index] = { dx: cur.dx + dx, dy: cur.dy + dy }
+      const rec = k1?.endPairs[index]
+      if (!rec) return
+      rec.px = (rec.px ?? 0) + dx
+      rec.py = (rec.py ?? 0) + dy
     },
   } as Hero3dQa
   Object.defineProperty(hook, 'ends', {
@@ -161,12 +162,7 @@ function bindQa() {
     configurable: true,
     get() {
       if (!k1 || !boxEl || !hero) return []
-      const rows = hero.projectEnds(k1, boxEl.clientWidth, boxEl.clientHeight)
-      return rows.map((row, i) => {
-        const sh = endShift[i]
-        if (!sh) return row
-        return { ...row, x: row.x + sh.dx, y: row.y + sh.dy }
-      })
+      return hero.projectEnds(k1, boxEl.clientWidth, boxEl.clientHeight)
     },
   })
   window.__hero3d = hook
@@ -559,7 +555,6 @@ async function bootScene() {
   probeLeft = PROBE_FRAMES
   rafCount = 0
   last = 0
-  endShift.length = 0
   swapped = false
   paint()
   startPosterSwap()

@@ -99,7 +99,14 @@ export default defineConfig({
     },
   },
   build: {
-    modulePreload: false,
+    modulePreload: {
+      resolveDependencies(_filename, deps) {
+        return deps.filter((dep) => {
+          const base = dep.split(/[?#]/)[0].split(/[\\/]/).pop() ?? dep
+          return !/^(after-lcp|three|gsap|below-fold|AppRest|hero3d)/.test(base)
+        })
+      },
+    },
     rollupOptions: {
       input: {
         main: path.resolve(root, 'index.html'),
@@ -108,6 +115,19 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           const n = id.replaceAll('\\', '/')
+          if (
+            n.includes('/src/AppRest') ||
+            n.includes('/src/components/sections/About') ||
+            n.includes('/src/components/sections/Contact') ||
+            n.includes('/src/components/sections/CvDownload') ||
+            n.includes('/src/components/sections/Experience') ||
+            n.includes('/src/components/sections/Projects') ||
+            n.includes('/src/components/sections/Skills') ||
+            n.includes('/src/components/layout/Footer') ||
+            n.includes('/src/components/visuals/GridBackground')
+          ) {
+            return 'below-fold'
+          }
           if (n.includes('/src/lib/after-lcp')) return 'after-lcp'
           if (n.includes('node_modules/three') || n.includes('/src/three/three-core')) return 'three'
           if (n.includes('node_modules/gsap')) return 'gsap'

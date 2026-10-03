@@ -16,8 +16,8 @@ mkdirSync(outDir, { recursive: true })
 
 const BASE = 'http://127.0.0.1:4173'
 const VPS = [
-  { w: 1440, h: 900, name: '1440' },
-  { w: 390, h: 844, name: '390' },
+  { w: 1440, h: 900, name: '1440', dsf: 1 },
+  { w: 390, h: 844, name: '390', dsf: 2 },
 ]
 const THEMES = ['light', 'dark']
 const THRESH = 12
@@ -153,7 +153,7 @@ async function main() {
     for (const vp of VPS) {
       const context = await browser.newContext({
         viewport: { width: vp.w, height: vp.h },
-        deviceScaleFactor: 2,
+        deviceScaleFactor: vp.dsf,
         colorScheme: theme === 'dark' ? 'dark' : 'light',
       })
       const page = await context.newPage()
