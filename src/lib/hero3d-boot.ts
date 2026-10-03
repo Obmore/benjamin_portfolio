@@ -1,4 +1,4 @@
-import { afterLcp, afterIdle, importHeroView, nextFrame } from '@/lib/after-lcp'
+import { afterLcp, afterIdle, nextFrame } from '@/lib/after-lcp'
 
 type NavMem = Navigator & {
   deviceMemory?: number
@@ -140,7 +140,7 @@ export function bootHero3d(): () => void {
     }
     await nextFrame()
     if (stopped) return
-    const mod = await importHeroView()
+    const mod = await import('@/three/view-manager')
     stopView = () => mod.stopView()
     await nextFrame()
     if (stopped) {

@@ -103,7 +103,7 @@ export default defineConfig({
       resolveDependencies(_filename, deps) {
         return deps.filter((dep) => {
           const base = dep.split(/[?#]/)[0].split(/[\\/]/).pop() ?? dep
-          return !/^(after-lcp|three|gsap|below-fold|AppRest|hero3d|hero-qa)/.test(base)
+          return !/^(after-lcp|three|gsap|below-fold|AppRest|hero3d|hero-qa|view-manager)/.test(base)
         })
       },
     },
@@ -115,25 +115,17 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           const n = id.replaceAll('\\', '/')
+          // Do not force-chunk AppRest / after-lcp / section files. Rolldown then
+          // parks shared React and the Vite preload helper in those files, and
+          // the entry statically imports them — they join the LCP critical path.
           if (n.includes('/src/three/hero-qa')) return 'hero-qa'
-          if (
-            n.includes('/src/AppRest') ||
-            n.includes('/src/components/sections/About') ||
-            n.includes('/src/components/sections/Contact') ||
-            n.includes('/src/components/sections/CvDownload') ||
-            n.includes('/src/components/sections/Experience') ||
-            n.includes('/src/components/sections/Projects') ||
-            n.includes('/src/components/sections/Skills') ||
-            n.includes('/src/components/layout/Footer') ||
-            n.includes('/src/components/visuals/GridBackground')
-          ) {
-            return 'below-fold'
-          }
-          if (n.includes('/src/lib/after-lcp')) return 'after-lcp'
           if (n.includes('node_modules/three') || n.includes('/src/three/three-core')) return 'three'
           if (n.includes('node_modules/gsap')) return 'gsap'
-          if (n.includes('/src/three/view-manager')) return 'three-view'
           if (n.includes('/src/three/hero-scroll')) return 'gsap'
+          // Keep view-manager with the async hero3d-boot graph. Force-chunking it
+          // (or after-lcp) parks Vite's shared preload helper there, and the
+          // entry then statically imports that chunk before LCP.
+          if (n.includes('/src/three/view-manager')) return undefined
           if (n.includes('/src/three/')) return 'three-hero'
           return undefined
         },

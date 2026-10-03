@@ -117,18 +117,18 @@ function printRows(title, rows, unit = 'gzip') {
 
 function isLazy3dJs(file) {
   const base = path.basename(file)
-  return /^(three|gsap|hero-qa)(-|$)/.test(base)
+  return /^(three|gsap|hero-qa|view-manager)(-|$)/.test(base)
 }
 
 function isDeferredEntry(file) {
   const base = path.basename(file)
-  return /^(after-lcp|three|gsap|below-fold|AppRest|hero3d|hero-qa)(-|$)/.test(base)
+  return /^(after-lcp|three|gsap|below-fold|AppRest|hero3d|hero-qa|view-manager)(-|$)/.test(base)
 }
 
 function chunkKind(file) {
   const base = path.basename(file)
   if (base.startsWith('three-hero-')) return 'hero'
-  if (base.startsWith('three-view-')) return 'view'
+  if (base.startsWith('three-view-') || base.startsWith('view-manager-')) return 'view'
   if (base.startsWith('hero-qa-')) return 'qa'
   if (base.startsWith('three-')) return 'three'
   if (base.startsWith('gsap-')) return 'gsap'
@@ -258,6 +258,14 @@ for (const file of main.entryJs) {
   }
   if (text.includes('ScrollTrigger') || /from["']gsap["']/.test(text) || /from["']gsap\//.test(text)) {
     console.error(`\nEntry chunk contains gsap: ${path.relative(dist, file)}`)
+    failed = true
+  }
+  if (
+    /(?:from|import)["']\.\/(?:view-manager|AppRest|hero3d-boot|after-lcp|below-fold|three-|gsap-|hero-qa)/.test(
+      text,
+    )
+  ) {
+    console.error(`\nEntry chunk statically imports a deferred chunk: ${path.relative(dist, file)}`)
     failed = true
   }
   if (

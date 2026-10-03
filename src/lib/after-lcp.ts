@@ -57,7 +57,3 @@ export async function afterLcpAndIdle() {
   await nextFrame()
   await afterIdle()
 }
-
-export function importHeroView() {
-  return import('@/three/view-manager')
-}
