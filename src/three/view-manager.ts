@@ -321,7 +321,7 @@ async function attachQa() {
     getRoot: () => k1?.root ?? null,
     getCamera: () => k1?.camera ?? null,
     getK1: () => k1,
-    getBox: () => boxEl,
+    getBox: () => canvas ?? boxEl,
     snapshotInfo,
     getRafCount: () => rafCount,
     getProgress: () => progress,
