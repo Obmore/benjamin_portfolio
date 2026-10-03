@@ -172,7 +172,6 @@ export const loop: readonly PathNode[] = [
   { x: 0.55, z: PIN_TS[1], layer: 'top' },
   { x: R(1)[0], z: R(1)[1], layer: 'top' },
   { x: R(1)[0], z: R(1)[1], layer: 'chip' },
-  { x: L(1)[0], z: L(1)[1], layer: 'chip' },
 ]
 
 export function allTopPads(): Poly[] {
