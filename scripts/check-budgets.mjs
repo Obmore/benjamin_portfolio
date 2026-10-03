@@ -7,13 +7,20 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dist = path.join(root, 'dist')
 const mainHtmlPath = path.join(dist, 'index.html')
 const orderHtmlPath = path.join(dist, 'megrendeles/index.html')
+const posterPath = path.join(root, 'src/components/visuals/hero-k1-poster.svg')
 
+// Critical closure = HTML <script> + modulepreload (includes modulepreload-polyfill).
+// Compare closure to closure: main @ f7a9901 is 72_911 B gzip-9 (polyfill 428 B included).
 const MAIN_BUDGETS = {
-  entryJs: 73728,
+  entryJs: 73511,
   allJs: 160 * 1024,
   css: 9420,
   fonts: 120 * 1024,
   preloadFonts: 60 * 1024,
+  three: 140 * 1024,
+  gsap: 45 * 1024,
+  hero: 12 * 1024,
+  poster: 10 * 1024,
 }
 
 const ORDER_BUDGETS = {
@@ -108,6 +115,26 @@ function printRows(title, rows, unit = 'gzip') {
   for (const row of rows) console.log(`  ${row.file}: ${kb(row.size)} ${unit}`)
 }
 
+function isLazy3dJs(file) {
+  const base = path.basename(file)
+  return /^(three|gsap|hero-qa|view-manager)(-|$)/.test(base)
+}
+
+function isDeferredEntry(file) {
+  const base = path.basename(file)
+  return /^(after-lcp|three|gsap|below-fold|AppRest|hero3d|hero-qa|view-manager)(-|$)/.test(base)
+}
+
+function chunkKind(file) {
+  const base = path.basename(file)
+  if (base.startsWith('three-hero-')) return 'hero'
+  if (base.startsWith('three-view-') || base.startsWith('view-manager-')) return 'view'
+  if (base.startsWith('hero-qa-')) return 'qa'
+  if (base.startsWith('three-')) return 'three'
+  if (base.startsWith('gsap-')) return 'gsap'
+  return 'other'
+}
+
 if (!fs.existsSync(mainHtmlPath)) {
   console.error('dist/index.html missing. Run npm run build first.')
   process.exit(1)
@@ -133,7 +160,10 @@ const allMainJsFiles = walk(path.join(dist, 'assets'), (file) => {
   const base = path.basename(file)
   return !base.startsWith('megrendeles-')
 })
-const mainAllJsGzip = sum(allMainJsFiles, gzipSize)
+const pageJsFiles = allMainJsFiles.filter((file) => !isLazy3dJs(file))
+const lazy3dFiles = allMainJsFiles.filter(isLazy3dJs)
+const mainAllJsGzip = sum(pageJsFiles, gzipSize)
+const lazy3dGzip = sum(lazy3dFiles, gzipSize)
 
 const fontFiles = walk(path.join(dist, 'fonts'), (file) => file.endsWith('.woff2'))
 const fontsRaw = sum(fontFiles, fileSize)
@@ -166,15 +196,27 @@ if (sharedCss.length > 0) {
   )
 }
 
+const byKind = {}
+for (const row of lazy3dGzip.rows) {
+  const kind = chunkKind(row.file)
+  byKind[kind] = (byKind[kind] ?? 0) + row.size
+}
+
+const posterGzip = gzipSize(posterPath)
+
 const checks = [
-  ['Main entry JS (gzip)', mainJsGzip.total, MAIN_BUDGETS.entryJs],
-  ['Main all JS except /megrendeles/ (gzip)', mainAllJsGzip.total, MAIN_BUDGETS.allJs],
+  ['Main critical JS closure (gzip-9)', mainJsGzip.total, MAIN_BUDGETS.entryJs],
+  ['Main all JS except /megrendeles/ and 3D (gzip)', mainAllJsGzip.total, MAIN_BUDGETS.allJs],
   ['Main CSS (gzip)', mainCssGzip.total, MAIN_BUDGETS.css],
   ['Fonts total (raw)', fontsRaw.total, MAIN_BUDGETS.fonts],
   ['Main preload fonts (raw)', mainPreloadRaw.total, MAIN_BUDGETS.preloadFonts],
   ['/megrendeles/ JS (gzip)', orderJsGzip.total, ORDER_BUDGETS.js],
   ['/megrendeles/ CSS (gzip)', orderCssGzip.total, ORDER_BUDGETS.css],
   ['/megrendeles/ preload fonts (raw)', orderPreloadRaw.total, ORDER_BUDGETS.preloadFonts],
+  ['three chunk (gzip)', byKind.three ?? 0, MAIN_BUDGETS.three],
+  ['gsap chunk (gzip)', byKind.gsap ?? 0, MAIN_BUDGETS.gsap],
+  ['three-hero chunk (gzip)', byKind.hero ?? 0, MAIN_BUDGETS.hero],
+  ['poster SVG (gzip)', posterGzip, MAIN_BUDGETS.poster],
 ]
 
 console.log('\nBudget check (gzip level 9 for JS/CSS, raw bytes for fonts)\n')
@@ -189,17 +231,70 @@ for (const [label, size, budget] of checks) {
 
 console.log('')
 printRows('Main entry JS files', mainJsGzip.rows)
-printRows('Main all JS files (excluding megrendeles-*)', mainAllJsGzip.rows)
+printRows('Main page JS files (no three/gsap)', mainAllJsGzip.rows)
+printRows('3D / GSAP lazy JS files', lazy3dGzip.rows)
 printRows('Main CSS files', mainCssGzip.rows)
 printRows('Main preload fonts', mainPreloadRaw.rows, 'raw')
 printRows('/megrendeles/ JS files', orderJsGzip.rows)
 printRows('/megrendeles/ CSS files', orderCssGzip.rows)
 printRows('/megrendeles/ preload fonts', orderPreloadRaw.rows, 'raw')
 printRows('Font files', fontsRaw.rows, 'raw')
+console.log(`Poster SVG: ${path.relative(root, posterPath)}: ${kb(posterGzip)} gzip`)
 
 if (![...order.preloadFonts].some((file) => file.endsWith('dm-sans-400.woff2'))) {
   failed = true
   console.error('\n/megrendeles/ must preload dm-sans-400.woff2.')
+}
+
+for (const file of main.entryJs) {
+  const text = fs.readFileSync(file, 'utf8')
+  if (isDeferredEntry(file)) {
+    console.error(`\nCritical entry preloads deferred chunk: ${path.relative(dist, file)}`)
+    failed = true
+  }
+  if (text.includes('WebGLRenderer') || /from["']three["']/.test(text) || /from["']three\//.test(text)) {
+    console.error(`\nEntry chunk contains three: ${path.relative(dist, file)}`)
+    failed = true
+  }
+  if (text.includes('ScrollTrigger') || /from["']gsap["']/.test(text) || /from["']gsap\//.test(text)) {
+    console.error(`\nEntry chunk contains gsap: ${path.relative(dist, file)}`)
+    failed = true
+  }
+  if (
+    /(?:from|import)["']\.\/(?:view-manager|AppRest|hero3d-boot|after-lcp|below-fold|three-|gsap-|hero-qa)/.test(
+      text,
+    )
+  ) {
+    console.error(`\nEntry chunk statically imports a deferred chunk: ${path.relative(dist, file)}`)
+    failed = true
+  }
+  if (
+    text.includes('data-pose') ||
+    text.includes('preserveAspectRatio="xMidYMid meet"') ||
+    text.includes('viewBox="0 0 320 240"')
+  ) {
+    console.error(`\nEntry chunk contains poster SVG or QA pose attrs: ${path.relative(dist, file)}`)
+    failed = true
+  }
+}
+
+const srcHero = fs.readFileSync(path.join(root, 'src/components/visuals/HeroVisual.tsx'), 'utf8')
+if (srcHero.includes('hero-circuit') || srcHero.includes('hero-signal') || srcHero.includes('{ }')) {
+  console.error('\nHeroVisual still contains the old 2D circuit or braces.')
+  failed = true
+}
+
+const qaNeedles = ['qaEndWorld', 'qaShiftEnd']
+for (const file of walk(path.join(dist, 'assets'), (f) => f.endsWith('.js'))) {
+  const base = path.basename(file)
+  if (/^hero-qa(-|$)/.test(base)) continue
+  const text = fs.readFileSync(file, 'utf8')
+  for (const needle of qaNeedles) {
+    if (text.includes(needle)) {
+      console.error(`\nQA hook ${needle} leaked into ${path.relative(dist, file)}`)
+      failed = true
+    }
+  }
 }
 
 if (failed) {

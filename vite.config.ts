@@ -99,10 +99,36 @@ export default defineConfig({
     },
   },
   build: {
+    modulePreload: {
+      resolveDependencies(_filename, deps) {
+        return deps.filter((dep) => {
+          const base = dep.split(/[?#]/)[0].split(/[\\/]/).pop() ?? dep
+          return !/^(after-lcp|three|gsap|below-fold|AppRest|hero3d|hero-qa|view-manager)/.test(base)
+        })
+      },
+    },
     rollupOptions: {
       input: {
         main: path.resolve(root, 'index.html'),
         megrendeles: path.resolve(root, 'megrendeles/index.html'),
+      },
+      output: {
+        manualChunks(id) {
+          const n = id.replaceAll('\\', '/')
+          // Do not force-chunk AppRest / after-lcp / section files. Rolldown then
+          // parks shared React and the Vite preload helper in those files, and
+          // the entry statically imports them — they join the LCP critical path.
+          if (n.includes('/src/three/hero-qa')) return 'hero-qa'
+          if (n.includes('node_modules/three') || n.includes('/src/three/three-core')) return 'three'
+          if (n.includes('node_modules/gsap')) return 'gsap'
+          if (n.includes('/src/three/hero-scroll')) return 'gsap'
+          // Keep view-manager with the async hero3d-boot graph. Force-chunking it
+          // (or after-lcp) parks Vite's shared preload helper there, and the
+          // entry then statically imports that chunk before LCP.
+          if (n.includes('/src/three/view-manager')) return undefined
+          if (n.includes('/src/three/')) return 'three-hero'
+          return undefined
+        },
       },
     },
   },

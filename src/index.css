@@ -14,7 +14,6 @@
   }
 
   html.js .draw-path,
-  html.js .hero-signal,
   html.js .munkaim-dimension-line {
     stroke-dashoffset: 0 !important;
   }
@@ -127,6 +126,7 @@
   --hero-t-cell: 200ms;
   --hero-d-cell: 800ms;
   --hero-cell-stagger: 60ms;
+  --color-ink: var(--color-foreground);
 }
 
 html[data-theme="dark"] {
@@ -407,15 +407,17 @@ html.js [data-reveal][data-revealed="instant"] {
 
 .hero-figure {
   width: 100%;
-  min-aspect-ratio: 5 / 2;
   margin: 0;
   color: var(--color-accent);
   pointer-events: none;
+  overflow-x: clip;
 }
 
 .hero-figure-inner {
   box-sizing: border-box;
   display: grid;
+  grid-template-rows: auto auto;
+  gap: 12px;
   min-height: 100%;
   padding: 16px;
   overflow: clip;
@@ -423,11 +425,58 @@ html.js [data-reveal][data-revealed="instant"] {
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
 }
 
-.hero-circuit {
-  display: none;
+.hero-3d {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 320px;
+  min-height: 0;
+  overflow: clip;
+  contain: paint;
+}
+
+.hero-3d-poster-host,
+.hero-3d-poster,
+.hero-3d canvas {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  min-height: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.hero-3d-poster-host,
+.hero-3d.is-ready canvas {
+  transition-property: opacity;
+  transition-duration: 200ms;
+  transition-timing-function: linear;
+}
+
+.hero-3d-poster-host {
+  visibility: visible;
+  opacity: 1;
+}
+
+.hero-3d canvas {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.hero-3d.is-ready canvas {
+  visibility: visible;
+  opacity: 1;
+}
+
+.hero-3d.is-swapped .hero-3d-poster-host {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.hero-3d.is-back .hero-3d-poster-host {
+  z-index: 1;
+  visibility: visible;
+  opacity: 1;
 }
 
 .hero-titleblock {
@@ -463,13 +512,11 @@ html.js [data-reveal][data-revealed="instant"] {
   min-width: 0;
 }
 
-html.js .hero-signal,
 html.js .munkaim-dimension-line {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
 }
 
-html.js.is-static-motion .hero-signal,
 html.js.is-static-motion .munkaim-dimension-line {
   stroke-dashoffset: 0;
 }
@@ -780,18 +827,12 @@ html.js.is-static-motion .munkaim-dimension-line {
   }
 
   .hero-figure {
-    aspect-ratio: 16 / 5;
-    min-aspect-ratio: auto;
+    aspect-ratio: auto;
   }
 
   .hero-figure-inner {
-    grid-template-columns: 1fr 1fr;
     gap: 16px;
     align-items: stretch;
-  }
-
-  .hero-circuit {
-    display: block;
   }
 
   .munkaim-title {
@@ -855,7 +896,12 @@ html.js.is-static-motion .munkaim-dimension-line {
 
   .hero-figure-inner {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .hero-3d {
+    max-height: none;
+    align-self: start;
   }
 
   .munkaim-section {
@@ -996,10 +1042,6 @@ html.js.is-static-motion .munkaim-dimension-line {
   html.js:not(.is-static-motion) .hero-chips {
     animation: fade-up-16 var(--hero-t-entry) var(--motion-ink) both;
     animation-delay: calc(var(--hero-d-first) + var(--hero-stagger) * (1 + var(--hero-btn-count, 3)));
-  }
-
-  html.js:not(.is-static-motion) .hero-signal {
-    animation: draw-line var(--hero-t-line) var(--motion-page) var(--hero-d-line) both;
   }
 
   html.js:not(.is-static-motion) .hero-titleblock-cell {

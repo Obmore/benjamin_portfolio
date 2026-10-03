@@ -92,6 +92,7 @@ if (fs.existsSync(assetsDir)) {
   const mainJs = fs
     .readdirSync(assetsDir)
     .filter((name) => name.endsWith('.js') && !name.startsWith('megrendeles-'))
+    .filter((name) => !/^(three|gsap)(-|$)/.test(name))
     .map((name) => fs.readFileSync(path.join(assetsDir, name), 'utf8'))
     .join('\n')
   mustInclude('main js', mainJs, '/megrendeles/')
