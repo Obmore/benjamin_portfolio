@@ -87,6 +87,7 @@ declare global {
 
 const TOP_Y = 0.07 / 2 + 0.004
 const BOT_Y = -0.07 / 2 - 0.004
+const CHIP_HALF = 0.25
 
 function worldY(k1: K1Scene, layer: 'top' | 'bot') {
   const v = k1.uLayerY.value
@@ -132,15 +133,12 @@ export function attachHeroQa(host: HeroQaHost) {
     for (const rec of k1.endPairs) {
       endMeshes.push(makeAnchor(rec.id, rec.x, worldY(k1, rec.layer), rec.z))
     }
-    const seen = new Set(endMeshes.map((m) => String(m.userData.anchorId)))
     for (const anc of k1.anchors) {
       if (anc.kind !== 'pin' || anc.layer !== 'top') continue
-      if (seen.has(anc.id)) continue
-      seen.add(anc.id)
-      pinMeshes.push(makeAnchor(anc.id, anc.x, worldY(k1, 'top'), anc.z))
-    }
-    for (const mesh of endMeshes) {
-      if (String(mesh.userData.anchorId).startsWith('pin-')) pinMeshes.push(mesh)
+      const alongX = Math.abs(anc.x) >= Math.abs(anc.z)
+      const x = alongX ? Math.sign(anc.x) * CHIP_HALF : anc.x
+      const z = alongX ? anc.z : Math.sign(anc.z) * CHIP_HALF
+      pinMeshes.push(makeAnchor(anc.id, x, worldY(k1, 'top'), z))
     }
   }
 
@@ -169,7 +167,7 @@ export function attachHeroQa(host: HeroQaHost) {
     const width = Math.max(1, box.clientWidth)
     const height = Math.max(1, box.clientHeight)
     cam.updateMatrixWorld()
-    for (const mesh of [...endMeshes, ...pinMeshes]) {
+    for (const mesh of pinMeshes) {
       const s = projectMesh(mesh, cam, width, height)
       mesh.userData.sx = s.x
       mesh.userData.sy = s.y

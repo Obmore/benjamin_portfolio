@@ -57,58 +57,68 @@ function realignHash(id: string) {
   root.style.scrollBehavior = prev
 }
 
+export function syncInitialHash() {
+  const hadHash = Boolean(window.location.hash) || /#$/.test(window.location.href)
+  if (hadHash) document.documentElement.style.scrollBehavior = 'auto'
+  scrollToHashSync()
+  if (hadHash) markViewportRevealsInstant()
+  return hadHash
+}
+
+export function scheduleHashRealign() {
+  const retryTimers: number[] = []
+  const hadHash = Boolean(window.location.hash) || /#$/.test(window.location.href)
+  const raw = rawLocationHash()
+  const id = raw ? resolveAnchor(raw) : ''
+  let cancelled = false
+
+  const restoreSmooth = () => {
+    requestAnimationFrame(() => {
+      if (!cancelled) document.documentElement.style.scrollBehavior = ''
+    })
+  }
+
+  void (async () => {
+    try {
+      if (document.fonts?.ready) await document.fonts.ready
+    } catch {
+      // Ignore font loading errors; still realign to the hash.
+    }
+    if (cancelled) return
+    if (id) {
+      realignHash(id)
+      for (const ms of [50, 200, 500, 900]) {
+        retryTimers.push(
+          window.setTimeout(() => {
+            if (!cancelled) realignHash(id)
+          }, ms),
+        )
+      }
+    }
+    if (hadHash) {
+      retryTimers.push(window.setTimeout(restoreSmooth, id ? 920 : 0))
+    }
+  })()
+
+  return () => {
+    cancelled = true
+    for (const timer of retryTimers) window.clearTimeout(timer)
+  }
+}
+
 export function useInitialHash() {
   useLayoutEffect(() => {
-    const hadHash = Boolean(window.location.hash) || /#$/.test(window.location.href)
-    if (hadHash) document.documentElement.style.scrollBehavior = 'auto'
-    scrollToHashSync()
-    if (hadHash) markViewportRevealsInstant()
+    syncInitialHash()
   }, [])
 
   useEffect(() => {
-    let cancelled = false
-    const retryTimers: number[] = []
-    const hadHash = Boolean(window.location.hash) || /#$/.test(window.location.href)
-
-    const restoreSmooth = () => {
-      requestAnimationFrame(() => {
-        if (!cancelled) document.documentElement.style.scrollBehavior = ''
-      })
-    }
-
     const onHashChange = () => {
       applyHash()
     }
     window.addEventListener('hashchange', onHashChange)
-
-    const raw = rawLocationHash()
-    const id = raw ? resolveAnchor(raw) : ''
-
-    void (async () => {
-      try {
-        if (document.fonts?.ready) await document.fonts.ready
-      } catch {
-        // Ignore font loading errors; still realign to the hash.
-      }
-      if (cancelled) return
-      if (id) {
-        realignHash(id)
-        for (const ms of [50, 200, 500]) {
-          retryTimers.push(
-            window.setTimeout(() => {
-              if (!cancelled) realignHash(id)
-            }, ms),
-          )
-        }
-      }
-      if (hadHash) {
-        retryTimers.push(window.setTimeout(restoreSmooth, id ? 520 : 0))
-      }
-    })()
-
+    const stopRealign = scheduleHashRealign()
     return () => {
-      cancelled = true
-      for (const timer of retryTimers) window.clearTimeout(timer)
+      stopRealign()
       window.removeEventListener('hashchange', onHashChange)
     }
   }, [])

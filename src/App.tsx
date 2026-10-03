@@ -42,16 +42,10 @@ function AppShell() {
     }
     let po: PerformanceObserver | null = null
     let fallback = 0
-    let idle = 0
     const kick = () => {
       po?.disconnect()
       if (fallback) window.clearTimeout(fallback)
-      const ric = window.requestIdleCallback
-      if (typeof ric === 'function') {
-        idle = ric(start, { timeout: 800 }) as unknown as number
-      } else {
-        fallback = window.setTimeout(start, 800)
-      }
+      fallback = window.setTimeout(start, 500)
     }
     try {
       if (performance.getEntriesByType('largest-contentful-paint').length > 0) {
@@ -68,7 +62,6 @@ function AppShell() {
       cancelled = true
       po?.disconnect()
       if (fallback) window.clearTimeout(fallback)
-      if (idle && typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idle)
     }
   }, [])
 
