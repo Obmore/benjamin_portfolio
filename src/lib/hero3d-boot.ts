@@ -1,4 +1,12 @@
 import { afterLcp, afterIdle, nextFrame } from '@/lib/after-lcp'
+import {
+  cpuPrefersLite,
+  hasWebGL,
+  hero3dWidthTier,
+  isQa3d,
+  markCpuLite,
+  mark3dWatchdog,
+} from '@/lib/three-gate'
 
 type NavMem = Navigator & {
   deviceMemory?: number
@@ -6,14 +14,6 @@ type NavMem = Navigator & {
 }
 
 const WATCHDOG_KEY = 'ob-3d-off'
-
-function canWebGL(): boolean {
-  return typeof WebGLRenderingContext !== 'undefined'
-}
-
-function isQa3d(): boolean {
-  return new URLSearchParams(location.search).get('qa3d') === '1'
-}
 
 function mediaStatic(): boolean {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true
@@ -28,29 +28,8 @@ function mediaStatic(): boolean {
   return false
 }
 
-function widthTier(): 'lite' | 'full' {
-  if (window.matchMedia('(max-width: 1023px), (pointer: coarse)').matches) return 'lite'
-  return 'full'
-}
-
 function tripWatchdog() {
-  try {
-    sessionStorage.setItem(WATCHDOG_KEY, '1')
-  } catch {
-    /* ignore */
-  }
-}
-
-function cpuTooSlow() {
-  const t0 = performance.now()
-  let n = 0
-  let s = 0
-  while (performance.now() - t0 < 8) {
-    s = (s + n) | 0
-    n += 1
-  }
-  void s
-  return n < 4000
+  mark3dWatchdog()
 }
 
 export function bootHero3d(): () => void {
@@ -61,6 +40,11 @@ export function bootHero3d(): () => void {
   }
 
   if (!box || mediaStatic()) {
+    writeTier('static')
+    return () => {}
+  }
+
+  if (!hasWebGL()) {
     writeTier('static')
     return () => {}
   }
@@ -101,11 +85,12 @@ export function bootHero3d(): () => void {
       clearDeadline()
       return
     }
-    if (cpuTooSlow()) {
-      fireDeadline()
+    if (!hasWebGL()) {
+      writeTier('static')
       clearDeadline()
       return
     }
+    if (cpuPrefersLite()) markCpuLite()
     if (!qa) await afterIdle()
     if (stopped || mediaStatic()) {
       writeTier('static')
@@ -114,12 +99,12 @@ export function bootHero3d(): () => void {
     }
     await nextFrame()
     if (stopped) return
-    if (!canWebGL()) {
+    if (!hasWebGL()) {
       writeTier('static')
       clearDeadline()
       return
     }
-    writeTier(widthTier())
+    writeTier(hero3dWidthTier())
     const near = new Promise<void>((resolve) => {
       const io = new IntersectionObserver(
         (entries) => {
@@ -134,7 +119,7 @@ export function bootHero3d(): () => void {
     })
     await near
     if (stopped || mediaStatic()) {
-      writeTier(mediaStatic() ? 'static' : widthTier())
+      writeTier(mediaStatic() ? 'static' : hero3dWidthTier())
       if (!stopped) clearDeadline()
       return
     }
@@ -153,7 +138,7 @@ export function bootHero3d(): () => void {
       return
     }
     clearDeadline()
-    writeTier(widthTier())
+    writeTier(hero3dWidthTier())
   })()
 
   return () => {

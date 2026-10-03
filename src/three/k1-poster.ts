@@ -194,15 +194,15 @@ export function svgFromK1Scene(scene: K1Scene, w = POSTER_W, h = POSTER_H) {
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" class="hero-3d-poster" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" fill="none" aria-hidden="true" focusable="false" data-pose="100">`,
-    `<style>.hero-3d-poster .k1-ink{stroke:var(--color-ink);stroke-opacity:.55;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linejoin:round;fill:none}html[data-theme=dark] .hero-3d-poster .k1-ink{stroke-opacity:.7}.hero-3d-poster .k1-accent{stroke:var(--color-accent);stroke-opacity:1;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;fill:none}.hero-3d-poster .k1-fill{fill:var(--color-surface);stroke:none}.hero-3d-poster .k1-sub{fill:var(--color-surface);fill-opacity:.18;stroke:none}</style>`,
-    ink0 ? `<path class="k1-ink" vector-effect="non-scaling-stroke" d="${ink0}"/>` : '',
+    `<style>.hero-3d-poster .k1-ink{stroke:var(--color-ink);stroke-opacity:.55;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linejoin:round;fill:none}html[data-theme=dark] .hero-3d-poster .k1-ink{stroke-opacity:.7}.hero-3d-poster .k1-accent{stroke:var(--color-accent);stroke-opacity:1;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;fill:none}.hero-3d-poster .k1-fill{fill:var(--color-surface);stroke:none}.hero-3d-poster .k1-sub{fill:var(--color-surface);fill-opacity:.18;stroke:none}@media (min-resolution:1.25dppx){.k1-ink,.k1-accent{stroke-width:.8}}@media (min-width:900px) and (min-resolution:1.5dppx){.k1-ink,.k1-accent{stroke-width:.667}}</style>`,
+    fill2 ? `<path class="k1-fill" d="${fill2}"/>` : '',
+    fill3 ? `<path class="k1-fill k1-chip" d="${fill3}"/>` : '',
     subPath ? `<path class="k1-sub" d="${subPath}"/>` : '',
+    ink0 ? `<path class="k1-ink" vector-effect="non-scaling-stroke" d="${ink0}"/>` : '',
     ink1 ? `<path class="k1-ink" vector-effect="non-scaling-stroke" d="${ink1}"/>` : '',
     ink2 ? `<path class="k1-ink" vector-effect="non-scaling-stroke" d="${ink2}"/>` : '',
-    acc ? `<path class="k1-accent" vector-effect="non-scaling-stroke" d="${acc}"/>` : '',
-    fill2 ? `<path class="k1-fill" d="${fill2}"/>` : '',
-    fill3 ? `<path class="k1-fill" d="${fill3}"/>` : '',
     ink3 ? `<path class="k1-ink" vector-effect="non-scaling-stroke" d="${ink3}"/>` : '',
+    acc ? `<path class="k1-accent" vector-effect="non-scaling-stroke" d="${acc}"/>` : '',
     `</svg>`,
   ]
     .filter(Boolean)

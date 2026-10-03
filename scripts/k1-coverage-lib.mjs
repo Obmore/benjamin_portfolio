@@ -202,14 +202,46 @@ function pointInPoly(x, y, poly) {
 export function chipSeeThrough(liveBuf, pinPts, surfaceRgb, inkRgb, erodePx = 2) {
   const img = decodePngRgba(liveBuf)
   const hull = convexHull(pinPts)
-  if (hull.length < 3) {
-    return { seeThrough: 9999, interior: 0, pins: pinPts.length, hull: hull.length }
+  return chipSeeThroughPoly(img, hull, surfaceRgb, erodePx)
+}
+
+export function parseClosedPath(d) {
+  const pts = []
+  const parts = String(d || '').match(/[MmLl][^MmLlZz]*|[Zz]/g) || []
+  for (const part of parts) {
+    const cmd = part[0]
+    if (cmd === 'Z' || cmd === 'z') break
+    const nums = part
+      .slice(1)
+      .trim()
+      .split(/[\s,]+/)
+      .filter(Boolean)
+      .map(Number)
+    for (let i = 0; i + 1 < nums.length; i += 2) {
+      pts.push({ x: nums[i], y: nums[i + 1] })
+    }
+  }
+  return pts
+}
+
+export function chipSeeThroughFromPath(liveBuf, d, viewW, viewH, surfaceRgb, erodePx = 2) {
+  const img = decodePngRgba(liveBuf)
+  const pts = parseClosedPath(d).map((p) => ({
+    x: (p.x / viewW) * img.width,
+    y: (p.y / viewH) * img.height,
+  }))
+  return chipSeeThroughPoly(img, pts, surfaceRgb, erodePx)
+}
+
+function chipSeeThroughPoly(img, poly, surfaceRgb, erodePx) {
+  if (!poly || poly.length < 3) {
+    return { seeThrough: 9999, interior: 0, pins: 0, hull: poly?.length ?? 0 }
   }
   const mask = new Uint8Array(img.width * img.height)
   let count = 0
   for (let y = 0; y < img.height; y += 1) {
     for (let x = 0; x < img.width; x += 1) {
-      if (!pointInPoly(x + 0.5, y + 0.5, hull)) continue
+      if (!pointInPoly(x + 0.5, y + 0.5, poly)) continue
       mask[y * img.width + x] = 1
       count += 1
     }
@@ -226,7 +258,7 @@ export function chipSeeThrough(liveBuf, pinPts, surfaceRgb, inkRgb, erodePx = 2)
     }
     if (maxDelta(img.pixels, p, surfaceRgb) > 28) seeThrough += 1
   }
-  return { seeThrough, interior: interior.count, pins: pinPts.length, hull: hull.length }
+  return { seeThrough, interior: interior.count, pins: 0, hull: poly.length }
 }
 
 export function twoWayFillCoverage(aBuf, bBuf, surfaceRgb, inkRgb, radius = 1) {

@@ -7,7 +7,7 @@ import { chromium } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parseCssColor, twoWayFillCoverage, chipSeeThrough } from './k1-coverage-lib.mjs'
+import { parseCssColor, twoWayFillCoverage, chipSeeThroughFromPath } from './k1-coverage-lib.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = path.join(root, 'test-results', 'hero-k1-coverage')
@@ -66,21 +66,15 @@ async function main() {
 
     const tokens = await page.evaluate(() => {
       const css = getComputedStyle(document.documentElement)
-      const hook = window.__hero3d
-      const canvas = document.querySelector('.hero-3d canvas')
-      const pins = []
-      hook?.scene?.traverse((o) => {
-        const id = o.userData?.anchorId
-        if (typeof id === 'string' && id.startsWith('pin-') && typeof o.userData.sx === 'number') {
-          pins.push({ x: o.userData.sx, y: o.userData.sy })
-        }
-      })
+      const svg = document.querySelector('.hero-3d-poster')
+      const chip = svg?.querySelector('path.k1-chip')
+      const vb = (svg?.getAttribute('viewBox') || '0 0 320 240').trim().split(/\s+/)
       return {
         surface: css.getPropertyValue('--color-surface').trim(),
         ink: css.getPropertyValue('--color-ink').trim() || css.getPropertyValue('--color-foreground').trim(),
-        pins,
-        cssW: canvas?.clientWidth ?? 1,
-        cssH: canvas?.clientHeight ?? 1,
+        chipD: chip?.getAttribute('d') || '',
+        viewW: Number(vb[2]) || 320,
+        viewH: Number(vb[3]) || 240,
       }
     })
 
@@ -125,15 +119,12 @@ async function main() {
       parseCssColor(tokens.ink),
       1,
     )
-    const pinPx = tokens.pins.map((p) => ({
-      x: (p.x / tokens.cssW) * cov.width,
-      y: (p.y / tokens.cssH) * cov.height,
-    }))
-    const chip = chipSeeThrough(
+    const chip = chipSeeThroughFromPath(
       Buffer.from(livePng),
-      pinPx,
+      tokens.chipD,
+      tokens.viewW,
+      tokens.viewH,
       parseCssColor(tokens.surface),
-      parseCssColor(tokens.ink),
       2,
     )
     const ok = cov.aInB >= 0.99 && cov.bInA >= 0.99 && chip.seeThrough <= 4

@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { SECTION_SHEETS } from '@/lib/constants'
+import { whenLcp } from '@/lib/lcp'
 import { HeroK1Poster } from './HeroK1Poster'
 
 const DRAWING_SUBJECT = {
@@ -24,12 +25,10 @@ export function HeroVisual() {
     let stop = () => {}
     let cancelled = false
     let started = false
-    let po: PerformanceObserver | null = null
     let fallback = 0
     const start = () => {
       if (cancelled || started) return
       started = true
-      po?.disconnect()
       if (fallback) window.clearTimeout(fallback)
       const boot = () => {
         if (cancelled) return
@@ -44,20 +43,9 @@ export function HeroVisual() {
       }
       fallback = window.setTimeout(boot, 500)
     }
-    try {
-      if (performance.getEntriesByType('largest-contentful-paint').length > 0) {
-        start()
-      } else {
-        po = new PerformanceObserver(() => start())
-        po.observe({ type: 'largest-contentful-paint', buffered: true })
-        fallback = window.setTimeout(start, 4000)
-      }
-    } catch {
-      start()
-    }
+    void whenLcp().then(start)
     return () => {
       cancelled = true
-      po?.disconnect()
       if (fallback) window.clearTimeout(fallback)
       stop()
     }

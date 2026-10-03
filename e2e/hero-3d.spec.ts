@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { parseCssColor, twoWayFillCoverage, chipSeeThrough } from '../scripts/k1-coverage-lib.mjs'
+import { parseCssColor, twoWayFillCoverage, chipSeeThroughFromPath } from '../scripts/k1-coverage-lib.mjs'
 
 async function gotoHome(page: Page, query = '') {
   const response = await page.goto(`/${query}`, { waitUntil: 'domcontentloaded' })
@@ -29,6 +29,8 @@ type Hero3dHook = {
   ends: HeroEnd[]
   progress: number
   layers: number
+  dpr: number
+  pixelRatio: number
   tier: string
   info: { calls: number; memory: { geometries: number; textures: number } }
 }
@@ -235,6 +237,10 @@ test.describe('hero 3D K1', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await gotoHome(page, '?qa3d=1')
     await waitHero3d(page)
+    const beforePng = await page.locator('.hero-3d canvas').screenshot({
+      animations: 'disabled',
+      omitBackground: true,
+    })
     const probe = await page.evaluate(() => {
       const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
       if (!hook?.qaShiftEnd || !hook.qaEndWorld) return null
@@ -253,6 +259,10 @@ test.describe('hero 3D K1', () => {
         restOk: rest.every((e) => Math.abs(e.x - e.ax) <= 1 && Math.abs(e.y - e.ay) <= 1),
       }
     })
+    const afterPng = await page.locator('.hero-3d canvas').screenshot({
+      animations: 'disabled',
+      omitBackground: true,
+    })
     expect(probe?.before).toBeTruthy()
     expect(probe?.world0).toEqual(expect.objectContaining({ x: expect.any(Number), y: expect.any(Number), z: expect.any(Number) }))
     expect(Math.abs((probe?.before.x ?? 0) - (probe?.before.ax ?? 0))).toBeLessThanOrEqual(1)
@@ -260,6 +270,12 @@ test.describe('hero 3D K1', () => {
     expect(Math.abs((probe?.after.x ?? 0) - (probe?.before.x ?? 0) - 2)).toBeLessThanOrEqual(0.5)
     expect(Math.abs((probe?.after.y ?? 0) - (probe?.before.y ?? 0))).toBeLessThanOrEqual(0.5)
     expect(probe?.restOk).toBe(true)
+    expect(
+      Math.abs((probe?.world1?.x ?? 0) - (probe?.world0?.x ?? 0)) +
+        Math.abs((probe?.world1?.y ?? 0) - (probe?.world0?.y ?? 0)) +
+        Math.abs((probe?.world1?.z ?? 0) - (probe?.world0?.z ?? 0)),
+    ).toBeGreaterThan(0)
+    expect(Buffer.compare(beforePng, afterPng), 'canvas pixels must change after qaShiftEnd').not.toBe(0)
   })
 
   test('poster data-pose is a literal on the cloned SVG', async ({ page }) => {
@@ -403,7 +419,6 @@ test.describe('hero 3D K1', () => {
     expect(probe?.op).toBe('1')
     expect(probe?.hostVis).toBe('visible')
     expect(probe?.hostOp).toBe('1')
-    expect(probe?.canvas === false || probe?.canvasVis === 'hidden').toBeTruthy()
     expect(probe?.flag).toBe('1')
     await page.waitForFunction(() => !document.querySelector('.hero-3d canvas'), null, { timeout: 2000 })
     await expect(page.locator('.hero-3d-poster')).toBeVisible()
@@ -433,6 +448,197 @@ test.describe('hero 3D K1', () => {
     await expect(poster).toBeVisible()
     await expect(poster).toHaveAttribute('data-pose', '100')
     await expect(page.locator('.hero-3d canvas')).toHaveCount(0)
+  })
+
+  test('qa3d hook exposes renderer pixelRatio', async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 2,
+    })
+    const page = await context.newPage()
+    await gotoHome(page, '?qa3d=1')
+    await waitHero3d(page)
+    const probe = await page.evaluate(() => {
+      const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
+      const canvas = document.querySelector('.hero-3d canvas') as HTMLCanvasElement | null
+      const box = document.querySelector('.hero-3d') as HTMLElement | null
+      return {
+        pixelRatio: hook?.pixelRatio,
+        dpr: hook?.dpr,
+        backing: canvas && box ? canvas.width / Math.max(1, box.clientWidth) : null,
+        tier: hook?.tier,
+      }
+    })
+    expect(probe?.tier).toBe('lite')
+    expect(probe?.pixelRatio).toBeCloseTo(1.25, 5)
+    expect(probe?.dpr).toBeCloseTo(1.25, 5)
+    expect(probe?.backing).toBeCloseTo(1.25, 5)
+    await context.close()
+  })
+
+  test('full tier caps pixelRatio at 1.5', async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 2,
+    })
+    const page = await context.newPage()
+    await gotoHome(page, '?qa3d=1')
+    await waitHero3d(page)
+    const probe = await page.evaluate(() => {
+      const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
+      return { pixelRatio: hook?.pixelRatio, tier: hook?.tier }
+    })
+    expect(probe?.tier).toBe('full')
+    expect(probe?.pixelRatio).toBeCloseTo(1.5, 5)
+    await context.close()
+  })
+
+  test('4x CPU is lite 10/10; 20x CPU is static 10/10', async ({ browser }) => {
+    test.setTimeout(180000)
+    const run = async (rate: number, w: number, h: number) => {
+      const context = await browser.newContext({ viewport: { width: w, height: h } })
+      const page = await context.newPage()
+      const client = await context.newCDPSession(page)
+      await client.send('Emulation.setCPUThrottlingRate', { rate })
+      await page.addInitScript(() => {
+        try {
+          sessionStorage.removeItem('ob-3d-off')
+        } catch {
+          /* ignore */
+        }
+      })
+      await gotoHome(page, '?qa3d=1')
+      if (rate >= 20) {
+        await page.waitForFunction(
+          () =>
+            sessionStorage.getItem('ob-3d-off') === '1' &&
+            document.querySelector('.hero-3d')?.getAttribute('data-hero3d-tier') === 'static',
+          null,
+          { timeout: 25000 },
+        )
+      } else {
+        await page.waitForFunction(
+          () => document.querySelector('.hero-3d')?.getAttribute('data-hero3d-tier') === 'lite',
+          null,
+          { timeout: 25000 },
+        )
+      }
+      const tier = await page.locator('.hero-3d').getAttribute('data-hero3d-tier')
+      await context.close()
+      return tier
+    }
+    const lite390: string[] = []
+    const lite1440: string[] = []
+    const statics: string[] = []
+    for (let i = 0; i < 10; i += 1) lite390.push((await run(4, 390, 844)) || '')
+    for (let i = 0; i < 10; i += 1) lite1440.push((await run(4, 1440, 900)) || '')
+    for (let i = 0; i < 10; i += 1) statics.push((await run(20, 390, 844)) || '')
+    expect(lite390, '4x 390').toEqual(Array(10).fill('lite'))
+    expect(lite1440, '4x 1440').toEqual(Array(10).fill('lite'))
+    expect(statics, '20x 390').toEqual(Array(10).fill('static'))
+  })
+
+  test('without WebGL three never loads and there is no console.error', async ({ page }) => {
+    const errors: string[] = []
+    const threeUrls: string[] = []
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') errors.push(msg.text())
+    })
+    page.on('request', (req) => {
+      const url = req.url()
+      if (/\/assets\/(three|three-hero|view-manager)[^/]*\.js$/.test(url) || /node_modules\/three/.test(url)) {
+        threeUrls.push(url)
+      }
+    })
+    await page.addInitScript(() => {
+      const orig = HTMLCanvasElement.prototype.getContext
+      HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, ...rest: unknown[]) {
+        if (String(type).toLowerCase().includes('webgl')) return null
+        return orig.call(this, type, ...rest) as RenderingContext | null
+      } as typeof HTMLCanvasElement.prototype.getContext
+    })
+    await gotoHome(page, '?qa3d=1')
+    await page.waitForTimeout(3500)
+    expect(threeUrls).toEqual([])
+    expect(errors).toEqual([])
+    await expect(page.locator('.hero-3d canvas')).toHaveCount(0)
+    await expect(page.locator('.hero-3d-poster')).toBeVisible()
+  })
+
+  test('ctxlost at 390 4x has 0 empty hero frames', async ({ page }) => {
+    test.setTimeout(45000)
+    await page.setViewportSize({ width: 390, height: 844 })
+    const client = await page.context().newCDPSession(page)
+    await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+    await gotoHome(page, '?qa3d=1')
+    await waitHero3d(page)
+    const empty = await page.evaluate(async () => {
+      const samples: { empty: boolean; canvas: boolean; poster: boolean }[] = []
+      const box = document.querySelector('.hero-3d') as HTMLElement | null
+      const read = () => {
+        const canvas = box?.querySelector('canvas') as HTMLCanvasElement | null
+        const host = box?.querySelector('.hero-3d-poster-host') as HTMLElement | null
+        const poster = box?.querySelector('.hero-3d-poster') as SVGElement | null
+        const cs = (el: Element | null) => (el ? getComputedStyle(el) : null)
+        const vis = (el: Element | null) => {
+          const s = cs(el)
+          if (!el || !s) return false
+          return s.visibility !== 'hidden' && Number(s.opacity) > 0.05
+        }
+        const canvasOn = vis(canvas)
+        const posterOn = vis(host) || vis(poster)
+        return { empty: !canvasOn && !posterOn, canvas: canvasOn, poster: posterOn }
+      }
+      let running = true
+      const tick = () => {
+        if (!running) return
+        samples.push(read())
+        requestAnimationFrame(tick)
+      }
+      requestAnimationFrame(tick)
+      await new Promise((r) => requestAnimationFrame(() => r(null)))
+      const canvas = document.querySelector('.hero-3d canvas') as HTMLCanvasElement | null
+      const gl = canvas?.getContext('webgl2') || canvas?.getContext('webgl')
+      gl?.getExtension('WEBGL_lose_context')?.loseContext()
+      canvas?.dispatchEvent(new Event('webglcontextlost', { cancelable: true }))
+      await new Promise((r) => setTimeout(r, 120))
+      running = false
+      return {
+        n: samples.length,
+        empty: samples.filter((s) => s.empty).length,
+        samples: samples.slice(0, 20),
+      }
+    })
+    expect(empty.empty, JSON.stringify(empty)).toBe(0)
+  })
+
+  test('LCP observer does not warn about getEntriesByType', async ({ page }) => {
+    const warnings: string[] = []
+    page.on('console', (msg) => {
+      if (msg.type() === 'warning' || msg.type() === 'error') warnings.push(msg.text())
+    })
+    await gotoHome(page, '?qa3d=1')
+    await page.waitForTimeout(1500)
+    expect(warnings.filter((w) => /getEntriesByType|largest-contentful-paint|deprecated/i.test(w))).toEqual([])
+  })
+
+  test('baked poster has exact DPR stroke media queries and no text nodes', async ({ page }) => {
+    await gotoHome(page)
+    const probe = await page.evaluate(() => {
+      const svg = document.querySelector('.hero-3d-poster')
+      const style = svg?.querySelector('style')?.textContent || ''
+      return {
+        style,
+        text: svg?.querySelectorAll('text, tspan, foreignObject').length ?? -1,
+        chip: Boolean(svg?.querySelector('path.k1-chip')),
+      }
+    })
+    expect(probe.text).toBe(0)
+    expect(probe.chip).toBe(true)
+    expect(probe.style).toContain('@media (min-resolution:1.25dppx){.k1-ink,.k1-accent{stroke-width:.8}}')
+    expect(probe.style).toContain(
+      '@media (min-width:900px) and (min-resolution:1.5dppx){.k1-ink,.k1-accent{stroke-width:.667}}',
+    )
   })
 
   test('lite draw calls stay at or under 3', async ({ page }) => {
@@ -665,21 +871,15 @@ test.describe('hero 3D K1', () => {
 
       const tokens = await page.evaluate(() => {
         const css = getComputedStyle(document.documentElement)
-        const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
-        const canvas = document.querySelector('.hero-3d canvas') as HTMLCanvasElement | null
-        const pins: { x: number; y: number }[] = []
-        hook?.scene?.traverse((o) => {
-          const id = o.userData?.anchorId
-          if (typeof id === 'string' && id.startsWith('pin-') && typeof o.userData.sx === 'number') {
-            pins.push({ x: Number(o.userData.sx), y: Number(o.userData.sy) })
-          }
-        })
+        const svg = document.querySelector('.hero-3d-poster')
+        const chip = svg?.querySelector('path.k1-chip')
+        const vb = (svg?.getAttribute('viewBox') || '0 0 320 240').trim().split(/\s+/)
         return {
           surface: css.getPropertyValue('--color-surface').trim(),
           ink: css.getPropertyValue('--color-ink').trim() || css.getPropertyValue('--color-foreground').trim(),
-          pins,
-          cssW: canvas?.clientWidth ?? 1,
-          cssH: canvas?.clientHeight ?? 1,
+          chipD: chip?.getAttribute('d') || '',
+          viewW: Number(vb[2]) || 320,
+          viewH: Number(vb[3]) || 240,
         }
       })
 
@@ -726,16 +926,12 @@ test.describe('hero 3D K1', () => {
         parseCssColor(tokens.ink),
         1,
       )
-      const liveImg = { width: cov.width, height: cov.height }
-      const pinPx = tokens.pins.map((p) => ({
-        x: (p.x / tokens.cssW) * liveImg.width,
-        y: (p.y / tokens.cssH) * liveImg.height,
-      }))
-      const chip = chipSeeThrough(
+      const chip = chipSeeThroughFromPath(
         Buffer.from(livePng),
-        pinPx,
+        tokens.chipD,
+        tokens.viewW,
+        tokens.viewH,
         parseCssColor(tokens.surface),
-        parseCssColor(tokens.ink),
         2,
       )
       console.log('K1_COVERAGE', `${cfg.w}@${cfg.dsf}x`, cfg.theme, JSON.stringify({ cov, chip }))

@@ -1,5 +1,7 @@
 /** Wait for LCP, then an idle slice, without doing any WebGL or 3D work. */
 
+import { whenLcp } from '@/lib/lcp'
+
 export function nextFrame(): Promise<void> {
   return new Promise((resolve) => {
     requestAnimationFrame(() => {
@@ -14,34 +16,7 @@ export function nextFrame(): Promise<void> {
 }
 
 export function afterLcp(): Promise<void> {
-  return new Promise((resolve) => {
-    let settled = false
-    const finish = () => {
-      if (settled) return
-      settled = true
-      resolve()
-    }
-
-    const sawLcp = () => performance.getEntriesByType('largest-contentful-paint').length > 0
-
-    try {
-      if (sawLcp()) {
-        finish()
-        return
-      }
-      const po = new PerformanceObserver((list) => {
-        if (list.getEntries().length === 0) return
-        po.disconnect()
-        finish()
-      })
-      po.observe({ type: 'largest-contentful-paint', buffered: true })
-    } catch {
-      finish()
-      return
-    }
-
-    setTimeout(finish, 4000)
-  })
+  return whenLcp()
 }
 
 export function afterIdle(): Promise<void> {

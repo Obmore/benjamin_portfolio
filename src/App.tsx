@@ -5,6 +5,7 @@ import { Hero } from '@/components/sections/Hero'
 import { I18nProvider, useI18n } from '@/context/I18nContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { useInitialHash } from '@/hooks/useInitialHash'
+import { whenLcp } from '@/lib/lcp'
 
 const AppRest = lazy(() => import('./AppRest'))
 
@@ -40,28 +41,9 @@ function AppShell() {
         cancelled = true
       }
     }
-    let po: PerformanceObserver | null = null
-    let fallback = 0
-    const kick = () => {
-      po?.disconnect()
-      if (fallback) window.clearTimeout(fallback)
-      fallback = window.setTimeout(start, 0)
-    }
-    try {
-      if (performance.getEntriesByType('largest-contentful-paint').length > 0) {
-        kick()
-      } else {
-        po = new PerformanceObserver(() => kick())
-        po.observe({ type: 'largest-contentful-paint', buffered: true })
-        fallback = window.setTimeout(kick, 4000)
-      }
-    } catch {
-      kick()
-    }
+    void whenLcp().then(start)
     return () => {
       cancelled = true
-      po?.disconnect()
-      if (fallback) window.clearTimeout(fallback)
     }
   }, [])
 

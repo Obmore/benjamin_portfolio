@@ -48,10 +48,12 @@ export type HeroQaHost = {
   getRafCount: () => number
   getProgress: () => number
   getDpr: () => number
+  getPixelRatio: () => number
   getTier: () => string
   seek: (p: number) => void
   dispose: () => void
   paint: () => void
+  shiftEnd: (i: number, px: number) => void
 }
 
 type HeroEnd = {
@@ -72,6 +74,7 @@ type Hero3dQa = {
   rafCount: number
   progress: number
   dpr: number
+  pixelRatio: number
   tier: string
   seek: (p: number) => void
   dispose: () => void
@@ -87,18 +90,16 @@ declare global {
 
 const TOP_Y = 0.07 / 2 + 0.004
 const BOT_Y = -0.07 / 2 - 0.004
-const CHIP_HALF = 0.14
-const CHIP_Y = 0.085
-const CHIP_HH = 0.05
 
 function worldY(k1: K1Scene, layer: 'top' | 'bot') {
   const v = k1.uLayerY.value
   return layer === 'bot' ? v.x + BOT_Y : v.z + TOP_Y
 }
 
-function chipPinY(k1: K1Scene, id: string) {
-  const top = /[024]$/.test(id)
-  return k1.uLayerY.value.z + CHIP_Y + (top ? CHIP_HH : -CHIP_HH)
+function endWorld(k1: K1Scene, i: number) {
+  const rec = k1.endPairs[i]
+  if (!rec) return undefined
+  return { x: rec.x, y: rec.wy ?? worldY(k1, rec.layer), z: rec.z }
 }
 
 function mapPt(cam: Cam3, v: Vec3, width: number, height: number) {
@@ -117,35 +118,26 @@ function countTaggedLayers(root: Obj3 | null) {
 
 export function attachHeroQa(host: HeroQaHost) {
   const tmp = new host.Vector3()
-  const tmpB = new host.Vector3()
   const geo = new host.BoxGeometry(0.02, 0.02, 0.02)
   const mat = new host.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
-  const endMeshes: Obj3[] = []
   const pinMeshes: Obj3[] = []
   const k1 = host.getK1()
   const root = host.getRoot()
-  const fill = root?.children.find((c) => c.userData.layer === 'fill') ?? root
 
-  const makeAnchor = (id: string, x: number, y: number, z: number, parent: Obj3 | null | undefined = fill) => {
+  const makeAnchor = (id: string, x: number, y: number, z: number) => {
     const mesh = new host.Mesh(geo, mat)
     mesh.frustumCulled = false
     mesh.visible = false
     mesh.userData.anchorId = id
     mesh.position.set(x, y, z)
-    parent?.add(mesh)
+    root?.add(mesh)
     return mesh
   }
 
-  if (k1 && fill) {
-    for (const rec of k1.endPairs) {
-      endMeshes.push(makeAnchor(rec.id, rec.x, worldY(k1, rec.layer), rec.z, root))
-    }
+  if (k1 && root) {
     for (const anc of k1.anchors) {
       if (anc.kind !== 'pin' || anc.layer !== 'top') continue
-      const alongX = Math.abs(anc.x) >= Math.abs(anc.z)
-      const x = alongX ? Math.sign(anc.x) * CHIP_HALF : anc.x
-      const z = alongX ? anc.z : Math.sign(anc.z) * CHIP_HALF
-      pinMeshes.push(makeAnchor(anc.id, x, chipPinY(k1, anc.id), z, root))
+      pinMeshes.push(makeAnchor(anc.id, anc.x, worldY(k1, 'top'), anc.z))
     }
   }
 
@@ -159,35 +151,11 @@ export function attachHeroQa(host: HeroQaHost) {
     const scene = host.getK1()
     const cam = host.getCamera()
     if (!scene) return
-    for (let i = 0; i < endMeshes.length; i += 1) {
-      const rec = scene.endPairs[i]
-      const mesh = endMeshes[i]
-      if (!rec || !mesh) continue
-      mesh.position.y = worldY(scene, rec.layer)
-    }
     for (const mesh of pinMeshes) {
-      if (endMeshes.includes(mesh)) continue
       const id = mesh.userData.anchorId
-      mesh.position.y = typeof id === 'string' ? chipPinY(scene, id) : chipPinY(scene, '')
-    }
-    const fillPos = scene.fill.geometry?.getAttribute?.('position')
-    if (fillPos) {
-      const arr = fillPos.array as ArrayLike<number>
-      const corners: { x: number; y: number; z: number }[] = []
-      for (let i = 0; i < fillPos.count; i++) {
-        const x = arr[i * 3]
-        const y = arr[i * 3 + 1]
-        const z = arr[i * 3 + 2]
-        if (Math.abs(x) > 0.26 || Math.abs(z) > 0.26 || y < 0.1) continue
-        if (corners.some((c) => Math.abs(c.x - x) + Math.abs(c.y - y) + Math.abs(c.z - z) < 1e-3)) continue
-        corners.push({ x, y, z })
-      }
-      for (let i = 0; i < pinMeshes.length; i++) {
-        const c = corners[i % Math.max(1, corners.length)]
-        if (!c) continue
-        const fy = scene.uLayerY.value.z
-        pinMeshes[i].position.set(c.x * 0.22, c.y + fy, c.z * 0.22)
-      }
+      const anc = typeof id === 'string' ? scene.anchors.find((a) => a.id === id && a.kind === 'pin') : undefined
+      if (!anc) continue
+      mesh.position.set(anc.x, worldY(scene, 'top'), anc.z)
     }
     const box = host.getBox()
     if (!cam || !box) return
@@ -204,7 +172,6 @@ export function attachHeroQa(host: HeroQaHost) {
     hook.info = host.snapshotInfo()
     hook.rafCount = host.getRafCount()
     hook.progress = host.getProgress()
-    hook.dpr = host.getDpr()
     hook.tier = host.getTier()
   }
 
@@ -212,32 +179,25 @@ export function attachHeroQa(host: HeroQaHost) {
     info: host.snapshotInfo(),
     rafCount: host.getRafCount(),
     progress: host.getProgress(),
-    dpr: host.getDpr(),
     tier: host.getTier(),
     seek: host.seek,
     dispose: host.dispose,
     qaEndWorld(i: number) {
-      const mesh = endMeshes[i]
-      if (!mesh) return undefined
-      mesh.updateMatrixWorld()
-      mesh.getWorldPosition(tmp)
-      return { x: tmp.x, y: tmp.y, z: tmp.z }
+      const scene = host.getK1()
+      if (!scene) return undefined
+      return endWorld(scene, i)
     },
     qaShiftEnd(i: number, px: number) {
-      const mesh = endMeshes[i]
-      const cam = host.getCamera()
-      const box = host.getBox()
-      if (!mesh || !cam || !box) return
-      const width = Math.max(1, box.clientWidth)
-      cam.updateMatrixWorld()
-      mesh.updateMatrixWorld()
-      mesh.getWorldPosition(tmp)
-      tmpB.copy(tmp).project(cam)
-      tmpB.x += (px / width) * 2
-      tmpB.unproject(cam)
-      mesh.position.x += tmpB.x - tmp.x
-      mesh.position.y += tmpB.y - tmp.y
-      mesh.position.z += tmpB.z - tmp.z
+      host.shiftEnd(i, px)
+      const scene = host.getK1()
+      const pin = pinMeshes.find((mesh) => {
+        const rec = scene?.endPairs[i]
+        return rec && mesh.userData.anchorId === rec.id
+      })
+      if (pin && scene) {
+        const rec = scene.endPairs[i]
+        if (rec) pin.position.set(rec.x, rec.wy ?? worldY(scene, rec.layer), rec.z)
+      }
       host.paint()
     },
   } as Hero3dQa
@@ -256,6 +216,20 @@ export function attachHeroQa(host: HeroQaHost) {
       return countTaggedLayers(host.getRoot())
     },
   })
+  Object.defineProperty(hook, 'pixelRatio', {
+    enumerable: true,
+    configurable: true,
+    get() {
+      return host.getPixelRatio()
+    },
+  })
+  Object.defineProperty(hook, 'dpr', {
+    enumerable: true,
+    configurable: true,
+    get() {
+      return host.getDpr()
+    },
+  })
   Object.defineProperty(hook, 'ends', {
     enumerable: true,
     configurable: true,
@@ -267,11 +241,8 @@ export function attachHeroQa(host: HeroQaHost) {
       const width = Math.max(1, box.clientWidth)
       const height = Math.max(1, box.clientHeight)
       cam.updateMatrixWorld()
-      return scene.endPairs.map((rec, i) => {
-        const mesh = endMeshes[i]
-        const end = mesh
-          ? projectMesh(mesh, cam, width, height)
-          : mapPt(cam, tmp.set(rec.x, worldY(scene, rec.layer), rec.z), width, height)
+      return scene.endPairs.map((rec) => {
+        const end = mapPt(cam, tmp.set(rec.x, rec.wy ?? worldY(scene, rec.layer), rec.z), width, height)
         const anc = scene.anchors.find((a) => a.id === rec.id && a.layer === rec.layer)
         if (!anc) {
           return {
@@ -301,18 +272,15 @@ export function attachHeroQa(host: HeroQaHost) {
   window.__hero3d = hook
   sync()
 
-  const unique = new Set([...endMeshes, ...pinMeshes])
   return {
     sync,
     detach() {
-      for (const mesh of unique) {
+      for (const mesh of pinMeshes) {
         mesh.parent?.remove(mesh)
       }
       geo.dispose()
       mat.dispose()
-      endMeshes.length = 0
       pinMeshes.length = 0
-      unique.clear()
     },
   }
 }

@@ -25,7 +25,6 @@ import {
   BD,
   boardOutline,
   BOT_Y,
-  botTraces,
   boxEdges,
   BT,
   BW,
@@ -42,8 +41,8 @@ import {
   POSTER_W,
   poseYs,
   TOP_Y,
-  topTraces,
-  traceEnds,
+  topRoutes,
+  botRoutes,
   vias,
   type Anchor,
   type PathNode,
@@ -89,7 +88,8 @@ export type K1Scene = {
   lite: boolean
   pulseOffset: number
   anchors: Anchor[]
-  endPairs: { x: number; z: number; layer: 'top' | 'bot'; id: string }[]
+  endPairs: { x: number; z: number; layer: 'top' | 'bot'; id: string; wy?: number }[]
+  endVerts: { which: 'ink' | 'accent'; vert: number }[]
 }
 
 const LY = { bot: 0, sub: 1, top: 2, chip: 3 }
@@ -316,7 +316,7 @@ export async function createK1Scene(
   const fillGeos = [
     taggedBox(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z, LY.top),
     ...passives.map((p) => taggedBox(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z, LY.top)),
-    taggedBox(CHIP, 0.1, CHIP, 0, CHIP_Y, 0, LY.top),
+    taggedBox(CHIP, 0.1, CHIP, 0, CHIP_Y, 0, LY.chip),
   ]
   await pause()
   const fillMesh = new Mesh(mergeMesh(fillGeos), fill)
@@ -327,16 +327,39 @@ export async function createK1Scene(
   await pause()
 
   const inkBuf: LineBuf = { pos: [], layer: [] }
+  const endPairs: K1Scene['endPairs'] = []
+  const endVerts: K1Scene['endVerts'] = []
+  const addRoute = (
+    route: (typeof topRoutes)[number],
+    y: number,
+    layer: number,
+    layerName: 'top' | 'bot',
+  ) => {
+    const startVert = inkBuf.pos.length / 3
+    addPolys(inkBuf, [route.poly], y, layer)
+    const endVert = inkBuf.pos.length / 3 - 1
+    const first = route.poly[0]
+    const last = route.poly[route.poly.length - 1]
+    endPairs.push({ x: first[0], z: first[1], layer: layerName, id: route.startId })
+    endVerts.push({ which: 'ink', vert: startVert })
+    endPairs.push({ x: last[0], z: last[1], layer: layerName, id: route.endId })
+    endVerts.push({ which: 'ink', vert: endVert })
+  }
+
   addPolys(inkBuf, [boardOutline], botY, LY.bot)
-  addPolys(inkBuf, [...botTraces, ...allBotPads()], botY, LY.bot)
+  addPolys(inkBuf, allBotPads(), botY, LY.bot)
   await pause()
   addPolys(inkBuf, [boardOutline], 0, LY.sub)
   await pause()
   addPolys(inkBuf, [boardOutline], topY, LY.top)
+  addPolys(inkBuf, allTopPads(), topY, LY.top)
+  for (const route of topRoutes) addRoute(route, topY, LY.top, 'top')
+  for (const route of botRoutes) addRoute(route, botY, LY.bot, 'bot')
   addEdges(inkBuf, boxEdges(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z), LY.top)
   for (const p of passives) {
     addEdges(inkBuf, boxEdges(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z), LY.top)
   }
+  addEdges(inkBuf, boxEdges(CHIP, 0.1, CHIP, 0, CHIP_Y, 0), LY.chip)
   await pause()
   const inkLines = new LineSegments(lineGeometry(inkBuf), ink)
   inkLines.frustumCulled = false
@@ -346,7 +369,6 @@ export async function createK1Scene(
   await pause()
 
   const accentBuf: LineBuf = { pos: [], layer: [] }
-  addPolys(accentBuf, [...topTraces, ...allTopPads()], topY, LY.top)
   await pause()
   for (const [x, z] of vias) {
     accentBuf.pos.push(x, topY, z, x, botY, z)
@@ -395,7 +417,8 @@ export async function createK1Scene(
     lite,
     pulseOffset,
     anchors: allAnchors(),
-    endPairs: traceEnds(),
+    endPairs,
+    endVerts,
   }
   applyK1Progress(scene, 0, 0)
   return scene
@@ -474,6 +497,33 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   pa.needsUpdate = true
 }
 
+export function shiftK1EndByPx(scene: K1Scene, index: number, px: number, width: number) {
+  const rec = scene.endPairs[index]
+  const vert = scene.endVerts[index]
+  if (!rec || !vert || width <= 0) return
+  const cam = scene.camera
+  cam.updateMatrixWorld()
+  const y = rec.wy ?? worldY(scene, rec.layer)
+  const from = new Vector3(rec.x, y, rec.z)
+  const ndc = from.clone().project(cam)
+  ndc.x += (px / width) * 2
+  const to = ndc.unproject(cam)
+  const dx = to.x - from.x
+  const dy = to.y - from.y
+  const dz = to.z - from.z
+  rec.x += dx
+  rec.z += dz
+  rec.wy = y + dy
+  const mesh = vert.which === 'ink' ? scene.ink : scene.accent
+  const pos = mesh.geometry.getAttribute('position')
+  const arr = pos.array as Float32Array
+  const o = vert.vert * 3
+  arr[o] += dx
+  arr[o + 1] += dy
+  arr[o + 2] += dz
+  pos.needsUpdate = true
+}
+
 export function projectEnds(scene: K1Scene, width: number, height: number): HeroEnd[] {
   scene.camera.updateMatrixWorld()
   const ve = new Vector3()
@@ -483,7 +533,7 @@ export function projectEnds(scene: K1Scene, width: number, height: number): Hero
     return { x: (v.x * 0.5 + 0.5) * width, y: (-v.y * 0.5 + 0.5) * height }
   }
   return scene.endPairs.map((rec) => {
-    const y = worldY(scene, rec.layer)
+    const y = rec.wy ?? worldY(scene, rec.layer)
     ve.set(rec.x, y, rec.z)
     const end = mapPt(ve)
     const anc = anchorById(rec.id, rec.layer, scene.anchors)

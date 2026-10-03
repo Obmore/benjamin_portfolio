@@ -74,9 +74,9 @@ function isDark() {
   return document.documentElement.getAttribute('data-theme') === 'dark'
 }
 
-function dprCap(_lite: boolean) {
-  const dpr = Math.max(1, Math.round(window.devicePixelRatio || 1))
-  return Math.min(dpr, 2)
+function dprCap(lite: boolean) {
+  const dpr = Math.max(1, window.devicePixelRatio || 1)
+  return Math.min(dpr, lite ? 1.25 : 1.5)
 }
 
 function sizeCanvas() {
@@ -114,14 +114,30 @@ function paint() {
 
 function watchdog(dt: number, work: number) {
   frameMs.push(work)
-  if (work > 50 || dt > 80) over50 += 1
+  const workLimit = k1?.lite ? 80 : 50
+  const dtLimit = k1?.lite ? 120 : 80
+  if (work > workLimit || dt > dtLimit) over50 += 1
   if (over50 >= 3) return true
-  if (frameMs.length >= 12) {
+  if (!k1?.lite && frameMs.length >= 12) {
     const sorted = [...frameMs].sort((a, b) => a - b)
     const mid = sorted[Math.floor((sorted.length - 1) / 2)]
     if (mid > 24) return true
   }
   return false
+}
+
+function downgradeToLite() {
+  if (!k1 || k1.lite) return false
+  k1.lite = true
+  if (k1.subMesh) k1.subMesh.visible = false
+  if (k1.carrier) k1.carrier.visible = false
+  if (qa && boxEl) boxEl.dataset.hero3dTier = 'lite'
+  sizeCanvas()
+  frameMs.length = 0
+  over50 = 0
+  probeLeft = PROBE_FRAMES
+  paint()
+  return true
 }
 
 function tick(now: number) {
@@ -133,6 +149,10 @@ function tick(now: number) {
   paint()
   const work = performance.now() - t0
   if (watchdog(dt, work)) {
+    if (downgradeToLite()) {
+      requestLoop()
+      return
+    }
     mark3dWatchdog()
     fallbackStatic()
     return
@@ -149,6 +169,7 @@ function requestLoop() {
 }
 
 function onProgress(p: number) {
+  if (Math.abs(p - progress) < 1e-4) return
   progress = p
   last = 0
   paint()
@@ -172,9 +193,24 @@ function onLost(event: Event) {
   disposing = true
   mark3dWatchdog()
   if (qa && boxEl) boxEl.dataset.hero3dTier = 'static'
-  showPosterImmediate()
-  teardownGpu()
-  disposing = false
+  haltLoop()
+  if (!boxEl) {
+    teardownGpu()
+    disposing = false
+    return
+  }
+  const host = posterHost()
+  if (host) {
+    host.style.transitionDuration = '0ms'
+    host.style.visibility = 'visible'
+    host.style.opacity = '1'
+  }
+  boxEl.classList.remove('is-swapped', 'is-back')
+  void boxEl.offsetWidth
+  requestAnimationFrame(() => {
+    teardownGpu()
+    disposing = false
+  })
 }
 
 function posterHost(): HTMLElement | null {
@@ -326,6 +362,7 @@ async function attachQa() {
     getRafCount: () => rafCount,
     getProgress: () => progress,
     getDpr: () => (renderer && canvas && boxEl ? canvas.width / Math.max(1, boxEl.clientWidth) : 1),
+    getPixelRatio: () => renderer?.getPixelRatio() ?? 1,
     getTier: () => boxEl?.dataset.hero3dTier || (k1?.lite ? 'lite' : 'full'),
     seek(p: number) {
       progress = Math.min(1, Math.max(0, p))
@@ -335,6 +372,12 @@ async function attachQa() {
       disposeHero()
     },
     paint,
+    shiftEnd(i: number, px: number) {
+      if (!k1 || !hero) return
+      const el = canvas ?? boxEl
+      const width = Math.max(1, el?.clientWidth ?? 1)
+      hero.shiftK1EndByPx(k1, i, px, width)
+    },
   })
   qaSync = bound.sync
   qaDetach = bound.detach
