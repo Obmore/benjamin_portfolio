@@ -241,8 +241,8 @@ export async function createK1Scene(
     depthWrite: true,
     depthTest: true,
     polygonOffset: true,
-    polygonOffsetFactor: 8,
-    polygonOffsetUnits: 8,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
   })
   const subMat = new MeshBasicMaterial({
     color: colors.surface,
@@ -251,8 +251,8 @@ export async function createK1Scene(
     depthWrite: true,
     depthTest: true,
     polygonOffset: true,
-    polygonOffsetFactor: 8,
-    polygonOffsetUnits: 8,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
   })
   const ink = new LineBasicMaterial({
     color: colors.ink,
