@@ -1,6 +1,12 @@
 import { hero3dWidthTier, isQa3d, mark3dWatchdog } from '@/lib/three-gate'
 import type { K1Scene } from './hero-k1'
 
+type GsapTicker = {
+  add: (fn: () => void) => void
+  remove: (fn: () => void) => void
+  deltaRatio: (fps?: number) => number
+}
+
 function nextFrame(): Promise<void> {
   return new Promise((resolve) => {
     requestAnimationFrame(() => {
@@ -31,11 +37,15 @@ let canvas: HTMLCanvasElement | null = null
 let boxEl: HTMLElement | null = null
 let scene: InstanceType<HeroMod['Scene']> | null = null
 let k1: K1Scene | null = null
-let raf = 0
 let gen = 0
 let progress = 0
-let last = 0
 let rafCount = 0
+let gsapTicker: GsapTicker | null = null
+let tickerBound = false
+let renderRequested = false
+let lastPainted = Number.NaN
+let forcePaint = false
+const PAINT_EPS = 1e-4
 const frameMs: number[] = []
 let over50 = 0
 let probeLeft = 0
@@ -79,14 +89,18 @@ function dprCap(lite: boolean) {
   return Math.min(dpr, lite ? 1.25 : 1.5)
 }
 
+// Adapted from mrdoob/three.js manual "Rendering on Demand" resizeRendererToDisplaySize
+// https://threejs.org/manual/#en/rendering-on-demand
+// Copyright (c) 2010-2026 three.js authors — SPDX: MIT
+// Changes: cap pixelRatio at 1.5 (full) or 1.25 (lite), no rounding; keep baked 4:3 camera
 function sizeCanvas() {
   if (!renderer || !canvas || !boxEl || !k1 || !hero) return
   const w = Math.max(1, boxEl.clientWidth)
   const h = Math.max(1, boxEl.clientHeight)
   canvas.style.width = '100%'
   canvas.style.height = '100%'
-  const lite = k1.lite
-  renderer.setPixelRatio(dprCap(lite))
+  const pixelRatio = dprCap(k1.lite)
+  renderer.setPixelRatio(pixelRatio)
   renderer.setSize(w, h, false)
   hero.setK1Aspect(k1)
 }
@@ -136,56 +150,85 @@ function downgradeToLite() {
   frameMs.length = 0
   over50 = 0
   probeLeft = PROBE_FRAMES
-  paint()
+  requestRender(true)
   return true
 }
 
-function tick(now: number) {
-  raf = 0
+function stopTicker() {
+  if (!tickerBound || !gsapTicker) return
+  gsapTicker.remove(onTicker)
+  tickerBound = false
+  renderRequested = false
+}
+
+async function ensureTicker() {
+  if (gsapTicker) return gsapTicker
+  const { default: gsap } = await import('gsap')
+  gsapTicker = gsap.ticker
+  return gsapTicker
+}
+
+// Adapted from mrdoob/three.js manual "Rendering on Demand" requestRenderIfNotRequested
+// https://threejs.org/manual/#en/rendering-on-demand
+// Copyright (c) 2010-2026 three.js authors — SPDX: MIT
+// Changes: GSAP ticker instead of own rAF; paint at most once per tick and only if |p-lastP|>eps
+function requestRender(force = false) {
+  if (force) forcePaint = true
+  if (renderRequested) return
+  renderRequested = true
+  if (tickerBound || !gsapTicker) return
+  tickerBound = true
+  gsapTicker.add(onTicker)
+}
+
+function onTicker() {
+  renderRequested = false
+  if (!renderer || !visible || disposing) {
+    stopTicker()
+    return
+  }
+  const force = forcePaint || probeLeft > 0
+  forcePaint = false
+  if (!force && Number.isFinite(lastPainted) && Math.abs(progress - lastPainted) <= PAINT_EPS) {
+    stopTicker()
+    return
+  }
+  lastPainted = progress
   rafCount += 1
-  const dt = last ? now - last : 16
-  last = now
   const t0 = performance.now()
   paint()
   const work = performance.now() - t0
+  const dt = (gsapTicker?.deltaRatio(60) ?? 1) * (1000 / 60)
   if (watchdog(dt, work)) {
-    if (downgradeToLite()) {
-      requestLoop()
-      return
-    }
+    if (downgradeToLite()) return
     mark3dWatchdog()
     fallbackStatic()
     return
   }
   if (probeLeft > 0) {
     probeLeft -= 1
-    requestLoop()
+    if (probeLeft > 0) {
+      requestRender(true)
+      return
+    }
   }
-}
-
-function requestLoop() {
-  if (raf || !renderer || !visible) return
-  raf = requestAnimationFrame(tick)
+  stopTicker()
 }
 
 function onProgress(p: number) {
-  if (Math.abs(p - progress) < 1e-4) return
+  if (Math.abs(p - progress) <= PAINT_EPS) return
   progress = p
-  last = 0
-  paint()
+  requestRender()
 }
 
 function onVis() {
   if (document.hidden) {
     visible = false
-    if (raf) cancelAnimationFrame(raf)
-    raf = 0
-    last = 0
+    stopTicker()
     return
   }
   visible = true
-  last = 0
-  paint()
+  requestRender(true)
 }
 
 function onLost(event: Event) {
@@ -236,10 +279,8 @@ function showPosterImmediate() {
 }
 
 function haltLoop() {
-  if (raf) cancelAnimationFrame(raf)
-  raf = 0
   probeLeft = 0
-  last = 0
+  stopTicker()
   stopScroll()
   stopScroll = () => {}
   scrollBound = false
@@ -372,6 +413,9 @@ async function attachQa() {
       disposeHero()
     },
     paint,
+    forceContextLoss() {
+      renderer?.forceContextLoss()
+    },
     shiftEnd(i: number, px: number) {
       if (!k1 || !hero) return
       const el = canvas ?? boxEl
@@ -483,7 +527,7 @@ async function bootScene() {
       alpha: true,
       antialias: true,
       powerPreference: 'low-power',
-      failIfMajorPerformanceCaveat: false,
+      failIfMajorPerformanceCaveat: !(qa || Boolean(navigator.webdriver)),
     })
   } catch {
     el.remove()
@@ -563,17 +607,23 @@ async function bootScene() {
   over50 = 0
   probeLeft = PROBE_FRAMES
   rafCount = 0
-  last = 0
+  lastPainted = Number.NaN
   swapped = false
   if (qa) await attachQa()
   if (aborted(my)) {
     booting = false
     return
   }
+  await ensureTicker()
+  if (aborted(my)) {
+    booting = false
+    return
+  }
   paint()
+  lastPainted = progress
   startPosterSwap()
   booting = false
-  requestLoop()
+  requestRender(true)
 }
 
 function setupObservers() {
@@ -584,7 +634,7 @@ function setupObservers() {
   themeMo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
   ro = new ResizeObserver(() => {
     sizeCanvas()
-    paint()
+    requestRender(true)
   })
   ro.observe(boxEl)
   io = new IntersectionObserver(
@@ -592,9 +642,7 @@ function setupObservers() {
       const on = entries.some((e) => e.isIntersecting)
       visible = on
       if (!on) {
-        if (raf) cancelAnimationFrame(raf)
-        raf = 0
-        last = 0
+        stopTicker()
         teardownGpu()
         return
       }
@@ -602,8 +650,7 @@ function setupObservers() {
         void bootScene()
         return
       }
-      last = 0
-      paint()
+      requestRender(true)
     },
     { rootMargin: '0px' },
   )

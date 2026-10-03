@@ -101,7 +101,21 @@ function fillPaths(
   want: (layer: number) => boolean,
 ) {
   const { pos, layer, count, index } = attrArrays(geo)
-  const parent = new Int32Array(count).fill(-1)
+  const idOf = new Int32Array(count)
+  const keyToId = new Map<string, number>()
+  let nids = 0
+  for (let i = 0; i < count; i++) {
+    const la = layer ? layer[i] : 0
+    const key = `${la}|${pos[i * 3].toFixed(4)}|${pos[i * 3 + 1].toFixed(4)}|${pos[i * 3 + 2].toFixed(4)}`
+    let id = keyToId.get(key)
+    if (id === undefined) {
+      id = nids
+      nids += 1
+      keyToId.set(key, id)
+    }
+    idOf[i] = id
+  }
+  const parent = new Int32Array(nids).fill(-1)
   const find = (i: number): number => {
     let x = i
     while (parent[x] !== x && parent[x] >= 0) x = parent[x]
@@ -122,15 +136,14 @@ function fillPaths(
     const ic = index ? (index[t * 3 + 2] as number) : t * 3 + 2
     const la = layer ? layer[ia] : 0
     if (!want(la)) continue
-    unite(ia, ib)
-    unite(ib, ic)
+    unite(idOf[ia], idOf[ib])
+    unite(idOf[ib], idOf[ic])
   }
   const groups = new Map<number, number[]>()
   for (let i = 0; i < count; i++) {
-    if (parent[i] === -1) continue
     const la = layer ? layer[i] : 0
     if (!want(la)) continue
-    const root = find(i)
+    const root = find(idOf[i])
     const list = groups.get(root)
     if (list) list.push(i)
     else groups.set(root, [i])
@@ -173,6 +186,13 @@ function hullPath(
   return `${hull.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join('')}Z`
 }
 
+function classFromLayer(layer: string) {
+  if (layer === 'accent') return 'k1-accent'
+  if (layer === 'sub') return 'k1-sub'
+  if (layer === 'fill') return 'k1-fill'
+  return 'k1-ink'
+}
+
 export function svgFromK1Scene(scene: K1Scene, w = POSTER_W, h = POSTER_H) {
   scene.camera.updateProjectionMatrix()
   scene.camera.updateMatrixWorld()
@@ -182,6 +202,10 @@ export function svgFromK1Scene(scene: K1Scene, w = POSTER_W, h = POSTER_H) {
   const accent = scene.accent.geometry
   const fill = scene.fill.geometry
   const sub = scene.subMesh?.geometry ?? null
+  const inkClass = classFromLayer(String(scene.ink.userData.layer || 'ink'))
+  const accentClass = classFromLayer(String(scene.accent.userData.layer || 'accent'))
+  const fillClass = classFromLayer(String(scene.fill.userData.layer || 'fill'))
+  const subClass = classFromLayer(String(scene.subMesh?.userData.layer || 'sub'))
 
   const ink0 = linePaths(ink, u, cam, w, h, (l) => l >= 0 && l < 0.5)
   const ink1 = linePaths(ink, u, cam, w, h, (l) => l >= 0.5 && l < 1.5)
@@ -195,14 +219,14 @@ export function svgFromK1Scene(scene: K1Scene, w = POSTER_W, h = POSTER_H) {
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" class="hero-3d-poster" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" fill="none" aria-hidden="true" focusable="false" data-pose="100">`,
     `<style>.hero-3d-poster .k1-ink{stroke:var(--color-ink);stroke-opacity:.55;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linejoin:round;fill:none}html[data-theme=dark] .hero-3d-poster .k1-ink{stroke-opacity:.7}.hero-3d-poster .k1-accent{stroke:var(--color-accent);stroke-opacity:1;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;fill:none}.hero-3d-poster .k1-fill{fill:var(--color-surface);stroke:none}.hero-3d-poster .k1-sub{fill:var(--color-surface);fill-opacity:.18;stroke:none}@media (min-resolution:1.25dppx){.k1-ink,.k1-accent{stroke-width:.8}}@media (min-width:900px) and (min-resolution:1.5dppx){.k1-ink,.k1-accent{stroke-width:.667}}</style>`,
-    fill2 ? `<path class="k1-fill" d="${fill2}"/>` : '',
-    fill3 ? `<path class="k1-fill k1-chip" d="${fill3}"/>` : '',
-    subPath ? `<path class="k1-sub" d="${subPath}"/>` : '',
-    ink0 ? `<path class="k1-ink" vector-effect="non-scaling-stroke" d="${ink0}"/>` : '',
-    ink1 ? `<path class="k1-ink" vector-effect="non-scaling-stroke" d="${ink1}"/>` : '',
-    ink2 ? `<path class="k1-ink" vector-effect="non-scaling-stroke" d="${ink2}"/>` : '',
-    ink3 ? `<path class="k1-ink" vector-effect="non-scaling-stroke" d="${ink3}"/>` : '',
-    acc ? `<path class="k1-accent" vector-effect="non-scaling-stroke" d="${acc}"/>` : '',
+    subPath ? `<path class="${subClass}" d="${subPath}"/>` : '',
+    fill2 ? `<path class="${fillClass}" d="${fill2}"/>` : '',
+    fill3 ? `<path class="${fillClass} k1-chip" d="${fill3}"/>` : '',
+    ink0 ? `<path class="${inkClass}" vector-effect="non-scaling-stroke" d="${ink0}"/>` : '',
+    ink1 ? `<path class="${inkClass}" vector-effect="non-scaling-stroke" d="${ink1}"/>` : '',
+    ink2 ? `<path class="${inkClass}" vector-effect="non-scaling-stroke" d="${ink2}"/>` : '',
+    ink3 ? `<path class="${inkClass}" vector-effect="non-scaling-stroke" d="${ink3}"/>` : '',
+    acc ? `<path class="${accentClass}" vector-effect="non-scaling-stroke" d="${acc}"/>` : '',
     `</svg>`,
   ]
     .filter(Boolean)

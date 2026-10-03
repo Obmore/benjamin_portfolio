@@ -210,7 +210,7 @@ export function parseClosedPath(d) {
   const parts = String(d || '').match(/[MmLl][^MmLlZz]*|[Zz]/g) || []
   for (const part of parts) {
     const cmd = part[0]
-    if (cmd === 'Z' || cmd === 'z') break
+    if (cmd === 'Z' || cmd === 'z') continue
     const nums = part
       .slice(1)
       .trim()
@@ -218,7 +218,9 @@ export function parseClosedPath(d) {
       .filter(Boolean)
       .map(Number)
     for (let i = 0; i + 1 < nums.length; i += 2) {
-      pts.push({ x: nums[i], y: nums[i + 1] })
+      if (Number.isFinite(nums[i]) && Number.isFinite(nums[i + 1])) {
+        pts.push({ x: nums[i], y: nums[i + 1] })
+      }
     }
   }
   return pts
@@ -230,7 +232,16 @@ export function chipSeeThroughFromPath(liveBuf, d, viewW, viewH, surfaceRgb, ero
     x: (p.x / viewW) * img.width,
     y: (p.y / viewH) * img.height,
   }))
-  return chipSeeThroughPoly(img, pts, surfaceRgb, erodePx)
+  return chipSeeThroughPoly(img, convexHull(pts), surfaceRgb, erodePx)
+}
+
+export function chipSeeThroughCss(liveBuf, cssPts, cssW, cssH, surfaceRgb, erodePx = 2) {
+  const img = decodePngRgba(liveBuf)
+  const pts = (cssPts || []).map((p) => ({
+    x: (p.x / cssW) * img.width,
+    y: (p.y / cssH) * img.height,
+  }))
+  return chipSeeThroughPoly(img, convexHull(pts), surfaceRgb, erodePx)
 }
 
 function chipSeeThroughPoly(img, poly, surfaceRgb, erodePx) {

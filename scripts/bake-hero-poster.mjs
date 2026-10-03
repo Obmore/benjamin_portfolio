@@ -22,7 +22,7 @@ try {
     false,
   )
   hero.setK1Aspect(scene, POSTER_W / POSTER_H)
-  hero.applyK1Progress(scene, 1, 0)
+  hero.applyK1Progress(scene, 1, 1)
   scene.camera.updateProjectionMatrix()
   scene.camera.updateMatrixWorld()
 

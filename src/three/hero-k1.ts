@@ -3,16 +3,17 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
+  EdgesGeometry,
   Group,
   LineBasicMaterial,
   LineSegments,
   Mesh,
   MeshBasicMaterial,
+  NoBlending,
+  NormalBlending,
   OrthographicCamera,
   Scene,
   ShaderMaterial,
-  NoBlending,
-  NormalBlending,
   Vector3,
   Vector4,
   WebGLRenderer,
@@ -25,7 +26,6 @@ import {
   BD,
   boardOutline,
   BOT_Y,
-  boxEdges,
   BT,
   BW,
   CAM_AZIM,
@@ -65,8 +65,6 @@ export type HeroEnd = {
   kind: 'pad' | 'via' | 'pin'
 }
 
-type LayerShaderMat = LineBasicMaterial
-
 export type K1Scene = {
   root: Group
   carrier: Group
@@ -100,6 +98,8 @@ function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t
 }
 
+type LayerShaderMat = LineBasicMaterial
+
 function bindLayer(mat: LayerShaderMat, uLayerY: { value: Vector4 }, key: string) {
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uLayerY = uLayerY
@@ -131,6 +131,7 @@ const FILL_FRAG = [
   'uniform float uOpacity;',
   'void main() {',
   '  gl_FragColor = vec4(uColor, uOpacity);',
+  '#include <colorspace_fragment>',
   '}',
 ].join('\n')
 
@@ -140,7 +141,7 @@ function makeFillMat(
   transparent: boolean,
   opacity: number,
 ) {
-  const uColor = color.clone().convertLinearToSRGB()
+  const uColor = color.clone()
   const mat = new ShaderMaterial({
     uniforms: {
       uLayerY,
@@ -150,12 +151,22 @@ function makeFillMat(
     vertexShader: FILL_VERT,
     fragmentShader: FILL_FRAG,
     transparent,
-    opacity,
-    depthWrite: true,
+    depthWrite: !transparent,
     depthTest: true,
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
     blending: transparent ? NormalBlending : NoBlending,
   })
-  mat.color = uColor
+  Object.defineProperty(mat, 'color', {
+    configurable: true,
+    get() {
+      return uColor
+    },
+    set(next: Color) {
+      uColor.copy(next)
+    },
+  })
   return mat
 }
 
@@ -207,15 +218,15 @@ function addPolys(buf: LineBuf, polys: readonly Poly[], y: number, layer: number
   }
 }
 
-function addEdges(
-  buf: LineBuf,
-  edges: readonly (readonly (readonly [number, number, number])[])[],
-  layer: number,
-) {
-  for (const [a, b] of edges) {
-    buf.pos.push(a[0], a[1], a[2], b[0], b[1], b[2])
-    buf.layer.push(layer, layer)
+function addEdgesGeo(buf: LineBuf, geo: BufferGeometry, layer: number) {
+  const edges = new EdgesGeometry(geo)
+  const pos = edges.getAttribute('position')
+  const arr = pos.array as Float32Array
+  for (let i = 0; i < pos.count; i += 1) {
+    buf.pos.push(arr[i * 3], arr[i * 3 + 1], arr[i * 3 + 2])
+    buf.layer.push(layer)
   }
+  edges.dispose()
 }
 
 function lineGeometry(buf: LineBuf) {
@@ -319,6 +330,12 @@ export async function createK1Scene(
     taggedBox(CHIP, 0.1, CHIP, 0, CHIP_Y, 0, LY.chip),
   ]
   await pause()
+
+  const inkBuf: LineBuf = { pos: [], layer: [] }
+  for (const g of fillGeos) {
+    const la = g.getAttribute('aLayer')
+    addEdgesGeo(inkBuf, g, la ? (la.array as Float32Array)[0] : LY.top)
+  }
   const fillMesh = new Mesh(mergeMesh(fillGeos), fill)
   fillMesh.frustumCulled = false
   fillMesh.renderOrder = -1
@@ -326,7 +343,6 @@ export async function createK1Scene(
 
   await pause()
 
-  const inkBuf: LineBuf = { pos: [], layer: [] }
   const endPairs: K1Scene['endPairs'] = []
   const endVerts: K1Scene['endVerts'] = []
   const addRoute = (
@@ -355,11 +371,6 @@ export async function createK1Scene(
   addPolys(inkBuf, allTopPads(), topY, LY.top)
   for (const route of topRoutes) addRoute(route, topY, LY.top, 'top')
   for (const route of botRoutes) addRoute(route, botY, LY.bot, 'bot')
-  addEdges(inkBuf, boxEdges(conn.w, conn.h, conn.d, conn.x, BT / 2 + conn.h / 2, conn.z), LY.top)
-  for (const p of passives) {
-    addEdges(inkBuf, boxEdges(p.w, p.h, p.d, p.x, BT / 2 + p.h / 2, p.z), LY.top)
-  }
-  addEdges(inkBuf, boxEdges(CHIP, 0.1, CHIP, 0, CHIP_Y, 0), LY.chip)
   await pause()
   const inkLines = new LineSegments(lineGeometry(inkBuf), ink)
   inkLines.frustumCulled = false
@@ -393,6 +404,7 @@ export async function createK1Scene(
     subMesh = new Mesh(subGeo, subMat)
     subMesh.frustumCulled = false
     subMesh.renderOrder = -1
+    subMesh.userData.layer = 'sub'
     carrier.userData.layer = 'sub'
     carrier.add(subMesh)
   }
@@ -428,9 +440,10 @@ export function setK1Colors(scene: K1Scene, colors: K1Colors, dark = false) {
   scene.tokens.ink.copy(colors.ink)
   scene.tokens.accent.copy(colors.accent)
   scene.dark = dark
-  scene.mats.fill.color.copy(colors.surface).convertLinearToSRGB()
-  scene.mats.sub.color.copy(colors.surface).convertLinearToSRGB()
+  ;(scene.mats.fill.uniforms.uColor.value as Color).copy(colors.surface)
+  ;(scene.mats.sub.uniforms.uColor.value as Color).copy(colors.surface)
   scene.mats.ink.color.copy(colors.ink)
+  scene.mats.accent.color.copy(colors.accent)
 }
 
 export function setK1Aspect(scene: K1Scene, aspect = POSTER_ASPECT) {
@@ -446,32 +459,22 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   placeCam(scene.camera, CAM_ELEV, CAM_AZIM)
   const ys = poseYs(p)
   scene.uLayerY.value.set(ys.bot, ys.sub, ys.top, ys.chip)
-  scene.fill.position.set(0, 0, 0)
-  if (scene.subMesh) scene.subMesh.position.set(0, 0, 0)
 
   if (scene.subMesh) {
     const op = 0.92 - 0.74 * ys.explode
-    scene.mats.sub.opacity = op
     scene.mats.sub.uniforms.uOpacity.value = op
     scene.mats.sub.depthWrite = ys.explode < 0.35
   }
 
   const accentAmt = p >= 0.5 ? 1 : p / 0.5
-  if (scene.dark) {
-    scene.mats.ink.opacity = 0.7
-    scene.mats.accent.color.lerpColors(scene.tokens.ink, scene.tokens.accent, accentAmt)
-    scene.mats.accent.opacity = 0.35 + 0.65 * Math.max(accentAmt, ys.explode)
-  } else {
-    scene.mats.ink.opacity = 0.55
-    scene.mats.ink.color.copy(scene.tokens.ink)
-    if (p >= 0.5) {
-      scene.mats.accent.color.copy(scene.tokens.accent)
-      scene.mats.accent.opacity = 1
-    } else {
-      scene.mats.accent.color.copy(scene.tokens.ink)
-      scene.mats.accent.opacity = 0.55
-    }
-  }
+  scene.mats.ink.color.copy(scene.tokens.ink)
+  scene.mats.ink.opacity = scene.dark ? 0.7 : 0.55
+  scene.mats.accent.color.lerpColors(scene.tokens.ink, scene.tokens.accent, accentAmt)
+  scene.mats.accent.opacity = scene.dark
+    ? 0.35 + 0.65 * Math.max(accentAmt, ys.explode)
+    : p >= 0.5
+      ? 1
+      : 0.55
 
   const pa = scene.accent.geometry.getAttribute('position')
   const arr = pa.array as Float32Array

@@ -1,6 +1,6 @@
 import { afterLcp, afterIdle, nextFrame } from '@/lib/after-lcp'
 import {
-  cpuPrefersLite,
+  classifyCpu,
   hasWebGL,
   hero3dWidthTier,
   isQa3d,
@@ -90,7 +90,14 @@ export function bootHero3d(): () => void {
       clearDeadline()
       return
     }
-    if (cpuPrefersLite()) markCpuLite()
+    const cpu = await classifyCpu()
+    if (cpu === 'static') {
+      mark3dWatchdog()
+      writeTier('static')
+      clearDeadline()
+      return
+    }
+    if (cpu === 'lite') markCpuLite()
     if (!qa) await afterIdle()
     if (stopped || mediaStatic()) {
       writeTier('static')

@@ -3,6 +3,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
+// ScrollTrigger already ticks on gsap.ticker. Hero 3D requests paints on that
+// same ticker (view-manager requestRender) so scroll does not start a second rAF.
+
 export function attachHeroScroll(
   onProgress: (progress: number) => void,
   opts: { skipInitial?: boolean } = {},

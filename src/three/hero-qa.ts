@@ -54,6 +54,7 @@ export type HeroQaHost = {
   dispose: () => void
   paint: () => void
   shiftEnd: (i: number, px: number) => void
+  forceContextLoss: () => void
 }
 
 type HeroEnd = {
@@ -80,6 +81,7 @@ type Hero3dQa = {
   dispose: () => void
   qaEndWorld: (i: number) => { x: number; y: number; z: number } | undefined
   qaShiftEnd: (i: number, px: number) => void
+  forceContextLoss: () => void
 }
 
 declare global {
@@ -199,6 +201,9 @@ export function attachHeroQa(host: HeroQaHost) {
         if (rec) pin.position.set(rec.x, rec.wy ?? worldY(scene, rec.layer), rec.z)
       }
       host.paint()
+    },
+    forceContextLoss() {
+      host.forceContextLoss()
     },
   } as Hero3dQa
 

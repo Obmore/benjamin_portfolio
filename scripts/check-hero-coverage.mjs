@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /**
- * Two-way p100 vs poster fill coverage (1 device px).
+ * Design gate: two-way p100 vs poster fill coverage.
+ * Final screenshot, device pixels, r=1, 390 at DPR 2.
  * Expects vite preview at http://127.0.0.1:4173
  */
 import { chromium } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parseCssColor, twoWayFillCoverage, chipSeeThroughFromPath } from './k1-coverage-lib.mjs'
+import { parseCssColor, twoWayFillCoverage, chipSeeThroughCss } from './k1-coverage-lib.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = path.join(root, 'test-results', 'hero-k1-coverage')
@@ -57,6 +58,8 @@ async function main() {
       null,
       { timeout: 30000 },
     )
+    await page.locator('.hero-3d').evaluate((el) => el.scrollIntoView({ block: 'center', inline: 'nearest' }))
+    await page.waitForTimeout(50)
     await page.evaluate((theme) => {
       document.documentElement.dataset.theme = theme
       document.documentElement.style.colorScheme = theme
@@ -66,15 +69,37 @@ async function main() {
 
     const tokens = await page.evaluate(() => {
       const css = getComputedStyle(document.documentElement)
-      const svg = document.querySelector('.hero-3d-poster')
-      const chip = svg?.querySelector('path.k1-chip')
-      const vb = (svg?.getAttribute('viewBox') || '0 0 320 240').trim().split(/\s+/)
+      const canvas = document.querySelector('.hero-3d canvas')
+      const pathEl = document.querySelector('.hero-3d-poster path.k1-chip')
+      const br = canvas?.getBoundingClientRect()
+      const pts = []
+      if (pathEl && br && pathEl.ownerSVGElement) {
+        const svgP = pathEl.ownerSVGElement.createSVGPoint()
+        const ctm = pathEl.getScreenCTM()
+        const d = pathEl.getAttribute('d') || ''
+        const parts = d.match(/[MmLl][^MmLlZz]*|[Zz]/g) || []
+        for (const part of parts) {
+          if (part[0] === 'Z' || part[0] === 'z') continue
+          const nums = part
+            .slice(1)
+            .trim()
+            .split(/[\s,]+/)
+            .filter(Boolean)
+            .map(Number)
+          for (let i = 0; i + 1 < nums.length; i += 2) {
+            svgP.x = nums[i]
+            svgP.y = nums[i + 1]
+            const s = ctm ? svgP.matrixTransform(ctm) : svgP
+            pts.push({ x: s.x - br.left, y: s.y - br.top })
+          }
+        }
+      }
       return {
         surface: css.getPropertyValue('--color-surface').trim(),
         ink: css.getPropertyValue('--color-ink').trim() || css.getPropertyValue('--color-foreground').trim(),
-        chipD: chip?.getAttribute('d') || '',
-        viewW: Number(vb[2]) || 320,
-        viewH: Number(vb[3]) || 240,
+        chipCss: pts,
+        cssW: br?.width ?? 1,
+        cssH: br?.height ?? 1,
       }
     })
 
@@ -119,15 +144,15 @@ async function main() {
       parseCssColor(tokens.ink),
       1,
     )
-    const chip = chipSeeThroughFromPath(
+    const chip = chipSeeThroughCss(
       Buffer.from(livePng),
-      tokens.chipD,
-      tokens.viewW,
-      tokens.viewH,
+      tokens.chipCss,
+      tokens.cssW,
+      tokens.cssH,
       parseCssColor(tokens.surface),
       2,
     )
-    const ok = cov.aInB >= 0.99 && cov.bInA >= 0.99 && chip.seeThrough <= 4
+    const ok = cov.aInB >= 0.99 && cov.bInA >= 0.99 && chip.seeThrough <= 4 && chip.interior > 20
     if (!ok) failed = true
     rows.push({
       viewport: `${cfg.w}@${cfg.dsf}x`,

@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@source not "./components/visuals/hero-k1-poster.svg";
+@source not "../scripts";
+@source not "../e2e";
 
 @media (prefers-reduced-motion: reduce) {
   *,

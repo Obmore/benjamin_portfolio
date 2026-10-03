@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { parseCssColor, twoWayFillCoverage, chipSeeThroughFromPath } from '../scripts/k1-coverage-lib.mjs'
+import { parseCssColor, twoWayFillCoverage, chipSeeThroughCss, decodePngRgba } from '../scripts/k1-coverage-lib.mjs'
 
 async function gotoHome(page: Page, query = '') {
   const response = await page.goto(`/${query}`, { waitUntil: 'domcontentloaded' })
@@ -26,11 +26,13 @@ type Hero3dHook = {
   dispose?: () => void
   qaShiftEnd?: (index: number, px: number) => void
   qaEndWorld?: (index: number) => { x: number; y: number; z: number } | undefined
+  forceContextLoss?: () => void
   ends: HeroEnd[]
   progress: number
   layers: number
   dpr: number
   pixelRatio: number
+  rafCount: number
   tier: string
   info: { calls: number; memory: { geometries: number; textures: number } }
 }
@@ -276,6 +278,15 @@ test.describe('hero 3D K1', () => {
         Math.abs((probe?.world1?.z ?? 0) - (probe?.world0?.z ?? 0)),
     ).toBeGreaterThan(0)
     expect(Buffer.compare(beforePng, afterPng), 'canvas pixels must change after qaShiftEnd').not.toBe(0)
+    const beforeImg = decodePngRgba(Buffer.from(beforePng))
+    const afterImg = decodePngRgba(Buffer.from(afterPng))
+    expect(beforeImg.width).toBe(afterImg.width)
+    expect(beforeImg.height).toBe(afterImg.height)
+    const { default: pixelmatch } = await import('pixelmatch')
+    const diff = pixelmatch(beforeImg.pixels, afterImg.pixels, null, beforeImg.width, beforeImg.height, {
+      threshold: 0.1,
+    })
+    expect(diff, 'qaShiftEnd must change rendered pixels').toBeGreaterThan(0)
   })
 
   test('poster data-pose is a literal on the cloned SVG', async ({ page }) => {
@@ -493,6 +504,16 @@ test.describe('hero 3D K1', () => {
     await context.close()
   })
 
+  test('idle rafCount does not climb after swap', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await gotoHome(page, '?qa3d=1')
+    await waitHero3d(page)
+    const before = await page.evaluate(() => (window as Window & { __hero3d?: Hero3dHook }).__hero3d?.rafCount)
+    await page.waitForTimeout(400)
+    const after = await page.evaluate(() => (window as Window & { __hero3d?: Hero3dHook }).__hero3d?.rafCount)
+    expect(after).toBe(before)
+  })
+
   test('4x CPU is lite 10/10; 20x CPU is static 10/10', async ({ browser }) => {
     test.setTimeout(180000)
     const run = async (rate: number, w: number, h: number) => {
@@ -572,13 +593,19 @@ test.describe('hero 3D K1', () => {
     await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
     await gotoHome(page, '?qa3d=1')
     await waitHero3d(page)
+    const box = page.locator('.hero-3d')
+    const frames: Buffer[] = []
+    const grab = async () => {
+      frames.push(await box.screenshot({ animations: 'disabled' }))
+    }
+    await grab()
     const empty = await page.evaluate(async () => {
       const samples: { empty: boolean; canvas: boolean; poster: boolean }[] = []
-      const box = document.querySelector('.hero-3d') as HTMLElement | null
+      const hostBox = document.querySelector('.hero-3d') as HTMLElement | null
       const read = () => {
-        const canvas = box?.querySelector('canvas') as HTMLCanvasElement | null
-        const host = box?.querySelector('.hero-3d-poster-host') as HTMLElement | null
-        const poster = box?.querySelector('.hero-3d-poster') as SVGElement | null
+        const canvas = hostBox?.querySelector('canvas') as HTMLCanvasElement | null
+        const host = hostBox?.querySelector('.hero-3d-poster-host') as HTMLElement | null
+        const poster = hostBox?.querySelector('.hero-3d-poster') as SVGElement | null
         const cs = (el: Element | null) => (el ? getComputedStyle(el) : null)
         const vis = (el: Element | null) => {
           const s = cs(el)
@@ -597,10 +624,8 @@ test.describe('hero 3D K1', () => {
       }
       requestAnimationFrame(tick)
       await new Promise((r) => requestAnimationFrame(() => r(null)))
-      const canvas = document.querySelector('.hero-3d canvas') as HTMLCanvasElement | null
-      const gl = canvas?.getContext('webgl2') || canvas?.getContext('webgl')
-      gl?.getExtension('WEBGL_lose_context')?.loseContext()
-      canvas?.dispatchEvent(new Event('webglcontextlost', { cancelable: true }))
+      const hook = (window as Window & { __hero3d?: { forceContextLoss?: () => void } }).__hero3d
+      hook?.forceContextLoss?.()
       await new Promise((r) => setTimeout(r, 120))
       running = false
       return {
@@ -610,6 +635,20 @@ test.describe('hero 3D K1', () => {
       }
     })
     expect(empty.empty, JSON.stringify(empty)).toBe(0)
+    for (let i = 0; i < 8; i += 1) {
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => r(null))))
+      await grab()
+    }
+    expect(frames.length).toBeGreaterThan(4)
+    for (const png of frames) {
+      expect(png.byteLength).toBeGreaterThan(200)
+      const img = decodePngRgba(png)
+      let marked = 0
+      for (let i = 3; i < img.pixels.length; i += 4) {
+        if (img.pixels[i] > 8) marked += 1
+      }
+      expect(marked, 'ctxlost frame must not be empty').toBeGreaterThan(80)
+    }
   })
 
   test('LCP observer does not warn about getEntriesByType', async ({ page }) => {
@@ -859,6 +898,8 @@ test.describe('hero 3D K1', () => {
       }, cfg.theme)
       await gotoHome(page, '?qa3d=1')
       await waitHero3d(page)
+      await page.locator('.hero-3d').evaluate((el) => el.scrollIntoView({ block: 'center', inline: 'nearest' }))
+      await page.waitForTimeout(50)
       await page.evaluate((theme) => {
         document.documentElement.dataset.theme = theme
         document.documentElement.style.colorScheme = theme
@@ -871,15 +912,37 @@ test.describe('hero 3D K1', () => {
 
       const tokens = await page.evaluate(() => {
         const css = getComputedStyle(document.documentElement)
-        const svg = document.querySelector('.hero-3d-poster')
-        const chip = svg?.querySelector('path.k1-chip')
-        const vb = (svg?.getAttribute('viewBox') || '0 0 320 240').trim().split(/\s+/)
+        const canvas = document.querySelector('.hero-3d canvas')
+        const pathEl = document.querySelector('.hero-3d-poster path.k1-chip')
+        const br = canvas?.getBoundingClientRect()
+        const pts: { x: number; y: number }[] = []
+        if (pathEl && br && pathEl.ownerSVGElement) {
+          const svgP = pathEl.ownerSVGElement.createSVGPoint()
+          const ctm = pathEl.getScreenCTM()
+          const d = pathEl.getAttribute('d') || ''
+          const parts = d.match(/[MmLl][^MmLlZz]*|[Zz]/g) || []
+          for (const part of parts) {
+            if (part[0] === 'Z' || part[0] === 'z') continue
+            const nums = part
+              .slice(1)
+              .trim()
+              .split(/[\s,]+/)
+              .filter(Boolean)
+              .map(Number)
+            for (let i = 0; i + 1 < nums.length; i += 2) {
+              svgP.x = nums[i]
+              svgP.y = nums[i + 1]
+              const s = ctm ? svgP.matrixTransform(ctm) : svgP
+              pts.push({ x: s.x - br.left, y: s.y - br.top })
+            }
+          }
+        }
         return {
           surface: css.getPropertyValue('--color-surface').trim(),
           ink: css.getPropertyValue('--color-ink').trim() || css.getPropertyValue('--color-foreground').trim(),
-          chipD: chip?.getAttribute('d') || '',
-          viewW: Number(vb[2]) || 320,
-          viewH: Number(vb[3]) || 240,
+          chipCss: pts,
+          cssW: br?.width ?? 1,
+          cssH: br?.height ?? 1,
         }
       })
 
@@ -926,11 +989,11 @@ test.describe('hero 3D K1', () => {
         parseCssColor(tokens.ink),
         1,
       )
-      const chip = chipSeeThroughFromPath(
+      const chip = chipSeeThroughCss(
         Buffer.from(livePng),
-        tokens.chipD,
-        tokens.viewW,
-        tokens.viewH,
+        tokens.chipCss,
+        tokens.cssW,
+        tokens.cssH,
         parseCssColor(tokens.surface),
         2,
       )
@@ -939,6 +1002,7 @@ test.describe('hero 3D K1', () => {
       expect(cov.bFill, JSON.stringify(cov)).toBeGreaterThan(20)
       expect(cov.aInB, `live-in-poster ${JSON.stringify(cov)}`).toBeGreaterThanOrEqual(0.99)
       expect(cov.bInA, `poster-in-live ${JSON.stringify(cov)}`).toBeGreaterThanOrEqual(0.99)
+      expect(chip.interior, `chip interior ${JSON.stringify(chip)}`).toBeGreaterThan(20)
       expect(chip.seeThrough, `chip see-through ${JSON.stringify(chip)}`).toBeLessThanOrEqual(4)
       await context.close()
     })
