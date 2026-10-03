@@ -87,11 +87,16 @@ declare global {
 
 const TOP_Y = 0.07 / 2 + 0.004
 const BOT_Y = -0.07 / 2 - 0.004
-const CHIP_HALF = 0.25
+const CHIP_HALF = 0.23
+const CHIP_TOP = 0.135
 
 function worldY(k1: K1Scene, layer: 'top' | 'bot') {
   const v = k1.uLayerY.value
   return layer === 'bot' ? v.x + BOT_Y : v.z + TOP_Y
+}
+
+function chipTopY(k1: K1Scene) {
+  return k1.uLayerY.value.w + CHIP_TOP
 }
 
 function mapPt(cam: Cam3, v: Vec3, width: number, height: number) {
@@ -138,7 +143,7 @@ export function attachHeroQa(host: HeroQaHost) {
       const alongX = Math.abs(anc.x) >= Math.abs(anc.z)
       const x = alongX ? Math.sign(anc.x) * CHIP_HALF : anc.x
       const z = alongX ? anc.z : Math.sign(anc.z) * CHIP_HALF
-      pinMeshes.push(makeAnchor(anc.id, x, worldY(k1, 'top'), z))
+      pinMeshes.push(makeAnchor(anc.id, x, chipTopY(k1), z))
     }
   }
 
@@ -160,7 +165,7 @@ export function attachHeroQa(host: HeroQaHost) {
     }
     for (const mesh of pinMeshes) {
       if (endMeshes.includes(mesh)) continue
-      mesh.position.y = worldY(scene, 'top')
+      mesh.position.y = chipTopY(scene)
     }
     const box = host.getBox()
     if (!cam || !box) return

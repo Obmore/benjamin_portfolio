@@ -45,7 +45,7 @@ function AppShell() {
     const kick = () => {
       po?.disconnect()
       if (fallback) window.clearTimeout(fallback)
-      fallback = window.setTimeout(start, 500)
+      fallback = window.setTimeout(start, 0)
     }
     try {
       if (performance.getEntriesByType('largest-contentful-paint').length > 0) {
