@@ -94,12 +94,11 @@ function linePaths(
 
 function fillPaths(
   geo: BufferGeometry,
-  _u: { x: number; y: number; z: number; w: number },
+  u: { x: number; y: number; z: number; w: number },
   cam: Camera,
   w: number,
   h: number,
   want: (layer: number) => boolean,
-  extraY = 0,
 ) {
   const { pos, layer, count, index } = attrArrays(geo)
   const parent = new Int32Array(count).fill(-1)
@@ -141,7 +140,9 @@ function fillPaths(
   for (const verts of groups.values()) {
     const pts: Pt[] = []
     for (const i of verts) {
-      const p = project(cam, pos[i * 3], pos[i * 3 + 1] + extraY, pos[i * 3 + 2], w, h, v)
+      const oy = layerOffset(layer ? layer[i] : 0, u)
+      if (oy === null) continue
+      const p = project(cam, pos[i * 3], pos[i * 3 + 1] + oy, pos[i * 3 + 2], w, h, v)
       pts.push({ x: r(p.x), y: r(p.y) })
     }
     const hull = convexHull(pts)
@@ -153,17 +154,18 @@ function fillPaths(
 
 function hullPath(
   geo: BufferGeometry,
-  _u: { x: number; y: number; z: number; w: number },
+  u: { x: number; y: number; z: number; w: number },
   cam: Camera,
   w: number,
   h: number,
-  extraY = 0,
 ) {
-  const { pos, count } = attrArrays(geo)
+  const { pos, layer, count } = attrArrays(geo)
   const v = new Vector3()
   const pts: Pt[] = []
   for (let i = 0; i < count; i++) {
-    const p = project(cam, pos[i * 3], pos[i * 3 + 1] + extraY, pos[i * 3 + 2], w, h, v)
+    const oy = layerOffset(layer ? layer[i] : 1, u)
+    if (oy === null) continue
+    const p = project(cam, pos[i * 3], pos[i * 3 + 1] + oy, pos[i * 3 + 2], w, h, v)
     pts.push({ x: r(p.x), y: r(p.y) })
   }
   const hull = convexHull(pts)
@@ -186,9 +188,9 @@ export function svgFromK1Scene(scene: K1Scene, w = POSTER_W, h = POSTER_H) {
   const ink2 = linePaths(ink, u, cam, w, h, (l) => l >= 1.5 && l < 2.5)
   const ink3 = linePaths(ink, u, cam, w, h, (l) => l >= 2.5)
   const acc = linePaths(accent, u, cam, w, h, (l) => l >= 0)
-  const fill2 = fillPaths(fill, u, cam, w, h, (l) => l >= 1.5 && l < 2.5, scene.fill.position.y)
-  const fill3 = fillPaths(fill, u, cam, w, h, (l) => l >= 2.5, scene.fill.position.y)
-  const subPath = sub ? hullPath(sub, u, cam, w, h, scene.subMesh?.position.y ?? 0) : ''
+  const fill2 = fillPaths(fill, u, cam, w, h, (l) => l >= 1.5 && l < 2.5)
+  const fill3 = fillPaths(fill, u, cam, w, h, (l) => l >= 2.5)
+  const subPath = sub ? hullPath(sub, u, cam, w, h) : ''
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" class="hero-3d-poster" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" fill="none" aria-hidden="true" focusable="false" data-pose="100">`,

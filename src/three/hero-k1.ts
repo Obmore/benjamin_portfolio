@@ -10,6 +10,9 @@ import {
   MeshBasicMaterial,
   OrthographicCamera,
   Scene,
+  ShaderMaterial,
+  NoBlending,
+  NormalBlending,
   Vector3,
   Vector4,
   WebGLRenderer,
@@ -63,7 +66,7 @@ export type HeroEnd = {
   kind: 'pad' | 'via' | 'pin'
 }
 
-type LayerShaderMat = MeshBasicMaterial | LineBasicMaterial
+type LayerShaderMat = LineBasicMaterial
 
 export type K1Scene = {
   root: Group
@@ -71,8 +74,8 @@ export type K1Scene = {
   camera: OrthographicCamera
   frustum: number
   mats: {
-    fill: MeshBasicMaterial
-    sub: MeshBasicMaterial
+    fill: ShaderMaterial
+    sub: ShaderMaterial
     ink: LineBasicMaterial
     accent: LineBasicMaterial
   }
@@ -111,6 +114,49 @@ function bindLayer(mat: LayerShaderMat, uLayerY: { value: Vector4 }, key: string
       )
   }
   mat.customProgramCacheKey = () => key
+}
+
+const FILL_VERT = [
+  'attribute float aLayer;',
+  'uniform vec4 uLayerY;',
+  'void main() {',
+  '  vec3 transformed = vec3(position);',
+  '  transformed.y += aLayer < 0.0 ? 0.0 : aLayer < 0.5 ? uLayerY.x : aLayer < 1.5 ? uLayerY.y : aLayer < 2.5 ? uLayerY.z : uLayerY.w;',
+  '  gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);',
+  '}',
+].join('\n')
+
+const FILL_FRAG = [
+  'uniform vec3 uColor;',
+  'uniform float uOpacity;',
+  'void main() {',
+  '  gl_FragColor = vec4(uColor, uOpacity);',
+  '}',
+].join('\n')
+
+function makeFillMat(
+  color: Color,
+  uLayerY: { value: Vector4 },
+  transparent: boolean,
+  opacity: number,
+) {
+  const uColor = color.clone().convertLinearToSRGB()
+  const mat = new ShaderMaterial({
+    uniforms: {
+      uLayerY,
+      uColor: { value: uColor },
+      uOpacity: { value: opacity },
+    },
+    vertexShader: FILL_VERT,
+    fragmentShader: FILL_FRAG,
+    transparent,
+    opacity,
+    depthWrite: true,
+    depthTest: true,
+    blending: transparent ? NormalBlending : NoBlending,
+  })
+  mat.color = uColor
+  return mat
 }
 
 function placeCam(cam: OrthographicCamera, elev: number, azim: number) {
@@ -234,19 +280,8 @@ export async function createK1Scene(
   pause: () => Promise<void> = () => Promise.resolve(),
 ): Promise<K1Scene> {
   const uLayerY = { value: new Vector4(0, 0, 0, 0) }
-  const fill = new MeshBasicMaterial({
-    color: colors.surface,
-    transparent: false,
-    depthWrite: true,
-    depthTest: true,
-  })
-  const subMat = new MeshBasicMaterial({
-    color: colors.surface,
-    transparent: true,
-    opacity: 0.92,
-    depthWrite: true,
-    depthTest: true,
-  })
+  const fill = makeFillMat(colors.surface, uLayerY, false, 1)
+  const subMat = makeFillMat(colors.surface, uLayerY, true, 0.92)
   const ink = new LineBasicMaterial({
     color: colors.ink,
     transparent: true,
@@ -370,8 +405,8 @@ export function setK1Colors(scene: K1Scene, colors: K1Colors, dark = false) {
   scene.tokens.ink.copy(colors.ink)
   scene.tokens.accent.copy(colors.accent)
   scene.dark = dark
-  scene.mats.fill.color.copy(colors.surface)
-  scene.mats.sub.color.copy(colors.surface)
+  scene.mats.fill.color.copy(colors.surface).convertLinearToSRGB()
+  scene.mats.sub.color.copy(colors.surface).convertLinearToSRGB()
   scene.mats.ink.color.copy(colors.ink)
 }
 
@@ -388,11 +423,13 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   placeCam(scene.camera, CAM_ELEV, CAM_AZIM)
   const ys = poseYs(p)
   scene.uLayerY.value.set(ys.bot, ys.sub, ys.top, ys.chip)
-  scene.fill.position.y = ys.top
-  if (scene.subMesh) scene.subMesh.position.y = ys.sub
+  scene.fill.position.set(0, 0, 0)
+  if (scene.subMesh) scene.subMesh.position.set(0, 0, 0)
 
   if (scene.subMesh) {
-    scene.mats.sub.opacity = 0.92 - 0.74 * ys.explode
+    const op = 0.92 - 0.74 * ys.explode
+    scene.mats.sub.opacity = op
+    scene.mats.sub.uniforms.uOpacity.value = op
     scene.mats.sub.depthWrite = ys.explode < 0.35
   }
 
@@ -419,9 +456,11 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   const b = new Vector3()
   const trail = 0.12
   const base = scene.pulseOffset
+  const pulseMax = 1 - 1 / Math.max(1, loop.length - 1)
+  const uPulse = Math.min(pulseU, pulseMax)
   for (let i = 0; i < 3; i++) {
-    const u0 = Math.max(0, pulseU - (trail * (i + 1)) / 3)
-    const u1 = Math.max(0, pulseU - (trail * i) / 3)
+    const u0 = Math.max(0, uPulse - (trail * (i + 1)) / 3)
+    const u1 = Math.max(0, uPulse - (trail * i) / 3)
     sampleLoop(u0, ys, a)
     sampleLoop(u1, ys, b)
     const o = base + i * 6

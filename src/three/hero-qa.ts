@@ -178,15 +178,15 @@ export function attachHeroQa(host: HeroQaHost) {
         const x = arr[i * 3]
         const y = arr[i * 3 + 1]
         const z = arr[i * 3 + 2]
-        if (Math.abs(x) > 0.26 || Math.abs(z) > 0.26) continue
+        if (Math.abs(x) > 0.26 || Math.abs(z) > 0.26 || y < 0.1) continue
         if (corners.some((c) => Math.abs(c.x - x) + Math.abs(c.y - y) + Math.abs(c.z - z) < 1e-3)) continue
         corners.push({ x, y, z })
       }
       for (let i = 0; i < pinMeshes.length; i++) {
         const c = corners[i % Math.max(1, corners.length)]
         if (!c) continue
-        const fy = scene.fill.position.y
-        pinMeshes[i].position.set(c.x, c.y + fy, c.z)
+        const fy = scene.uLayerY.value.z
+        pinMeshes[i].position.set(c.x * 0.22, c.y + fy, c.z * 0.22)
       }
     }
     const box = host.getBox()

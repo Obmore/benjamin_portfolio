@@ -25,6 +25,8 @@ interface Document {
 }
 
 declare module 'three' {
+  export const NoBlending: number
+  export const NormalBlending: number
   export class Vector3 {
     x: number
     y: number
@@ -43,6 +45,7 @@ declare module 'three' {
     constructor(color?: string | number)
     copy(c: Color): this
     clone(): Color
+    convertLinearToSRGB(): this
     lerpColors(a: Color, b: Color, t: number): this
   }
 
@@ -133,9 +136,28 @@ declare module 'three' {
     polygonOffset?: boolean
     polygonOffsetFactor?: number
     polygonOffsetUnits?: number
+    defines?: Record<string, string | number>
     onBeforeCompile: (shader: Shader) => void
     customProgramCacheKey: () => string
     dispose(): void
+  }
+
+  export class ShaderMaterial extends Material {
+    constructor(params?: {
+      uniforms?: Record<string, { value: unknown }>
+      vertexShader?: string
+      fragmentShader?: string
+      transparent?: boolean
+      opacity?: number
+      depthWrite?: boolean
+      depthTest?: boolean
+      blending?: number
+      polygonOffset?: boolean
+      polygonOffsetFactor?: number
+      polygonOffsetUnits?: number
+    })
+    uniforms: Record<string, { value: unknown }>
+    depthWrite: boolean
   }
 
   export class MeshBasicMaterial extends Material {
