@@ -67,13 +67,30 @@ export function bootHero3d(): () => void {
 
   let stopped = false
   let stopView = () => {}
-  const deadline = window.setTimeout(() => {
+  let deadlineWorker: Worker | null = null
+  const fireDeadline = () => {
     if (stopped) return
     tripWatchdog()
     writeTier('static')
     stopped = true
     stopView()
-  }, 9000)
+  }
+  const deadline = window.setTimeout(fireDeadline, 9000)
+  try {
+    const blob = new Blob([`setTimeout(() => postMessage(1), 12000)`], { type: 'text/javascript' })
+    const url = URL.createObjectURL(blob)
+    deadlineWorker = new Worker(url)
+    URL.revokeObjectURL(url)
+    deadlineWorker.onmessage = () => fireDeadline()
+  } catch {
+    /* blob workers may be blocked; the window timer remains */
+  }
+
+  const clearDeadline = () => {
+    window.clearTimeout(deadline)
+    deadlineWorker?.terminate()
+    deadlineWorker = null
+  }
 
   void (async () => {
     await afterLcp()
@@ -81,22 +98,25 @@ export function bootHero3d(): () => void {
     if (stopped) return
     if (mediaStatic()) {
       writeTier('static')
+      clearDeadline()
       return
     }
     if (cpuTooSlow()) {
-      tripWatchdog()
-      writeTier('static')
+      fireDeadline()
+      clearDeadline()
       return
     }
     if (!qa) await afterIdle()
     if (stopped || mediaStatic()) {
       writeTier('static')
+      clearDeadline()
       return
     }
     await nextFrame()
     if (stopped) return
     if (!canWebGL()) {
       writeTier('static')
+      clearDeadline()
       return
     }
     writeTier(widthTier())
@@ -115,6 +135,7 @@ export function bootHero3d(): () => void {
     await near
     if (stopped || mediaStatic()) {
       writeTier(mediaStatic() ? 'static' : widthTier())
+      if (!stopped) clearDeadline()
       return
     }
     await nextFrame()
@@ -131,13 +152,13 @@ export function bootHero3d(): () => void {
       mod.stopView()
       return
     }
-    window.clearTimeout(deadline)
+    clearDeadline()
     writeTier(widthTier())
   })()
 
   return () => {
     stopped = true
-    window.clearTimeout(deadline)
+    clearDeadline()
     stopView()
   }
 }

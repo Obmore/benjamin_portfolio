@@ -438,7 +438,7 @@ async function bootScene() {
     r = new hero.WebGLRenderer({
       canvas: el,
       alpha: true,
-      antialias: !lite,
+      antialias: true,
       powerPreference: 'low-power',
       failIfMajorPerformanceCaveat: false,
     })
