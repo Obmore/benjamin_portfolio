@@ -240,9 +240,6 @@ export async function createK1Scene(
     transparent: false,
     depthWrite: true,
     depthTest: true,
-    polygonOffset: true,
-    polygonOffsetFactor: 1,
-    polygonOffsetUnits: 1,
   })
   const subMat = new MeshBasicMaterial({
     color: colors.surface,
@@ -250,9 +247,6 @@ export async function createK1Scene(
     opacity: 0.92,
     depthWrite: true,
     depthTest: true,
-    polygonOffset: true,
-    polygonOffsetFactor: 1,
-    polygonOffsetUnits: 1,
   })
   const ink = new LineBasicMaterial({
     color: colors.ink,
@@ -260,6 +254,9 @@ export async function createK1Scene(
     opacity: 0.55,
     depthWrite: false,
     depthTest: true,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -2,
   })
   const accent = new LineBasicMaterial({
     color: colors.ink,
@@ -267,6 +264,9 @@ export async function createK1Scene(
     opacity: 0.55,
     depthWrite: false,
     depthTest: true,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -2,
   })
   bindLayer(fill, uLayerY)
   bindLayer(subMat, uLayerY)

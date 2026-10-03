@@ -159,6 +159,9 @@ declare module 'three' {
       opacity?: number
       depthWrite?: boolean
       depthTest?: boolean
+      polygonOffset?: boolean
+      polygonOffsetFactor?: number
+      polygonOffsetUnits?: number
     })
   }
 
