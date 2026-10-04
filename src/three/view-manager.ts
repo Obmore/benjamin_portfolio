@@ -268,7 +268,6 @@ function onProgress(p: number) {
   if (Math.abs(p - progress) <= PAINT_EPS) return
   cancelEntryPulse()
   progress = p
-  pulseU = p
   requestRender()
 }
 
@@ -467,7 +466,7 @@ async function attachQa() {
     seek(p: number) {
       cancelEntryPulse()
       progress = Math.min(1, Math.max(0, p))
-      pulseU = progress
+      pulseU = 0
       paint()
     },
     dispose() {

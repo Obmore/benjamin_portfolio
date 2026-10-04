@@ -569,7 +569,7 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   for (let i = 0; i < 3; i++) {
     let u0 = Math.max(0, uPulse - (trail * (i + 1)) / 3)
     let u1 = Math.max(0, uPulse - (trail * i) / 3)
-    if (uPulse <= 1e-6 && i === 0) {
+    if (uPulse <= 1e-6 && i === 0 && ys.explode < 0.2) {
       u0 = 0
       u1 = 0.06
     }
