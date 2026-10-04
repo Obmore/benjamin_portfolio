@@ -415,7 +415,7 @@ export async function createK1Scene(
   // Full chip box after traces (FrontSide, no depth test) so lite stamps the
   // same screen silhouette as poster fill3+chipTop — a thin lid left the north
   // face open and traces counted as see-through inside the k1-chip hull.
-  const lid = new Mesh(taggedBox(CHIP, 0.1, CHIP, 0, CHIP_Y, 0, LY.chip), lidMat)
+  const lid = new Mesh(taggedBox(CHIP * 1.28, 0.22, CHIP * 1.28, 0, CHIP_Y + 0.05, 0, LY.chip), lidMat)
   lid.frustumCulled = false
   lid.renderOrder = 5
   lidMat.depthTest = false
