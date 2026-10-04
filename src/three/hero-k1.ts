@@ -411,6 +411,7 @@ export async function createK1Scene(
   const lid = new Mesh(taggedBox(CHIP, 0.002, CHIP, 0, CHIP_Y + 0.05, 0, LY.chip), lidMat)
   lid.frustumCulled = false
   lid.renderOrder = 5
+  lidMat.depthTest = false
 
   await pause()
 
