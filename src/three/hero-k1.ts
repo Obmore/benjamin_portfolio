@@ -189,6 +189,9 @@ function nodeY(node: PathNode, ys: ReturnType<typeof poseYs>) {
   return ys.top + TOP_Y
 }
 
+const _pulseA = new Vector3()
+const _pulseB = new Vector3()
+
 function sampleLoop(u: number, ys: ReturnType<typeof poseYs>, out: Vector3) {
   const pts = loop
   const n = pts.length - 1
@@ -368,8 +371,6 @@ export async function createK1Scene(
   addPolys(inkBuf, [boardOutline], 0, LY.sub)
   await pause()
   addPolys(inkBuf, [boardOutline], topY, LY.top)
-  addPolys(inkBuf, allTopPads(), topY, LY.top)
-  for (const route of topRoutes) addRoute(route, topY, LY.top, 'top')
   for (const route of botRoutes) addRoute(route, botY, LY.bot, 'bot')
   await pause()
   const inkLines = new LineSegments(lineGeometry(inkBuf), ink)
@@ -380,6 +381,19 @@ export async function createK1Scene(
   await pause()
 
   const accentBuf: LineBuf = { pos: [], layer: [] }
+  addPolys(accentBuf, allTopPads(), topY, LY.top)
+  const addAccentRoute = (route: (typeof topRoutes)[number]) => {
+    const startVert = accentBuf.pos.length / 3
+    addPolys(accentBuf, [route.poly], topY, LY.top)
+    const endVert = accentBuf.pos.length / 3 - 1
+    const first = route.poly[0]
+    const last = route.poly[route.poly.length - 1]
+    endPairs.push({ x: first[0], z: first[1], layer: 'top', id: route.startId })
+    endVerts.push({ which: 'accent', vert: startVert })
+    endPairs.push({ x: last[0], z: last[1], layer: 'top', id: route.endId })
+    endVerts.push({ which: 'accent', vert: endVert })
+  }
+  for (const route of topRoutes) addAccentRoute(route)
   await pause()
   for (const [x, z] of vias) {
     accentBuf.pos.push(x, topY, z, x, botY, z)
@@ -456,7 +470,6 @@ export function setK1Aspect(scene: K1Scene, aspect = POSTER_ASPECT) {
 }
 
 export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
-  placeCam(scene.camera, CAM_ELEV, CAM_AZIM)
   const ys = poseYs(p)
   scene.uLayerY.value.set(ys.bot, ys.sub, ys.top, ys.chip)
 
@@ -466,36 +479,28 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
     scene.mats.sub.depthWrite = ys.explode < 0.35
   }
 
-  const accentAmt = p >= 0.5 ? 1 : p / 0.5
-  scene.mats.ink.color.copy(scene.tokens.ink)
   scene.mats.ink.opacity = scene.dark ? 0.7 : 0.55
-  scene.mats.accent.color.lerpColors(scene.tokens.ink, scene.tokens.accent, accentAmt)
-  scene.mats.accent.opacity = scene.dark
-    ? 0.35 + 0.65 * Math.max(accentAmt, ys.explode)
-    : p >= 0.5
-      ? 1
-      : 0.55
+  scene.mats.accent.color.copy(scene.tokens.accent)
+  scene.mats.accent.opacity = scene.dark ? 0.9 : 1
 
   const pa = scene.accent.geometry.getAttribute('position')
   const arr = pa.array as Float32Array
-  const a = new Vector3()
-  const b = new Vector3()
   const trail = 0.12
   const base = scene.pulseOffset
-  const pulseMax = 1 - 1 / Math.max(1, loop.length - 1)
-  const uPulse = Math.min(pulseU, pulseMax)
+  const pulseLim = 1 - 1 / Math.max(1, loop.length - 1)
+  const uPulse = Math.min(pulseU, pulseLim)
   for (let i = 0; i < 3; i++) {
     const u0 = Math.max(0, uPulse - (trail * (i + 1)) / 3)
     const u1 = Math.max(0, uPulse - (trail * i) / 3)
-    sampleLoop(u0, ys, a)
-    sampleLoop(u1, ys, b)
+    sampleLoop(u0, ys, _pulseA)
+    sampleLoop(u1, ys, _pulseB)
     const o = base + i * 6
-    arr[o] = a.x
-    arr[o + 1] = a.y
-    arr[o + 2] = a.z
-    arr[o + 3] = b.x
-    arr[o + 4] = b.y
-    arr[o + 5] = b.z
+    arr[o] = _pulseA.x
+    arr[o + 1] = _pulseA.y
+    arr[o + 2] = _pulseA.z
+    arr[o + 3] = _pulseB.x
+    arr[o + 4] = _pulseB.y
+    arr[o + 5] = _pulseB.z
   }
   pa.needsUpdate = true
 }

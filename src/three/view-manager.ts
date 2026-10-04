@@ -1,4 +1,4 @@
-import { hero3dWidthTier, isQa3d, mark3dWatchdog } from '@/lib/three-gate'
+import { hero3dWidthTier, isQa3d, isSoftwareGL, mark3dWatchdog } from '@/lib/three-gate'
 import type { K1Scene } from './hero-k1'
 
 type GsapTicker = {
@@ -31,6 +31,8 @@ type Hero3dInfo = {
 
 const SWAP_MS = 200
 const PROBE_FRAMES = 12
+const INTRO_MS = 700
+const PULSE_MS = 1200
 let hero: HeroMod | null = null
 let renderer: InstanceType<HeroMod['WebGLRenderer']> | null = null
 let canvas: HTMLCanvasElement | null = null
@@ -39,6 +41,11 @@ let scene: InstanceType<HeroMod['Scene']> | null = null
 let k1: K1Scene | null = null
 let gen = 0
 let progress = 0
+let pulseU = 0
+let pulseMax = 0
+let entryTimer = 0
+let entryStart = 0
+let entryPhase: 'idle' | 'wait' | 'pulse' | 'done' = 'idle'
 let rafCount = 0
 let gsapTicker: GsapTicker | null = null
 let tickerBound = false
@@ -121,9 +128,43 @@ function snapshotInfo(): Hero3dInfo {
 function paint() {
   if (!renderer || !scene || !k1 || !hero) return
   renderer.info.reset()
-  hero.applyK1Progress(k1, progress, progress)
+  hero.applyK1Progress(k1, progress, pulseU)
   renderer.render(scene, k1.camera)
   qaSync?.()
+}
+
+function cancelEntryPulse() {
+  if (entryTimer) window.clearTimeout(entryTimer)
+  entryTimer = 0
+  if (entryPhase === 'wait' || entryPhase === 'pulse') entryPhase = 'done'
+}
+
+function startEntryPulse() {
+  cancelEntryPulse()
+  entryPhase = 'wait'
+  pulseU = 0
+  pulseMax = 0
+  entryTimer = window.setTimeout(() => {
+    entryTimer = 0
+    entryPhase = 'pulse'
+    entryStart = performance.now()
+    requestRender(true)
+  }, INTRO_MS)
+}
+
+function tickEntryPulse() {
+  if (entryPhase !== 'pulse') return false
+  const t = Math.min(1, (performance.now() - entryStart) / PULSE_MS)
+  pulseU = t
+  if (t > pulseMax) pulseMax = t
+  if (t >= 1) {
+    pulseMax = 1
+    pulseU = 0
+    entryPhase = 'done'
+    forcePaint = true
+    return false
+  }
+  return true
 }
 
 function watchdog(dt: number, work: number) {
@@ -187,9 +228,14 @@ function onTicker() {
     stopTicker()
     return
   }
-  const force = forcePaint || probeLeft > 0
+  const pulsing = tickEntryPulse()
+  const force = forcePaint || probeLeft > 0 || pulsing || entryPhase === 'pulse'
   forcePaint = false
-  if (!force && Number.isFinite(lastPainted) && Math.abs(progress - lastPainted) <= PAINT_EPS) {
+  if (
+    !force &&
+    Number.isFinite(lastPainted) &&
+    Math.abs(progress - lastPainted) <= PAINT_EPS
+  ) {
     stopTicker()
     return
   }
@@ -205,9 +251,9 @@ function onTicker() {
     fallbackStatic()
     return
   }
-  if (probeLeft > 0) {
-    probeLeft -= 1
-    if (probeLeft > 0) {
+  if (pulsing || probeLeft > 0) {
+    if (probeLeft > 0) probeLeft -= 1
+    if (pulsing || probeLeft > 0) {
       requestRender(true)
       return
     }
@@ -216,8 +262,10 @@ function onTicker() {
 }
 
 function onProgress(p: number) {
-  if (Math.abs(p - progress) <= PAINT_EPS) return
+  if (Math.abs(p - progress) <= PAINT_EPS && entryPhase === 'done') return
+  cancelEntryPulse()
   progress = p
+  pulseU = p
   requestRender()
 }
 
@@ -280,6 +328,7 @@ function showPosterImmediate() {
 
 function haltLoop() {
   probeLeft = 0
+  cancelEntryPulse()
   stopTicker()
   stopScroll()
   stopScroll = () => {}
@@ -337,6 +386,7 @@ function swapBackPoster(animated: boolean, after: () => void) {
   }
   clearSwapTimer()
   progress = 1
+  pulseU = 1
   paint()
   let done = false
   const host = posterHost()
@@ -405,8 +455,12 @@ async function attachQa() {
     getDpr: () => (renderer && canvas && boxEl ? canvas.width / Math.max(1, boxEl.clientWidth) : 1),
     getPixelRatio: () => renderer?.getPixelRatio() ?? 1,
     getTier: () => boxEl?.dataset.hero3dTier || (k1?.lite ? 'lite' : 'full'),
+    getPulseU: () => pulseU,
+    getPulseMax: () => pulseMax,
     seek(p: number) {
+      cancelEntryPulse()
       progress = Math.min(1, Math.max(0, p))
+      pulseU = progress
       paint()
     },
     dispose() {
@@ -476,7 +530,7 @@ function watchdogOn() {
 
 async function bootScene() {
   if (renderer || booting || disposing || !boxEl) return
-  if (watchdogOn()) {
+  if (watchdogOn() || (!qa && isSoftwareGL())) {
     if (qa) boxEl.dataset.hero3dTier = 'static'
     showPosterImmediate()
     return
@@ -525,9 +579,9 @@ async function bootScene() {
     r = new hero.WebGLRenderer({
       canvas: el,
       alpha: true,
-      antialias: true,
+      antialias: !lite,
       powerPreference: 'low-power',
-      failIfMajorPerformanceCaveat: !(qa || Boolean(navigator.webdriver)),
+      failIfMajorPerformanceCaveat: !qa,
     })
   } catch {
     el.remove()
@@ -602,7 +656,9 @@ async function bootScene() {
     return
   }
 
-  progress = 1
+  progress = 0
+  pulseU = 0
+  pulseMax = 0
   frameMs.length = 0
   over50 = 0
   probeLeft = PROBE_FRAMES
@@ -623,6 +679,7 @@ async function bootScene() {
   lastPainted = progress
   startPosterSwap()
   booting = false
+  startEntryPulse()
   requestRender(true)
 }
 

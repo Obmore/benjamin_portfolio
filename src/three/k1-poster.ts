@@ -233,6 +233,87 @@ function classFromLayer(layer: string) {
   return 'k1-ink'
 }
 
+function facingEdgePaths(
+  geo: BufferGeometry,
+  u: { x: number; y: number; z: number; w: number },
+  cam: Camera,
+  w: number,
+  h: number,
+  want: (layer: number) => boolean,
+) {
+  const { pos, layer, count, index } = attrArrays(geo)
+  const mw = (cam as unknown as { matrixWorld: { elements: ArrayLike<number> } }).matrixWorld.elements
+  const camPos = { x: mw[12], y: mw[13], z: mw[14] }
+  const v = new Vector3()
+  const triCount = index ? index.length / 3 : count / 3
+  type FaceN = { nx: number; ny: number; nz: number; front: boolean }
+  const edgeFaces = new Map<string, FaceN[]>()
+  const edgeKey = (ia: number, ib: number) => (ia < ib ? `${ia}-${ib}` : `${ib}-${ia}`)
+  const addEdge = (ia: number, ib: number, face: FaceN) => {
+    const key = edgeKey(ia, ib)
+    const list = edgeFaces.get(key)
+    if (list) list.push(face)
+    else edgeFaces.set(key, [face])
+  }
+  for (let t = 0; t < triCount; t += 1) {
+    const ia = index ? (index[t * 3] as number) : t * 3
+    const ib = index ? (index[t * 3 + 1] as number) : t * 3 + 1
+    const ic = index ? (index[t * 3 + 2] as number) : t * 3 + 2
+    const la = layer ? layer[ia] : 0
+    if (!want(la)) continue
+    const oyA = layerOffset(la, u)
+    const oyB = layerOffset(layer ? layer[ib] : 0, u)
+    const oyC = layerOffset(layer ? layer[ic] : 0, u)
+    if (oyA === null || oyB === null || oyC === null) continue
+    const ax = pos[ia * 3]
+    const ay = pos[ia * 3 + 1] + oyA
+    const az = pos[ia * 3 + 2]
+    const bx = pos[ib * 3]
+    const by = pos[ib * 3 + 1] + oyB
+    const bz = pos[ib * 3 + 2]
+    const cx = pos[ic * 3]
+    const cy = pos[ic * 3 + 1] + oyC
+    const cz = pos[ic * 3 + 2]
+    const nx = (by - ay) * (cz - az) - (bz - az) * (cy - ay)
+    const ny = (bz - az) * (cx - ax) - (bx - ax) * (cz - az)
+    const nz = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax)
+    const mx = (ax + bx + cx) / 3
+    const my = (ay + by + cy) / 3
+    const mz = (az + bz + cz) / 3
+    const front = nx * (camPos.x - mx) + ny * (camPos.y - my) + nz * (camPos.z - mz) > 0
+    const face = { nx, ny, nz, front }
+    addEdge(ia, ib, face)
+    addEdge(ib, ic, face)
+    addEdge(ic, ia, face)
+  }
+  const parts: string[] = []
+  for (const [key, list] of edgeFaces) {
+    if (!list.some((f) => f.front)) continue
+    if (list.length >= 2) {
+      const a = list[0]
+      const b = list[1]
+      const mag = Math.hypot(a.nx, a.ny, a.nz) * Math.hypot(b.nx, b.ny, b.nz) || 1
+      const cos = (a.nx * b.nx + a.ny * b.ny + a.nz * b.nz) / mag
+      if (cos > 0.94) continue
+    }
+    const dash = key.indexOf('-')
+    const ia = Number(key.slice(0, dash))
+    const ib = Number(key.slice(dash + 1))
+    const la = layer ? layer[ia] : 0
+    const lb = layer ? layer[ib] : 0
+    const oyA = layerOffset(la, u)
+    const oyB = layerOffset(lb, u)
+    if (oyA === null || oyB === null) continue
+    const pa = project(cam, pos[ia * 3], pos[ia * 3 + 1] + oyA, pos[ia * 3 + 2], w, h, v)
+    const pb = project(cam, pos[ib * 3], pos[ib * 3 + 1] + oyB, pos[ib * 3 + 2], w, h, v)
+    parts.push(`M${r(pa.x)},${r(pa.y)}L${r(pb.x)},${r(pb.y)}`)
+  }
+  return parts.join('')
+}
+
+const POSTER_STYLE =
+  '.hero-3d-poster .k1-ink{stroke:var(--color-ink);stroke-opacity:.55;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linejoin:round;fill:none}html[data-theme=dark] .hero-3d-poster .k1-ink{stroke-opacity:.7}.hero-3d-poster .k1-accent{stroke:var(--color-accent);stroke-opacity:1;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;fill:none}.hero-3d-poster .k1-fill{fill:var(--color-surface);stroke:none}.hero-3d-poster .k1-sub{fill:var(--color-surface);fill-opacity:.18;stroke:none}@media (min-resolution:1.25dppx){.hero-3d-poster .k1-ink,.hero-3d-poster .k1-accent{stroke-width:.8}}@media (min-width:900px) and (min-resolution:1.5dppx){.hero-3d-poster .k1-ink,.hero-3d-poster .k1-accent{stroke-width:.667}}'
+
 export function svgFromK1Scene(scene: K1Scene, w = POSTER_W, h = POSTER_H) {
   scene.camera.updateProjectionMatrix()
   scene.camera.updateMatrixWorld()
@@ -256,19 +337,25 @@ export function svgFromK1Scene(scene: K1Scene, w = POSTER_W, h = POSTER_H) {
   const fill3 = fillPaths(fill, u, cam, w, h, (l) => l >= 2.5)
   const chipTop = topFacePath(fill, u, cam, w, h, (l) => l >= 2.5)
   const subPath = sub ? hullPath(sub, u, cam, w, h) : ''
+  const body2 = facingEdgePaths(fill, u, cam, w, h, (l) => l >= 1.5 && l < 2.5)
+  const body3 = facingEdgePaths(fill, u, cam, w, h, (l) => l >= 2.5)
 
+  // Painter's order: edges that a body covers, then that body's fill, then its
+  // front-facing edges. Matches the runtime WebGL depth buffer at progress=1.
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" class="hero-3d-poster" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" fill="none" aria-hidden="true" focusable="false" data-pose="100">`,
-    `<style>.hero-3d-poster .k1-ink{stroke:var(--color-ink);stroke-opacity:.55;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linejoin:round;fill:none}html[data-theme=dark] .hero-3d-poster .k1-ink{stroke-opacity:.7}.hero-3d-poster .k1-accent{stroke:var(--color-accent);stroke-opacity:1;stroke-width:1;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;fill:none}.hero-3d-poster .k1-fill{fill:var(--color-surface);stroke:none}.hero-3d-poster .k1-sub{fill:var(--color-surface);fill-opacity:.18;stroke:none}@media (min-resolution:1.25dppx){.k1-ink,.k1-accent{stroke-width:.8}}@media (min-width:900px) and (min-resolution:1.5dppx){.k1-ink,.k1-accent{stroke-width:.667}}</style>`,
+    `<style>${POSTER_STYLE}</style>`,
     subPath ? `<path class="${subClass}" d="${subPath}"/>` : '',
-    fill2 ? `<path class="${fillClass}" d="${fill2}"/>` : '',
-    fill3 ? `<path class="${fillClass}" d="${fill3}"/>` : '',
-    chipTop ? `<path class="${fillClass} k1-chip" d="${chipTop}"/>` : '',
     ink0 ? `<path class="${inkClass}" vector-effect="non-scaling-stroke" d="${ink0}"/>` : '',
     ink1 ? `<path class="${inkClass}" vector-effect="non-scaling-stroke" d="${ink1}"/>` : '',
     ink2 ? `<path class="${inkClass}" vector-effect="non-scaling-stroke" d="${ink2}"/>` : '',
     ink3 ? `<path class="${inkClass}" vector-effect="non-scaling-stroke" d="${ink3}"/>` : '',
     acc ? `<path class="${accentClass}" vector-effect="non-scaling-stroke" d="${acc}"/>` : '',
+    fill2 ? `<path class="${fillClass}" d="${fill2}"/>` : '',
+    body2 ? `<path class="${inkClass}" vector-effect="non-scaling-stroke" d="${body2}"/>` : '',
+    fill3 ? `<path class="${fillClass}" d="${fill3}"/>` : '',
+    chipTop ? `<path class="${fillClass} k1-chip" d="${chipTop}"/>` : '',
+    body3 ? `<path class="${inkClass}" vector-effect="non-scaling-stroke" d="${body3}"/>` : '',
     `</svg>`,
   ]
     .filter(Boolean)

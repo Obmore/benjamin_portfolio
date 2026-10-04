@@ -50,6 +50,8 @@ export type HeroQaHost = {
   getDpr: () => number
   getPixelRatio: () => number
   getTier: () => string
+  getPulseU: () => number
+  getPulseMax: () => number
   seek: (p: number) => void
   dispose: () => void
   paint: () => void
@@ -77,6 +79,8 @@ type Hero3dQa = {
   dpr: number
   pixelRatio: number
   tier: string
+  pulseU: number
+  pulseMax: number
   seek: (p: number) => void
   dispose: () => void
   qaEndWorld: (i: number) => { x: number; y: number; z: number } | undefined
@@ -191,15 +195,6 @@ export function attachHeroQa(host: HeroQaHost) {
     },
     qaShiftEnd(i: number, px: number) {
       host.shiftEnd(i, px)
-      const scene = host.getK1()
-      const pin = pinMeshes.find((mesh) => {
-        const rec = scene?.endPairs[i]
-        return rec && mesh.userData.anchorId === rec.id
-      })
-      if (pin && scene) {
-        const rec = scene.endPairs[i]
-        if (rec) pin.position.set(rec.x, rec.wy ?? worldY(scene, rec.layer), rec.z)
-      }
       host.paint()
     },
     forceContextLoss() {
@@ -226,6 +221,20 @@ export function attachHeroQa(host: HeroQaHost) {
     configurable: true,
     get() {
       return host.getPixelRatio()
+    },
+  })
+  Object.defineProperty(hook, 'pulseU', {
+    enumerable: true,
+    configurable: true,
+    get() {
+      return host.getPulseU()
+    },
+  })
+  Object.defineProperty(hook, 'pulseMax', {
+    enumerable: true,
+    configurable: true,
+    get() {
+      return host.getPulseMax()
     },
   })
   Object.defineProperty(hook, 'dpr', {

@@ -1,10 +1,9 @@
 import { afterLcp, afterIdle, nextFrame } from '@/lib/after-lcp'
 import {
-  classifyCpu,
   hasWebGL,
   hero3dWidthTier,
   isQa3d,
-  markCpuLite,
+  isSoftwareGL,
   mark3dWatchdog,
 } from '@/lib/three-gate'
 
@@ -44,7 +43,7 @@ export function bootHero3d(): () => void {
     return () => {}
   }
 
-  if (!hasWebGL()) {
+  if (!hasWebGL() || (!qa && isSoftwareGL())) {
     writeTier('static')
     return () => {}
   }
@@ -80,37 +79,19 @@ export function bootHero3d(): () => void {
     await afterLcp()
     await nextFrame()
     if (stopped) return
-    if (mediaStatic()) {
+    if (mediaStatic() || !hasWebGL() || (!qa && isSoftwareGL())) {
       writeTier('static')
       clearDeadline()
       return
     }
-    if (!hasWebGL()) {
-      writeTier('static')
-      clearDeadline()
-      return
-    }
-    const cpu = await classifyCpu()
-    if (cpu === 'static') {
-      mark3dWatchdog()
-      writeTier('static')
-      clearDeadline()
-      return
-    }
-    if (cpu === 'lite') markCpuLite()
     if (!qa) await afterIdle()
-    if (stopped || mediaStatic()) {
+    if (stopped || mediaStatic() || !hasWebGL() || (!qa && isSoftwareGL())) {
       writeTier('static')
       clearDeadline()
       return
     }
     await nextFrame()
     if (stopped) return
-    if (!hasWebGL()) {
-      writeTier('static')
-      clearDeadline()
-      return
-    }
     writeTier(hero3dWidthTier())
     const near = new Promise<void>((resolve) => {
       const io = new IntersectionObserver(
@@ -125,8 +106,8 @@ export function bootHero3d(): () => void {
       io.observe(box)
     })
     await near
-    if (stopped || mediaStatic()) {
-      writeTier(mediaStatic() ? 'static' : hero3dWidthTier())
+    if (stopped || mediaStatic() || (!qa && isSoftwareGL())) {
+      writeTier(mediaStatic() || (!qa && isSoftwareGL()) ? 'static' : hero3dWidthTier())
       if (!stopped) clearDeadline()
       return
     }

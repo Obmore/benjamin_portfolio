@@ -34,6 +34,8 @@ type Hero3dHook = {
   pixelRatio: number
   rafCount: number
   tier: string
+  pulseU?: number
+  pulseMax?: number
   info: { calls: number; memory: { geometries: number; textures: number } }
 }
 
@@ -112,8 +114,8 @@ test.describe('hero 3D K1', () => {
     page.on('request', (req) => {
       const url = req.url()
       const file = url.split('/').pop() || ''
-      if (file.startsWith('three-gate')) return
-      if (/^(three|gsap)[-.]/.test(file)) requests.push(url)
+      if (/^(three-gate|hero3d-boot|three|gsap|view-manager|hero-qa)[-.]/.test(file)) requests.push(url)
+      if (/node_modules\/(three|gsap)/.test(url)) requests.push(url)
     })
     await gotoHome(page, '?qa3d=1')
     await page.waitForTimeout(2500)
@@ -506,23 +508,34 @@ test.describe('hero 3D K1', () => {
     await context.close()
   })
 
-  test('idle rafCount does not climb after swap', async ({ page }) => {
+  test('idle rafCount does not climb after the entry pulse', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await gotoHome(page, '?qa3d=1')
     await waitHero3d(page)
+    await page.waitForFunction(
+      () => {
+        const hook = (window as Window & { __hero3d?: { pulseMax?: number } }).__hero3d
+        return (hook?.pulseMax ?? 0) >= 1
+      },
+      null,
+      { timeout: 8000 },
+    )
+    await page.waitForTimeout(200)
     const before = await page.evaluate(() => (window as Window & { __hero3d?: Hero3dHook }).__hero3d?.rafCount)
-    await page.waitForTimeout(400)
+    await page.waitForTimeout(2000)
     const after = await page.evaluate(() => (window as Window & { __hero3d?: Hero3dHook }).__hero3d?.rafCount)
     expect(after).toBe(before)
   })
 
-  test('4x CPU is lite 10/10; 20x CPU is static 10/10', async ({ browser }) => {
+  test('390 4x is lite 10/10; 1440@1x is full 10/10; 20x is static 10/10', async ({ browser }) => {
     test.setTimeout(180000)
-    const run = async (rate: number, w: number, h: number) => {
+    const run = async (rate: number | null, w: number, h: number) => {
       const context = await browser.newContext({ viewport: { width: w, height: h } })
       const page = await context.newPage()
-      const client = await context.newCDPSession(page)
-      await client.send('Emulation.setCPUThrottlingRate', { rate })
+      if (rate) {
+        const client = await context.newCDPSession(page)
+        await client.send('Emulation.setCPUThrottlingRate', { rate })
+      }
       await page.addInitScript(() => {
         try {
           sessionStorage.removeItem('ob-3d-off')
@@ -531,7 +544,7 @@ test.describe('hero 3D K1', () => {
         }
       })
       await gotoHome(page, '?qa3d=1')
-      if (rate >= 20) {
+      if (rate && rate >= 20) {
         await page.waitForFunction(
           () =>
             sessionStorage.getItem('ob-3d-off') === '1' &&
@@ -539,9 +552,15 @@ test.describe('hero 3D K1', () => {
           null,
           { timeout: 25000 },
         )
-      } else {
+      } else if (w <= 768) {
         await page.waitForFunction(
           () => document.querySelector('.hero-3d')?.getAttribute('data-hero3d-tier') === 'lite',
+          null,
+          { timeout: 25000 },
+        )
+      } else {
+        await page.waitForFunction(
+          () => document.querySelector('.hero-3d')?.getAttribute('data-hero3d-tier') === 'full',
           null,
           { timeout: 25000 },
         )
@@ -551,13 +570,13 @@ test.describe('hero 3D K1', () => {
       return tier
     }
     const lite390: string[] = []
-    const lite1440: string[] = []
+    const full1440: string[] = []
     const statics: string[] = []
     for (let i = 0; i < 10; i += 1) lite390.push((await run(4, 390, 844)) || '')
-    for (let i = 0; i < 10; i += 1) lite1440.push((await run(4, 1440, 900)) || '')
+    for (let i = 0; i < 10; i += 1) full1440.push((await run(null, 1440, 900)) || '')
     for (let i = 0; i < 10; i += 1) statics.push((await run(20, 390, 844)) || '')
     expect(lite390, '4x 390').toEqual(Array(10).fill('lite'))
-    expect(lite1440, '4x 1440').toEqual(Array(10).fill('lite'))
+    expect(full1440, '1440@1x').toEqual(Array(10).fill('full'))
     expect(statics, '20x 390').toEqual(Array(10).fill('static'))
   })
 
@@ -678,9 +697,11 @@ test.describe('hero 3D K1', () => {
     })
     expect(probe.text).toBe(0)
     expect(probe.chip).toBe(true)
-    expect(probe.style).toContain('@media (min-resolution:1.25dppx){.k1-ink,.k1-accent{stroke-width:.8}}')
     expect(probe.style).toContain(
-      '@media (min-width:900px) and (min-resolution:1.5dppx){.k1-ink,.k1-accent{stroke-width:.667}}',
+      '@media (min-resolution:1.25dppx){.hero-3d-poster .k1-ink,.hero-3d-poster .k1-accent{stroke-width:.8}}',
+    )
+    expect(probe.style).toContain(
+      '@media (min-width:900px) and (min-resolution:1.5dppx){.hero-3d-poster .k1-ink,.hero-3d-poster .k1-accent{stroke-width:.667}}',
     )
   })
 
@@ -989,4 +1010,173 @@ test.describe('hero 3D K1', () => {
       await context.close()
     })
   }
+
+  test('T3-swiftshader keeps the poster and never creates a canvas', async ({ browserType }) => {
+    test.setTimeout(60000)
+    const browser = await browserType.launch({
+      headless: true,
+      ignoreDefaultArgs: ['--enable-automation'],
+      args: [
+        '--disable-blink-features=AutomationControlled',
+        '--use-angle=swiftshader',
+        '--use-gl=angle',
+        '--enable-unsafe-swiftshader',
+      ],
+    })
+    try {
+      for (const vp of [
+        { w: 390, h: 844 },
+        { w: 1440, h: 900 },
+      ]) {
+        const context = await browser.newContext({ viewport: { width: vp.w, height: vp.h } })
+        const page = await context.newPage()
+        await page.addInitScript(() => {
+          Object.defineProperty(navigator, 'webdriver', { configurable: true, get: () => false })
+        })
+        await gotoHome(page, '')
+        await page.waitForTimeout(3500)
+        const probe = await page.evaluate(() => ({
+          canvas: Boolean(document.querySelector('.hero-3d canvas')),
+          poster: Boolean(document.querySelector('.hero-3d-poster')),
+          webdriver: navigator.webdriver,
+          hook: Boolean((window as Window & { __hero3d?: unknown }).__hero3d),
+        }))
+        expect(probe.webdriver, `${vp.w} webdriver`).toBe(false)
+        expect(probe.canvas, `${vp.w} canvas`).toBe(false)
+        expect(probe.poster, `${vp.w} poster`).toBe(true)
+        expect(probe.hook, `${vp.w} hook`).toBe(false)
+        await expect(page.locator('.hero-3d-poster')).toBeVisible()
+        await context.close()
+      }
+    } finally {
+      await browser.close()
+    }
+  })
+
+  test('entry pulse runs one full closed loop then stops', async ({ page }) => {
+    test.setTimeout(20000)
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await gotoHome(page, '?qa3d=1')
+    await waitHero3d(page)
+    const samples: { t: number; pulseU: number; pulseMax: number }[] = []
+    const started = Date.now()
+    while (Date.now() - started < 2800) {
+      const snap = await page.evaluate(() => {
+        const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
+        return { pulseU: hook?.pulseU ?? -1, pulseMax: hook?.pulseMax ?? -1 }
+      })
+      samples.push({ t: Date.now() - started, ...snap })
+      if (snap.pulseMax >= 1 && snap.pulseU === 0 && samples.length > 4) break
+      await page.waitForTimeout(50)
+    }
+    const maxU = Math.max(...samples.map((s) => s.pulseU))
+    const maxMax = Math.max(...samples.map((s) => s.pulseMax))
+    expect(maxMax, JSON.stringify(samples.slice(-8))).toBeGreaterThanOrEqual(1)
+    expect(maxU, 'pulse travelled the loop').toBeGreaterThan(0.85)
+    const rest = await page.evaluate(() => {
+      const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
+      return { pulseU: hook?.pulseU, pulseMax: hook?.pulseMax, progress: hook?.progress }
+    })
+    expect(rest.pulseMax).toBeGreaterThanOrEqual(1)
+    expect(rest.progress).toBeCloseTo(0, 5)
+    await page.waitForTimeout(400)
+    const again = await page.evaluate(() => (window as Window & { __hero3d?: Hero3dHook }).__hero3d?.pulseMax)
+    expect(again).toBe(rest.pulseMax)
+  })
+
+  for (const cfg of [
+    { w: 390, h: 844, theme: 'light' as const },
+    { w: 390, h: 844, theme: 'dark' as const },
+    { w: 1440, h: 900, theme: 'dark' as const },
+  ]) {
+    test(`accent strokes render on load ${cfg.w} ${cfg.theme}`, async ({ page }) => {
+      await page.setViewportSize({ width: cfg.w, height: cfg.h })
+      await page.addInitScript((theme) => {
+        try {
+          localStorage.setItem('theme', theme)
+        } catch {
+          /* ignore */
+        }
+      }, cfg.theme)
+      await gotoHome(page, '?qa3d=1')
+      await waitHero3d(page)
+      await page.evaluate((theme) => {
+        document.documentElement.dataset.theme = theme
+        document.documentElement.style.colorScheme = theme
+      }, cfg.theme)
+      await page.waitForTimeout(80)
+      const png = await page.locator('.hero-3d canvas').screenshot({
+        animations: 'disabled',
+        omitBackground: true,
+      })
+      const accent = await page.evaluate(() => {
+        const raw = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim()
+        return raw
+      })
+      const rgb = parseCssColor(accent)
+      const img = decodePngRgba(png)
+      let hits = 0
+      for (let i = 0; i < img.pixels.length; i += 4) {
+        if (img.pixels[i + 3] < 40) continue
+        const d = Math.max(
+          Math.abs(img.pixels[i] - rgb[0]),
+          Math.abs(img.pixels[i + 1] - rgb[1]),
+          Math.abs(img.pixels[i + 2] - rgb[2]),
+        )
+        if (d <= 40) hits += 1
+      }
+      expect(hits, `${cfg.w} ${cfg.theme} accent=${accent}`).toBeGreaterThan(0)
+    })
+  }
+
+  test('360@2x 4x CPU scrub stays under 120 ms long tasks (3/3)', async ({ browser }) => {
+    test.setTimeout(90000)
+    const runs: number[] = []
+    for (let i = 0; i < 3; i += 1) {
+      const context = await browser.newContext({
+        viewport: { width: 360, height: 800 },
+        deviceScaleFactor: 2,
+      })
+      const page = await context.newPage()
+      const client = await context.newCDPSession(page)
+      await client.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+      await page.addInitScript(() => {
+        const w = window as Window & { __lt: { d: number }[] }
+        w.__lt = []
+        try {
+          new PerformanceObserver((list) => {
+            for (const e of list.getEntries()) w.__lt.push({ d: e.duration })
+          }).observe({ type: 'longtask', buffered: true })
+        } catch {
+          /* ignore */
+        }
+      })
+      await gotoHome(page, '?qa3d=1')
+      await waitHero3d(page)
+      await page.waitForFunction(
+        () => ((window as Window & { __hero3d?: { pulseMax?: number } }).__hero3d?.pulseMax ?? 0) >= 1,
+        null,
+        { timeout: 8000 },
+      )
+      await page.evaluate(() => {
+        const w = window as Window & { __lt: { d: number }[] }
+        w.__lt = []
+        document.documentElement.style.scrollBehavior = 'auto'
+      })
+      const hero = page.locator('#hero')
+      await hero.evaluate((el) => el.scrollIntoView())
+      for (const y of [0, 80, 160, 240, 320, 400, 480, 240, 0]) {
+        await page.evaluate((top) => window.scrollTo(0, top), y)
+        await page.waitForTimeout(40)
+      }
+      const max = await page.evaluate(() => {
+        const w = window as Window & { __lt?: { d: number }[] }
+        return Math.max(0, ...(w.__lt ?? []).map((e) => e.d))
+      })
+      runs.push(max)
+      await context.close()
+    }
+    console.log('SCRUB_LONGTASKS_360', JSON.stringify(runs))
+    for (const max of runs) expect(max).toBeLessThanOrEqual(120)
+  })
 })

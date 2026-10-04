@@ -30,13 +30,21 @@ export function HeroVisual() {
       if (cancelled || started) return
       started = true
       if (fallback) window.clearTimeout(fallback)
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const qa = new URLSearchParams(location.search).get('qa3d') === '1'
+      if (reduced) {
+        if (qa) {
+          const box = document.querySelector<HTMLElement>('.hero-3d')
+          if (box) box.dataset.hero3dTier = 'static'
+        }
+        return
+      }
       const boot = () => {
         if (cancelled) return
         void import('@/lib/hero3d-boot').then((mod) => {
           if (!cancelled) stop = mod.bootHero3d()
         })
       }
-      const qa = new URLSearchParams(location.search).get('qa3d') === '1'
       if (qa) {
         boot()
         return
