@@ -166,11 +166,11 @@ function tickEntryPulse() {
   return true
 }
 
-function watchdog(_dt: number, work: number) {
+function watchdog(dt: number, work: number) {
   frameMs.push(work)
-  const workLimit = k1?.lite ? 180 : 70
-  if (work > workLimit) over50 += 1
-  else over50 = 0
+  const workLimit = k1?.lite ? 90 : 50
+  const dtLimit = k1?.lite ? 220 : 90
+  if (work > workLimit || dt > dtLimit) over50 += 1
   if (over50 >= 4) return true
   if (!k1?.lite && frameMs.length >= 12) {
     const sorted = [...frameMs].sort((a, b) => a - b)
@@ -580,7 +580,7 @@ async function bootScene() {
     r = new hero.WebGLRenderer({
       canvas: el,
       alpha: true,
-      antialias: !lite,
+      antialias: true,
       powerPreference: 'low-power',
       failIfMajorPerformanceCaveat: !qa,
     })

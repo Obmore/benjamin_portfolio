@@ -825,11 +825,15 @@ test.describe('hero 3D K1', () => {
         }
       })
       await gotoHome(page, query)
-      await page.waitForFunction(
-        () => document.querySelector('.hero-3d')?.classList.contains('is-ready'),
-        null,
-        { timeout: 30000 },
-      )
+      if (query.includes('qa3d')) {
+        await page.waitForFunction(
+          () => document.querySelector('.hero-3d')?.classList.contains('is-ready'),
+          null,
+          { timeout: 30000 },
+        )
+      } else {
+        await page.waitForTimeout(1500)
+      }
       await page.waitForTimeout(800)
       const probe = await page.evaluate(() => {
         const w = window as Window & { __lt?: { d: number; t: number }[] }
