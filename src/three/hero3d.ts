@@ -22,7 +22,6 @@ const PAINT_EPS = 1e-4
 const FRUSTUM = 1.48
 const TOP_Y = 0.039
 const BOT_Y = -0.039
-const VIA_LEN = TOP_Y - BOT_Y
 const BW = 2.4
 const EXPLODE = 0.18
 const CHIP_LIFT = 0.08
@@ -91,10 +90,13 @@ export function applyHeroPose(root: Object3D, p: number) {
     else if (obj.name === 'layer-top') obj.position.setY(ys.top)
     else if (obj.name === 'layer-chip') obj.position.setY(ys.chip)
     else if (obj.name === 'track-accent') {
-      obj.scale.setY(VIA_LEN > 0 ? span / VIA_LEN : 1)
       obj.position.setY((ys.bot + ys.top) / 2)
       obj.visible = showAccent
-    } else if (obj.name.startsWith('via-')) obj.visible = showAccent
+    } else if (obj.name.startsWith('via-')) {
+      const sx = obj.scale.x || 0.039
+      obj.scale.set(sx, showAccent ? span / 2 : sx, obj.scale.z || sx)
+      obj.visible = showAccent
+    }
   })
 }
 
