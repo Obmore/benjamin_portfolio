@@ -130,12 +130,17 @@ function paint() {
   if (!renderer || !scene || !k1 || !hero) return
   renderer.info.reset()
   hero.applyK1Progress(k1, progress, pulseU)
-  const hi = progress > 0.5
-  if (hi !== lidHi) {
-    k1.mats.lid.needsUpdate = true
-    lidHi = hi
-  }
   renderer.render(scene, k1.camera)
+  const hi = progress > 0.5
+  if (hi && !lidHi) {
+    lidHi = true
+    k1.mats.lid.opacity = 0.998
+    k1.mats.lid.opacity = 0.999
+    k1.mats.lid.needsUpdate = true
+    renderer.render(scene, k1.camera)
+  } else if (!hi) {
+    lidHi = false
+  }
   qaSync?.()
 }
 
