@@ -430,6 +430,26 @@ html.js [data-reveal][data-revealed="instant"] {
   min-height: 0;
 }
 
+.hero-3d-poster-host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: 320px;
+  aspect-ratio: 4 / 3;
+  overflow: clip;
+}
+
+.hero-3d-poster {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+html.is-hero-poster .hero-figure {
+  min-aspect-ratio: auto;
+}
+
 .hero-titleblock {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -792,6 +812,11 @@ html.js.is-static-motion .munkaim-dimension-line {
 
   .hero-circuit {
     display: block;
+  }
+
+  .hero-3d-poster-host {
+    max-height: none;
+    aspect-ratio: auto;
   }
 
   .munkaim-title {
