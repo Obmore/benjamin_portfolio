@@ -470,7 +470,7 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
 
   scene.mats.ink.opacity = scene.dark ? 0.7 : 0.55
   scene.mats.accent.color.copy(scene.tokens.accent)
-  scene.mats.accent.opacity = scene.dark ? 0.9 : 1
+  scene.mats.accent.opacity = 1
 
   const pa = scene.accent.geometry.getAttribute('position')
   const arr = pa.array as Float32Array

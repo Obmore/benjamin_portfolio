@@ -63,6 +63,7 @@ let themeMo: MutationObserver | null = null
 let ro: ResizeObserver | null = null
 let observersOn = false
 let booting = false
+let bootSlowWorker: Worker | null = null
 let scrollBound = false
 let swapped = false
 let swapTimer = 0
@@ -408,6 +409,11 @@ function swapBackPoster(animated: boolean, after: () => void) {
   swapTimer = window.setTimeout(finish, SWAP_MS + 120)
 }
 
+function stopBootSlow() {
+  bootSlowWorker?.terminate()
+  bootSlowWorker = null
+}
+
 function fallbackStatic() {
   if (qa && boxEl) boxEl.dataset.hero3dTier = 'static'
   disposeHero()
@@ -485,6 +491,7 @@ async function attachQa() {
 function teardownGpu() {
   gen += 1
   booting = false
+  stopBootSlow()
   haltLoop()
   clearSwapTimer()
   showPosterImmediate()
@@ -543,6 +550,21 @@ async function bootScene() {
 
   const bootStart = performance.now()
   const bootTooSlow = () => performance.now() - bootStart > 6000
+  let slowWorker: Worker | null = null
+  try {
+    const blob = new Blob([`setTimeout(() => postMessage(1), 8000)`], { type: 'text/javascript' })
+    const url = URL.createObjectURL(blob)
+    slowWorker = new Worker(url)
+    URL.revokeObjectURL(url)
+    bootSlowWorker = slowWorker
+    slowWorker.onmessage = () => {
+      if (my !== gen) return
+      mark3dWatchdog()
+      fallbackStatic()
+    }
+  } catch {
+    /* blob workers may be blocked */
+  }
   await nextFrame()
   if (aborted(my)) {
     booting = false
@@ -664,6 +686,7 @@ async function bootScene() {
     booting = false
     return
   }
+  hero.applyK1Progress(k1, 1, 0)
   await compileQuiet(r, sc, k1.camera)
   if (aborted(my) || bootTooSlow()) {
     if (!aborted(my) && bootTooSlow()) {
@@ -703,6 +726,7 @@ async function bootScene() {
   lastPainted = progress
   startPosterSwap()
   booting = false
+  stopBootSlow()
   startEntryPulse()
   requestRender(true)
 }

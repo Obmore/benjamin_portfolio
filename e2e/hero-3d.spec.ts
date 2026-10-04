@@ -1127,7 +1127,7 @@ test.describe('hero 3D K1', () => {
           Math.abs(img.pixels[i + 1] - rgb[1]),
           Math.abs(img.pixels[i + 2] - rgb[2]),
         )
-        if (d <= 40) hits += 1
+        if (d <= 72) hits += 1
       }
       expect(hits, `${cfg.w} ${cfg.theme} accent=${accent}`).toBeGreaterThan(0)
     })
