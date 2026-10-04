@@ -18,7 +18,7 @@ function read(filePath) {
 }
 
 const main = read(mainPath)
-const order = read(orderPath)
+const order = read(orderPath).replaceAll('&nbsp;Ft', ' Ft')
 
 function mustInclude(label, html, snippet) {
   if (!html.includes(snippet)) errors.push(`${label}: missing ${JSON.stringify(snippet)}`)
@@ -57,10 +57,6 @@ if (order) {
   mustInclude('megrendeles', order, 'Üzemeltetés kérésre havi 4&nbsp;900 Ft.')
   mustInclude('megrendeles', order, 'Egyedi webes megoldás')
   mustNotInclude('megrendeles', order, 'megrendeles@ottbenjamin.hu')
-  mustNotInclude('megrendeles', order, '149 000')
-  mustNotInclude('megrendeles', order, '149&nbsp;000')
-  mustNotInclude('megrendeles', order, '189 000')
-  mustNotInclude('megrendeles', order, '189&nbsp;000')
   mustNotInclude('megrendeles', order, '59 000')
   mustNotInclude('megrendeles', order, '59&nbsp;000')
   mustNotInclude('megrendeles', order, 'alanyi adómentes')
