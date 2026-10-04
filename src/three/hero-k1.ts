@@ -3,7 +3,6 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
-  EdgesGeometry,
   Group,
   LineBasicMaterial,
   LineSegments,
@@ -73,6 +72,7 @@ export type K1Scene = {
   mats: {
     fill: ShaderMaterial
     sub: ShaderMaterial
+    lid: ShaderMaterial
     ink: LineBasicMaterial
     accent: LineBasicMaterial
     body: LineBasicMaterial
@@ -154,8 +154,10 @@ function makeFillMat(
     transparent,
     depthWrite: !transparent,
     depthTest: true,
-    polygonOffset: false,
-    blending: transparent ? NormalBlending : NoBlending,
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
+    blending: opacity >= 0.999 ? NoBlending : NormalBlending,
   })
   Object.defineProperty(mat, 'color', {
     configurable: true,
@@ -220,15 +222,69 @@ function addPolys(buf: LineBuf, polys: readonly Poly[], y: number, layer: number
   }
 }
 
-function addEdgesGeo(buf: LineBuf, geo: BufferGeometry, layer: number) {
-  const edges = new EdgesGeometry(geo)
-  const pos = edges.getAttribute('position')
+function addFacingEdges(buf: LineBuf, geo: BufferGeometry, layer: number, oy: number) {
+  const pos = geo.getAttribute('position')
+  const idx = geo.index
+  if (!idx) return
   const arr = pos.array as Float32Array
-  for (let i = 0; i < pos.count; i += 1) {
-    buf.pos.push(arr[i * 3], arr[i * 3 + 1], arr[i * 3 + 2])
-    buf.layer.push(layer)
+  const ia = idx.array
+  const el = (CAM_ELEV * Math.PI) / 180
+  const az = (CAM_AZIM * Math.PI) / 180
+  const cx = CAM_DIST * Math.cos(el) * Math.sin(az)
+  const cy = CAM_DIST * Math.sin(el)
+  const cz = CAM_DIST * Math.cos(el) * Math.cos(az)
+  const faces = new Map<string, { nx: number; ny: number; nz: number; front: boolean }[]>()
+  const keyOf = (a: number, b: number) => (a < b ? `${a}-${b}` : `${b}-${a}`)
+  for (let t = 0; t < idx.count / 3; t++) {
+    const a = ia[t * 3] as number
+    const b = ia[t * 3 + 1] as number
+    const c = ia[t * 3 + 2] as number
+    const ax = arr[a * 3]
+    const ay = arr[a * 3 + 1] + oy
+    const azw = arr[a * 3 + 2]
+    const bx = arr[b * 3]
+    const by = arr[b * 3 + 1] + oy
+    const bz = arr[b * 3 + 2]
+    const dx = arr[c * 3]
+    const dy = arr[c * 3 + 1] + oy
+    const dz = arr[c * 3 + 2]
+    const nx = (by - ay) * (dz - azw) - (bz - azw) * (dy - ay)
+    const ny = (bz - azw) * (dx - ax) - (bx - ax) * (dz - azw)
+    const nz = (bx - ax) * (dy - ay) - (by - ay) * (dx - ax)
+    const mx = (ax + bx + dx) / 3
+    const my = (ay + by + dy) / 3
+    const mz = (azw + bz + dz) / 3
+    const face = {
+      nx,
+      ny,
+      nz,
+      front: nx * (cx - mx) + ny * (cy - my) + nz * (cz - mz) > 0,
+    }
+    for (const pair of [
+      [a, b],
+      [b, c],
+      [c, a],
+    ] as const) {
+      const k = keyOf(pair[0], pair[1])
+      const list = faces.get(k)
+      if (list) list.push(face)
+      else faces.set(k, [face])
+    }
   }
-  edges.dispose()
+  for (const [k, list] of faces) {
+    if (!list.some((f) => f.front)) continue
+    if (list.length >= 2) {
+      const fa = list[0]
+      const fb = list[1]
+      const mag = Math.hypot(fa.nx, fa.ny, fa.nz) * Math.hypot(fb.nx, fb.ny, fb.nz) || 1
+      if ((fa.nx * fb.nx + fa.ny * fb.ny + fa.nz * fb.nz) / mag > 0.94) continue
+    }
+    const dash = k.indexOf('-')
+    const i0 = Number(k.slice(0, dash))
+    const i1 = Number(k.slice(dash + 1))
+    buf.pos.push(arr[i0 * 3], arr[i0 * 3 + 1], arr[i0 * 3 + 2], arr[i1 * 3], arr[i1 * 3 + 1], arr[i1 * 3 + 2])
+    buf.layer.push(layer, layer)
+  }
 }
 
 function lineGeometry(buf: LineBuf) {
@@ -295,6 +351,7 @@ export async function createK1Scene(
   const uLayerY = { value: new Vector4(0, 0, 0, 0) }
   const fill = makeFillMat(colors.surface, uLayerY, false, 1)
   const subMat = makeFillMat(colors.surface, uLayerY, true, 0.92)
+  const lidMat = makeFillMat(colors.surface, uLayerY, true, 1)
   const ink = new LineBasicMaterial({
     color: colors.ink,
     transparent: true,
@@ -340,14 +397,20 @@ export async function createK1Scene(
 
   const inkBuf: LineBuf = { pos: [], layer: [] }
   const bodyBuf: LineBuf = { pos: [], layer: [] }
+  const ys1 = poseYs(1)
   for (const g of fillGeos) {
     const la = g.getAttribute('aLayer')
-    addEdgesGeo(bodyBuf, g, la ? (la.array as Float32Array)[0] : LY.top)
+    const layer = la ? (la.array as Float32Array)[0] : LY.top
+    addFacingEdges(bodyBuf, g, layer, layer >= 2.5 ? ys1.chip : ys1.top)
   }
   const fillMesh = new Mesh(mergeMesh(fillGeos), fill)
   fillMesh.frustumCulled = false
-  fillMesh.renderOrder = 0
+  fillMesh.renderOrder = -1
   fillMesh.userData.layer = 'fill'
+
+  const lid = new Mesh(taggedBox(CHIP, 0.002, CHIP, 0, CHIP_Y + 0.05, 0, LY.chip), lidMat)
+  lid.frustumCulled = false
+  lid.renderOrder = 5
 
   await pause()
 
@@ -419,9 +482,9 @@ export async function createK1Scene(
 
   const bodyLines = new LineSegments(lineGeometry(bodyBuf), bodyMat)
   bodyLines.frustumCulled = false
-  bodyLines.renderOrder = 4
+  bodyLines.renderOrder = 6
 
-  root.add(fillMesh, inkLines, accentLines, bodyLines)
+  root.add(fillMesh, inkLines, accentLines, lid, bodyLines)
   if (subMesh) root.add(carrier)
   await pause()
 
@@ -430,7 +493,7 @@ export async function createK1Scene(
     carrier,
     camera: makeK1Camera(),
     frustum: FRUSTUM,
-    mats: { fill, sub: subMat, ink, accent, body: bodyMat },
+    mats: { fill, sub: subMat, lid: lidMat, ink, accent, body: bodyMat },
     fill: fillMesh,
     ink: inkLines,
     accent: accentLines,
@@ -454,6 +517,7 @@ export function setK1Colors(scene: K1Scene, colors: K1Colors, dark = false) {
   scene.dark = dark
   ;(scene.mats.fill.uniforms.uColor.value as Color).copy(colors.surface)
   ;(scene.mats.sub.uniforms.uColor.value as Color).copy(colors.surface)
+  ;(scene.mats.lid.uniforms.uColor.value as Color).copy(colors.surface)
   scene.mats.ink.color.copy(colors.ink)
   scene.mats.body.color.copy(colors.ink)
   scene.mats.accent.color.copy(colors.accent)
