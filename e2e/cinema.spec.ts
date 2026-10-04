@@ -93,6 +93,25 @@ test('stationary project wrapper prevents transform feedback and motion chunk fa
   await expect(page.locator('#munkaim')).toBeInViewport()
 })
 
+for (const width of [390, 1440]) test(`${width}: delayed motion failure preserves a fresh deep-link position`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 })
+  let failChunk: (() => Promise<void>) | undefined
+  await page.route('**/assets/portfolio-*.js', route => { failChunk = () => route.abort() })
+  await page.goto('/#tapasztalat', { waitUntil: 'load' })
+  // Exercise browsers/settings without native scroll anchoring as well.
+  await page.addStyleTag({ content: 'html, body { overflow-anchor: none !important; }' })
+  const offset = () => page.locator('#tapasztalat').evaluate(e => e.getBoundingClientRect().top)
+  await expect.poll(() => Boolean(failChunk)).toBe(true)
+  await expect.poll(async () => Math.abs(await offset() - 64)).toBeLessThanOrEqual(2)
+  await page.waitForTimeout(800)
+  await failChunk!()
+  await expect(page.locator('[data-motion-story]')).toBeHidden()
+  await expect.poll(async () => Math.abs(await offset() - 64)).toBeLessThanOrEqual(2)
+  await page.waitForTimeout(700)
+  expect(Math.abs(await offset() - 64)).toBeLessThanOrEqual(2)
+  expect(new URL(page.url()).hash).toBe('#tapasztalat')
+})
+
 test('4x CPU: full cinema scrub has no long tasks over 50ms in three fresh pages', async ({ browser }) => {
   for (let run = 0; run < 3; run++) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
