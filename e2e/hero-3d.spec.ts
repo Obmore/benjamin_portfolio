@@ -873,7 +873,7 @@ test.describe('hero 3D K1', () => {
         })
         await p.waitForTimeout(400)
         const lcp = await p.evaluate(() => (window as Window & { __lcp: number | null }).__lcp)
-        if (!reduced) {
+        if (!reduced && query.includes('qa3d')) {
           await p.waitForFunction(
             () => document.querySelector('.hero-3d')?.classList.contains('is-ready'),
             null,

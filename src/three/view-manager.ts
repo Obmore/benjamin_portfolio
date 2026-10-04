@@ -701,10 +701,10 @@ function setupObservers() {
       visible = on
       if (!on) {
         stopTicker()
-        teardownGpu()
+        if (!booting && renderer) teardownGpu()
         return
       }
-      if (!renderer) {
+      if (!renderer && !booting) {
         void bootScene()
         return
       }
