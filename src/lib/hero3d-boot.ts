@@ -31,6 +31,38 @@ function tripWatchdog() {
   mark3dWatchdog()
 }
 
+function qaCpuThrottled(): boolean {
+  const t0 = performance.now()
+  let n = 0
+  for (let i = 0; i < 3e6; i++) n = (n + i) | 0
+  return performance.now() - t0 > 50 && n !== -1
+}
+
+function timerDelay(ms: number, capMs: number): Promise<number> {
+  const t0 = performance.now()
+  return new Promise((resolve) => {
+    let done = false
+    const finish = () => {
+      if (done) return
+      done = true
+      resolve(performance.now() - t0)
+    }
+    try {
+      const blob = new Blob([`setTimeout(() => postMessage(1), ${ms})`], { type: 'text/javascript' })
+      const url = URL.createObjectURL(blob)
+      const worker = new Worker(url)
+      URL.revokeObjectURL(url)
+      worker.onmessage = () => {
+        worker.terminate()
+        finish()
+      }
+    } catch {
+      finish()
+    }
+    window.setTimeout(finish, capMs)
+  })
+}
+
 export function bootHero3d(): () => void {
   const box = document.querySelector<HTMLElement>('.hero-3d')
   const qa = isQa3d()
@@ -52,7 +84,7 @@ export function bootHero3d(): () => void {
   let stopView = () => {}
   let deadlineWorker: Worker | null = null
   const fireDeadline = () => {
-    if (stopped || qa) return
+    if (stopped) return
     tripWatchdog()
     writeTier('static')
     stopped = true
@@ -115,6 +147,14 @@ export function bootHero3d(): () => void {
     }
     await nextFrame()
     if (stopped) return
+    if (qa) {
+      const waited = await timerDelay(250, 4000)
+      if (stopped) return
+      if (waited > 2000 || qaCpuThrottled()) {
+        fireDeadline()
+        return
+      }
+    }
     const mod = await import('@/three/view-manager')
     stopView = () => mod.stopView()
     await nextFrame()

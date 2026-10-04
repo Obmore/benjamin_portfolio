@@ -302,9 +302,7 @@ export async function createK1Scene(
     opacity: 0.55,
     depthWrite: false,
     depthTest: true,
-    polygonOffset: true,
-    polygonOffsetFactor: -2,
-    polygonOffsetUnits: -2,
+    polygonOffset: false,
   })
   const accent = new LineBasicMaterial({
     color: colors.ink,
@@ -312,9 +310,7 @@ export async function createK1Scene(
     opacity: 0.55,
     depthWrite: false,
     depthTest: true,
-    polygonOffset: true,
-    polygonOffsetFactor: -2,
-    polygonOffsetUnits: -2,
+    polygonOffset: false,
   })
   bindLayer(ink, uLayerY, 'k1y-ink')
   bindLayer(accent, uLayerY, 'k1y-accent')
@@ -335,13 +331,14 @@ export async function createK1Scene(
   await pause()
 
   const inkBuf: LineBuf = { pos: [], layer: [] }
+  const bodyBuf: LineBuf = { pos: [], layer: [] }
   for (const g of fillGeos) {
     const la = g.getAttribute('aLayer')
-    addEdgesGeo(inkBuf, g, la ? (la.array as Float32Array)[0] : LY.top)
+    addEdgesGeo(bodyBuf, g, la ? (la.array as Float32Array)[0] : LY.top)
   }
   const fillMesh = new Mesh(mergeMesh(fillGeos), fill)
   fillMesh.frustumCulled = false
-  fillMesh.renderOrder = -1
+  fillMesh.renderOrder = 3
   fillMesh.userData.layer = 'fill'
 
   await pause()
@@ -377,7 +374,7 @@ export async function createK1Scene(
   await pause()
   const inkLines = new LineSegments(lineGeometry(inkBuf), ink)
   inkLines.frustumCulled = false
-  inkLines.renderOrder = 2
+  inkLines.renderOrder = 1
   inkLines.userData.layer = 'ink'
 
   await pause()
@@ -396,7 +393,7 @@ export async function createK1Scene(
   await pause()
   const accentLines = new LineSegments(lineGeometry(accentBuf), accent)
   accentLines.frustumCulled = false
-  accentLines.renderOrder = 3
+  accentLines.renderOrder = 2
   accentLines.userData.layer = 'accent'
 
   await pause()
@@ -406,13 +403,17 @@ export async function createK1Scene(
     const subGeo = taggedBox(BW, BT, BD, 0, 0, 0, LY.sub)
     subMesh = new Mesh(subGeo, subMat)
     subMesh.frustumCulled = false
-    subMesh.renderOrder = -1
+    subMesh.renderOrder = 0
     subMesh.userData.layer = 'sub'
     carrier.userData.layer = 'sub'
     carrier.add(subMesh)
   }
 
-  root.add(fillMesh, inkLines, accentLines)
+  const bodyLines = new LineSegments(lineGeometry(bodyBuf), ink)
+  bodyLines.frustumCulled = false
+  bodyLines.renderOrder = 4
+
+  root.add(fillMesh, inkLines, accentLines, bodyLines)
   if (subMesh) root.add(carrier)
   await pause()
 

@@ -340,8 +340,8 @@ export function svgFromK1Scene(scene: K1Scene, w = POSTER_W, h = POSTER_H) {
   const body2 = facingEdgePaths(fill, u, cam, w, h, (l) => l >= 1.5 && l < 2.5)
   const body3 = facingEdgePaths(fill, u, cam, w, h, (l) => l >= 2.5)
 
-  // Painter's order: edges that a body covers, then that body's fill, then its
-  // front-facing edges. Matches the runtime WebGL depth buffer at progress=1.
+  // Painter's order: traces/vias, then the body they pass under, then that
+  // body's front-facing edges. Runtime uses the same order via renderOrder.
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" class="hero-3d-poster" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" fill="none" aria-hidden="true" focusable="false" data-pose="100">`,
     `<style>${POSTER_STYLE}</style>`,

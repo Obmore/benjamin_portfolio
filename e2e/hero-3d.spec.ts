@@ -1079,8 +1079,14 @@ test.describe('hero 3D K1', () => {
     expect(maxU, 'pulse travelled the loop').toBeGreaterThan(0.85)
     const rest = await page.evaluate(() => {
       const hook = (window as Window & { __hero3d?: Hero3dHook }).__hero3d
-      return { pulseU: hook?.pulseU, pulseMax: hook?.pulseMax, progress: hook?.progress }
+      return {
+        pulseU: hook?.pulseU,
+        pulseMax: hook?.pulseMax,
+        progress: hook?.progress,
+        keys: hook ? Object.keys(hook) : [],
+      }
     })
+    expect(rest.keys).toEqual(expect.arrayContaining(['pulseU', 'pulseMax']))
     expect(rest.pulseMax).toBeGreaterThanOrEqual(1)
     expect(rest.progress).toBeCloseTo(0, 5)
     await page.waitForTimeout(400)
