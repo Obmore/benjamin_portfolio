@@ -45,6 +45,7 @@ declare module 'three' {
     constructor(color?: string | number)
     copy(c: Color): this
     clone(): Color
+    multiplyScalar(s: number): this
     convertLinearToSRGB(): this
     lerpColors(a: Color, b: Color, t: number): this
   }

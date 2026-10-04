@@ -130,14 +130,6 @@ function paint() {
   renderer.info.reset()
   hero.applyK1Progress(k1, progress, pulseU)
   renderer.render(scene, k1.camera)
-  if (progress >= 0.99) {
-    // SwiftShader keeps copper from the transparent ink pass unless the lid
-    // material is mutated after a real exploded frame and drawn again.
-    k1.mats.lid.opacity = 0.998
-    k1.mats.lid.opacity = 0.999
-    k1.mats.lid.needsUpdate = true
-    renderer.render(scene, k1.camera)
-  }
   qaSync?.()
 }
 
@@ -697,7 +689,6 @@ async function bootScene() {
   }
   hero.applyK1Progress(k1, 1, 0)
   await compileQuiet(r, sc, k1.camera)
-  k1.mats.lid.needsUpdate = true
   if (aborted(my) || bootTooSlow()) {
     if (!aborted(my) && bootTooSlow()) {
       mark3dWatchdog()

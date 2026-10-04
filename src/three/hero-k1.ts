@@ -353,6 +353,8 @@ export async function createK1Scene(
   const fill = makeFillMat(colors.surface, uLayerY, false, 1)
   const subMat = makeFillMat(colors.surface, uLayerY, true, 0.92)
   const lidMat = makeFillMat(colors.surface, uLayerY, true, 1)
+  // Pure (1,1,1) + NoBlend/src-over on SwiftShader leaves destination copper.
+  ;(lidMat.uniforms.uColor.value as Color).multiplyScalar(0.96)
   const ink = new LineBasicMaterial({
     color: colors.ink,
     transparent: true,
@@ -528,7 +530,7 @@ export function setK1Colors(scene: K1Scene, colors: K1Colors, dark = false) {
   scene.dark = dark
   ;(scene.mats.fill.uniforms.uColor.value as Color).copy(colors.surface)
   ;(scene.mats.sub.uniforms.uColor.value as Color).copy(colors.surface)
-  ;(scene.mats.lid.uniforms.uColor.value as Color).copy(colors.surface)
+  ;(scene.mats.lid.uniforms.uColor.value as Color).copy(colors.surface).multiplyScalar(0.96)
   scene.mats.ink.color.copy(colors.ink)
   scene.mats.body.color.copy(colors.ink)
   scene.mats.accent.color.copy(colors.accent)
