@@ -75,6 +75,7 @@ export type K1Scene = {
     sub: ShaderMaterial
     ink: LineBasicMaterial
     accent: LineBasicMaterial
+    body: LineBasicMaterial
   }
   fill: Mesh
   ink: LineSegments
@@ -151,12 +152,10 @@ function makeFillMat(
     vertexShader: FILL_VERT,
     fragmentShader: FILL_FRAG,
     transparent,
-    depthWrite: opacity >= 0.999,
+    depthWrite: !transparent,
     depthTest: true,
-    polygonOffset: true,
-    polygonOffsetFactor: 1,
-    polygonOffsetUnits: 1,
-    blending: opacity >= 0.999 ? NoBlending : NormalBlending,
+    polygonOffset: false,
+    blending: transparent ? NormalBlending : NoBlending,
   })
   Object.defineProperty(mat, 'color', {
     configurable: true,
@@ -294,7 +293,7 @@ export async function createK1Scene(
   pause: () => Promise<void> = () => Promise.resolve(),
 ): Promise<K1Scene> {
   const uLayerY = { value: new Vector4(0, 0, 0, 0) }
-  const fill = makeFillMat(colors.surface, uLayerY, true, 1)
+  const fill = makeFillMat(colors.surface, uLayerY, false, 1)
   const subMat = makeFillMat(colors.surface, uLayerY, true, 0.92)
   const ink = new LineBasicMaterial({
     color: colors.ink,
@@ -314,6 +313,15 @@ export async function createK1Scene(
   })
   bindLayer(ink, uLayerY, 'k1y-ink')
   bindLayer(accent, uLayerY, 'k1y-accent')
+  const bodyMat = new LineBasicMaterial({
+    color: colors.ink,
+    transparent: true,
+    opacity: 0.55,
+    depthWrite: false,
+    depthTest: false,
+    polygonOffset: false,
+  })
+  bindLayer(bodyMat, uLayerY, 'k1y-body')
 
   const root = new Group()
   const carrier = new Group()
@@ -338,7 +346,7 @@ export async function createK1Scene(
   }
   const fillMesh = new Mesh(mergeMesh(fillGeos), fill)
   fillMesh.frustumCulled = false
-  fillMesh.renderOrder = 3
+  fillMesh.renderOrder = 0
   fillMesh.userData.layer = 'fill'
 
   await pause()
@@ -409,7 +417,7 @@ export async function createK1Scene(
     carrier.add(subMesh)
   }
 
-  const bodyLines = new LineSegments(lineGeometry(bodyBuf), ink)
+  const bodyLines = new LineSegments(lineGeometry(bodyBuf), bodyMat)
   bodyLines.frustumCulled = false
   bodyLines.renderOrder = 4
 
@@ -422,7 +430,7 @@ export async function createK1Scene(
     carrier,
     camera: makeK1Camera(),
     frustum: FRUSTUM,
-    mats: { fill, sub: subMat, ink, accent },
+    mats: { fill, sub: subMat, ink, accent, body: bodyMat },
     fill: fillMesh,
     ink: inkLines,
     accent: accentLines,
@@ -447,6 +455,7 @@ export function setK1Colors(scene: K1Scene, colors: K1Colors, dark = false) {
   ;(scene.mats.fill.uniforms.uColor.value as Color).copy(colors.surface)
   ;(scene.mats.sub.uniforms.uColor.value as Color).copy(colors.surface)
   scene.mats.ink.color.copy(colors.ink)
+  scene.mats.body.color.copy(colors.ink)
   scene.mats.accent.color.copy(colors.accent)
 }
 
@@ -470,6 +479,7 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   }
 
   scene.mats.ink.opacity = scene.dark ? 0.7 : 0.55
+  scene.mats.body.opacity = scene.mats.ink.opacity
   scene.mats.accent.color.copy(scene.tokens.accent)
   scene.mats.accent.opacity = 1
 
