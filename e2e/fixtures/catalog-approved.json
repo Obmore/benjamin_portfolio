@@ -1,0 +1,57 @@
+[
+  {
+    "title": "Webes rendelőlap vagy ajánlatkérő",
+    "paragraphs": [
+      "Ha a vevőinek ma le kell tölteniük egy Excel- vagy PDF-lapot, ki kell tölteniük, majd e-mailben vissza kell küldeniük, ugyanezt egy webes űrlap is el tudja végezni az Ön oldalán. A vevő az oldalon adja meg az adatokat, és a rajzot vagy más fájlt is feltölthet. Ön a kérést egyben, rendezetten kapja meg e-mailben. A megszokott Excel-lap ettől még megmaradhat azoknak, akik ahhoz szoktak.",
+      "Mit tartalmaz:\n- egy űrlap az Ön meglévő honlapjába építve, legfeljebb tíz mezővel\n- fájlfeltöltés, például Excel-, PDF- vagy DXF-fájl\n- visszaigazoló e-mail a vevőnek\n- egy javítási kör",
+      "Nem tartalmaz árkalkulációt, adatbázist és a meglévő rendszereivel való összekötést. Ezeket egyeztetés után külön árazom.",
+      "149 000 Ft egyszeri díj.\nÜzemeltetés kérésre havi 4 900 Ft.\nÁltalában három héten belül elkészül, miután megkaptam a mostani lapot és a mezők listáját."
+    ],
+    "sub": {
+      "title": "Rendelőlap a saját táblázata szerint",
+      "paragraphs": [
+        "Ha a beérkező kérésekkel táblázatban dolgozik tovább, minden kérés ugyanabban az oszloprendben, új sorként érkezik a saját online táblázatába, amelyet Excel-fájlként is letölthet. Így nem kell kézzel átmásolnia az adatokat. A táblázat formáját a mostani táblázata alapján állítom be.",
+        "189 000 Ft egyszeri díj."
+      ]
+    }
+  },
+  {
+    "title": "Ismétlődő feladatok automatizálása",
+    "paragraphs": [
+      "Ha valamit hetente vagy naponta ugyanúgy, kézzel végeznek, például táblázatokat másolnak össze, adatokat írnak át egyik helyről a másikra, vagy ugyanazt az e-mailt küldik ki sokszor, azt gyakran egy kis program is el tudja végezni. Excel-fájlokkal, CSV-exportokkal és e-mailekkel dolgozom, a programot Pythonban írom. A munka végén rövid leírást kap arról, hogyan kell használni.",
+      "Óradíj alapján, előre egyeztetett felső kerettel. A keretet a feladat átnézése után írásban megadom."
+    ]
+  },
+  {
+    "title": "Mérési és műszaki adatok feldolgozása Pythonban",
+    "paragraphs": [
+      "Villamosmérnökként és szoftverfejlesztőként mérési és műszaki adatokkal is dolgozom. Ha a műszerekből vagy rendszerekből exportált fájlokat ma kézzel rendezik és összesítik, ezt egy bármikor újra lefuttatható Python-program is elvégezheti. Az eredmény egy összesítő táblázat vagy grafikon, és egy rövid leírás.",
+      "Óradíj alapján, előre egyeztetett felső kerettel."
+    ]
+  },
+  {
+    "title": "Egyedi webes megoldás",
+    "paragraphs": [
+      "Ha a rendelés vagy az ajánlatkérés számolást, állapotkövetést vagy saját kezelőfelületet igényel, vagy egy belső nyilvántartást szeretne egyszerűbbé tenni, ahhoz egyedi webes megoldást készítek. Ahol már létezik kész, megbízható megoldás, arra építek, és nem írok meg mindent az alapoktól. Írja le röviden, hogyan működik most. Átnézem, egyeztetünk, és utána írásos ajánlatot küldök, benne a pontos tartalommal, az árral és a várható időtartammal. Nagyobb munkánál először egy kisebb, de már használható változat készül el.",
+      "Az árat az igényfelmérés után adom meg."
+    ]
+  },
+  {
+    "title": "Bemutatkozó oldal",
+    "paragraphs": [
+      "Egyszerű, mobilon is jól olvasható oldal, amelyből a látogató megtudja, mivel foglalkozik Ön, és hogyan érheti el. Az oldalt bevált webes eszközökkel, az Ön tartalmára szabva készítem el.",
+      "Mit tartalmaz:\n- legfeljebb hat tartalmi rész, például bemutatkozás, szolgáltatások, munkák, elérhetőség\n- legalább hat, legfeljebb tíz fotó, amelyet Ön ad át, és amelyek felhasználására jogosult\n- kapcsolatfelvételi lehetőség\n- alapvető keresőbeállítás: oldalcím és leírás a Google-találatokhoz, valamint az oldal regisztrálása a Google Search Console-ban\n- egy javítási kör",
+      "A domain díja külön fizetendő, és a domain az Ön nevére szól.",
+      "129 000 Ft egyszeri díj.\nÜzemeltetés kérésre havi 4 900 Ft.\nÁltalában három héten belül elkészül, miután megkaptam a szövegeket és a fotókat."
+    ]
+  },
+  {
+    "title": "Üzemeltetés",
+    "paragraphs": [
+      "Ha nem szeretne a tárhellyel és a technikai részletekkel foglalkozni, az oldal üzemeltetését átvállalom. Ez a webes csomagokhoz választható kiegészítő szolgáltatás.",
+      "Üzemeltetés, havi 4 900 Ft:\n- tárhely és biztonságos (https) kapcsolat\n- rendszeres mentés\n- működésfigyelés és javítás, ha az oldal leáll",
+      "Üzemeltetés módosításokkal, havi 9 900 Ft:\n- minden, ami az üzemeltetésben szerepel\n- havonta legfeljebb fél óra apró módosítás, például ár, nyitvatartás, szöveg vagy kép cseréje",
+      "A domain díja egyik csomagban sincs benne."
+    ]
+  }
+]

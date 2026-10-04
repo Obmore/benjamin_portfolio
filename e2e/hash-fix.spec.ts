@@ -343,7 +343,7 @@ async function waitLangSettled(page: Page, lang: 'en' | 'hu') {
 }
 
 test.describe('hash-fix PR7', () => {
-  test('SeoHead hydrate keeps html.js, dark theme, and below-fold reveal', async ({ page }) => {
+  test('SeoHead hydrate keeps html.js, light-only theme despite saved dark, and below-fold reveal', async ({ page }) => {
     const errors = collectConsoleErrors(page)
     await page.addInitScript(() => {
       localStorage.setItem('theme', 'dark')
@@ -352,7 +352,7 @@ test.describe('hash-fix PR7', () => {
     await gotoHome(page)
 
     await expect(page.locator('html')).toHaveClass(/\bjs\b/)
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect(page.locator('html')).not.toHaveAttribute('data-theme', 'dark')
     await expect(page.locator('html')).toHaveAttribute('lang', 'hu')
 
     const heroOpacity = await page.evaluate(() => {
@@ -376,7 +376,7 @@ test.describe('hash-fix PR7', () => {
     await page.reload({ waitUntil: 'networkidle' })
     await page.evaluate(() => document.fonts.ready)
     await expect(page.locator('html')).toHaveClass(/\bjs\b/)
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect(page.locator('html')).not.toHaveAttribute('data-theme', 'dark')
     expect(errors, errors.join('\n')).toEqual([])
   })
 
@@ -460,7 +460,7 @@ test.describe('hash-fix PR7', () => {
     { width: 390, height: 844 },
     { width: 1440, height: 900 },
   ] as const) {
-    test(`${viewport.width}: skip-focus bar pixels at header bottom, both themes`, async ({
+    test(`${viewport.width}: skip-focus bar pixels at header bottom, both system preferences`, async ({
       page,
     }) => {
       test.setTimeout(60_000)
@@ -469,12 +469,7 @@ test.describe('hash-fix PR7', () => {
       await installClsProbe(page)
 
       for (const theme of ['light', 'dark'] as const) {
-        if (theme === 'dark') {
-          await page.getByRole('button', { name: 'Sötét mód' }).click()
-          await page.waitForFunction(
-            () => document.documentElement.getAttribute('data-theme') === 'dark',
-          )
-        }
+        await page.emulateMedia({ colorScheme: theme })
 
         await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
         await assertNoAccentAtHeaderBottom(page, `${viewport.width} ${theme} idle`)
@@ -597,11 +592,12 @@ test.describe('hash-fix PR7', () => {
     await gotoHome(page)
     const afterHome = await page.evaluate(() => history.length)
     await page.locator('.work-index-link').first().click()
-    await page.waitForFunction(() => location.hash.startsWith('#munka-'))
+    await expect.poll(() => page.locator('.work-card').first().evaluate(e => Math.abs(e.getBoundingClientRect().top - 64))).toBeLessThanOrEqual(2)
+    expect(await page.evaluate(() => location.hash)).toBe('')
     expect(await page.evaluate(() => history.length)).toBe(afterHome)
     await clickDesktopNav(page, 'Önéletrajz')
     await waitAligned(page, 'oneletrajz')
-    expect(await page.evaluate(() => location.hash)).toBe('#oneletrajz')
+    expect(await page.evaluate(() => location.hash)).toBe('')
 
     await clickDesktopNav(page, 'Tapasztalat')
     await waitAligned(page, 'tapasztalat')
@@ -611,7 +607,7 @@ test.describe('hash-fix PR7', () => {
     await page.waitForFunction(() => document.documentElement.lang === 'en')
     await page.waitForTimeout(400)
     expect(Math.abs(await sectionDelta(page, 'tapasztalat'))).toBeLessThanOrEqual(2)
-    expect(await page.evaluate(() => location.hash)).toBe('#tapasztalat')
+    expect(await page.evaluate(() => location.hash)).toBe('')
     await page.getByRole('button', { name: /^HU/ }).click()
     await page.waitForFunction(() => document.documentElement.lang === 'hu')
     await page.waitForTimeout(400)
@@ -622,8 +618,9 @@ test.describe('hash-fix PR7', () => {
     await page.reload({ waitUntil: 'networkidle' })
     await page.evaluate(() => document.fonts.ready)
     await page.waitForTimeout(700)
-    expect(Math.abs(await sectionDelta(page, 'kapcsolat'))).toBeLessThanOrEqual(2)
-    expect(await page.evaluate(() => location.hash)).toBe('#kapcsolat')
+    // Owner follow-up: reload always returns to hero, even from a section hash.
+    expect(await page.evaluate(() => scrollY)).toBe(0)
+    expect(await page.evaluate(() => location.hash)).toBe('')
 
     expect(errors, errors.join('\n')).toEqual([])
   })
@@ -705,7 +702,7 @@ test.describe('hash-fix PR7', () => {
     await page.waitForFunction(() => document.documentElement.lang === 'en')
     await page.waitForTimeout(400)
     expect(Math.abs(await sectionDelta(page, 'tapasztalat'))).toBeLessThanOrEqual(2)
-    expect(await page.evaluate(() => location.hash)).toBe('#tapasztalat')
+    expect(await page.evaluate(() => location.hash)).toBe('')
     await page.getByRole('button', { name: /^HU/ }).click()
     await page.waitForFunction(() => document.documentElement.lang === 'hu')
     await page.waitForTimeout(400)
@@ -939,7 +936,7 @@ test.describe('hash-fix PR7', () => {
       }
     })
 
-    test(`${viewport.width}: skip link contrast ≥4.5 in light and dark`, async ({ page }) => {
+    test(`${viewport.width}: skip link contrast ≥4.5 under light and dark system preferences`, async ({ page }) => {
       await page.setViewportSize(viewport)
       await gotoHome(page)
 
@@ -968,8 +965,7 @@ test.describe('hash-fix PR7', () => {
 
       expect(await contrastOf(), `light skip ${viewport.width}`).toBeGreaterThanOrEqual(4.5)
 
-      await page.getByRole('button', { name: 'Sötét mód' }).click()
-      await page.waitForFunction(() => document.documentElement.getAttribute('data-theme') === 'dark')
+      await page.emulateMedia({ colorScheme: 'dark' })
       expect(await contrastOf(), `dark skip ${viewport.width}`).toBeGreaterThanOrEqual(4.5)
     })
   }

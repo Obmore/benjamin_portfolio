@@ -1,9 +1,9 @@
 import './styles.css'
+import { mountInquiry } from './inquiry'
 
 const EMAIL = 'bendzsiott1998@gmail.com'
 const COPIED_ANNOUNCEMENT = 'E-mail-cím a vágólapra másolva'
 
-const writeLink = document.querySelector<HTMLAnchorElement>('#mg-write')
 const copyBtn = document.querySelector<HTMLButtonElement>('#mg-copy')
 const addressEl = document.querySelector<HTMLElement>('#mg-email-text')
 const statusEl = document.querySelector<HTMLElement>('#mg-status')
@@ -70,13 +70,7 @@ function showCopied(): void {
   }, 2000)
 }
 
-document.querySelectorAll<HTMLAnchorElement>('.mg-plan-cta').forEach((link) => {
-  link.addEventListener('click', () => {
-    window.setTimeout(() => {
-      writeLink?.focus({ preventScroll: true })
-    }, 0)
-  })
-})
+mountInquiry(copyText)
 
 copyBtn?.addEventListener('click', () => {
   void (async () => {

@@ -11,7 +11,6 @@ import { Projects } from '@/components/sections/Projects'
 import { CvDownload } from '@/components/sections/CvDownload'
 import { Contact } from '@/components/sections/Contact'
 import { I18nProvider, useI18n } from '@/context/I18nContext'
-import { ThemeProvider } from '@/context/ThemeContext'
 import { useInitialHash } from '@/hooks/useInitialHash'
 
 function SkipLink() {
@@ -42,6 +41,7 @@ function AppShell() {
       <Navbar />
       <main id="main" tabIndex={-1} className="outline-none">
         <Hero />
+        <section className="motion-story" data-motion-story />
         <Projects />
         <About />
         <Experience />
@@ -57,9 +57,7 @@ function AppShell() {
 function App() {
   return (
     <I18nProvider>
-      <ThemeProvider>
-        <AppShell />
-      </ThemeProvider>
+      <AppShell />
     </I18nProvider>
   )
 }

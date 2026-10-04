@@ -1,8 +1,14 @@
 <!doctype html>
 <html lang="hu">
   <head>
+    <meta charset="UTF-8" />
     <script>
-      document.documentElement.classList.add('js')
+      document.documentElement.classList.add('js', 'is-hero-poster')
+      if (performance.getEntriesByType('navigation')[0]?.type === 'reload') {
+        history.scrollRestoration = 'manual'
+        history.replaceState(history.state, '', location.pathname + location.search)
+        window.scrollTo(0, 0)
+      }
       if (location.hash) document.documentElement.style.scrollBehavior = 'auto'
       try {
         var n = navigator
@@ -10,29 +16,19 @@
         var mem = n.deviceMemory
         if ((connection && connection.saveData) || (mem && mem <= 2)) {
           document.documentElement.classList.add('is-static-motion')
+        } else if (!matchMedia('(prefers-reduced-motion: reduce)').matches && CSS.supports('transform-style', 'preserve-3d')) {
+          document.documentElement.dataset.spatialCapable = ''
         }
-        if (
-          (connection && connection.saveData) ||
-          (mem && mem <= 4) ||
-          matchMedia('(max-width: 1023px)').matches ||
-          matchMedia('(pointer: coarse)').matches ||
-          matchMedia('(prefers-reduced-motion: reduce)').matches
-        ) {
-          document.documentElement.classList.add('is-hero-poster')
-        }
+
       } catch (e) {}
     </script>
-    <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#FAFBFC" />
-    <script>
-      try{if(localStorage.getItem('theme')==='dark'){var d=document.documentElement;d.dataset.theme='dark';d.style.colorScheme='dark';document.querySelector('meta[name=theme-color]').content='#0B1A2E'}}catch(e){}
-    </script>
     <meta
       name="description"
-      content="Ott Benjámin, villamosmérnök és szoftverfejlesztő. Python, full-stack fejlesztés, ipari rendszerek, energetika és telekommunikációs K+F."
+      content="Ott Benjámin, villamosmérnök és szoftverfejlesztő. Python, webfejlesztés, ipari rendszerek, energetika és távközlési kutatás-fejlesztés."
     />
     <meta name="author" content="Ott Benjámin" />
     <meta property="og:title" content="Ott Benjámin, villamosmérnök és szoftverfejlesztő" />

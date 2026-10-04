@@ -20,10 +20,16 @@ export function Projects() {
   useLayoutEffect(() => {
     const list = indexRef.current
     if (!list) return
-    const current = list.querySelector<HTMLElement>(`[data-work-id="${activeId}"]`)
-    if (!current) return
-    list.style.setProperty('--active-y', `${current.offsetTop}px`)
-    list.style.setProperty('--active-h', `${current.offsetHeight}px`)
+    const update = () => {
+      const current = list.querySelector<HTMLElement>(`[data-work-id="${activeId}"]`)
+      if (!current) return
+      list.style.setProperty('--active-y', `${current.offsetTop}px`)
+      list.style.setProperty('--active-h', `${current.offsetHeight}px`)
+    }
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(list)
+    return () => observer.disconnect()
   }, [activeId, items])
 
   return (
@@ -74,6 +80,7 @@ export function Projects() {
                     <a
                       href={`/#munka-${item.id}`}
                       className="work-index-link"
+                      aria-current={item.id === activeId ? 'location' : undefined}
                       onClick={(event: MouseEvent<HTMLAnchorElement>) =>
                         onResolvedHashClick(event, `munka-${item.id}`)
                       }

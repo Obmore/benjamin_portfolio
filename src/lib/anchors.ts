@@ -11,7 +11,8 @@ export function navigateTo(id: string) {
     replaceLocationHash(null)
     return
   }
-  replaceLocationHash(resolved)
+  // Keep ordinary browsing URLs clean; hrefs still support shared deep links.
+  replaceLocationHash(null)
   scrollToSection(resolved)
 }
 

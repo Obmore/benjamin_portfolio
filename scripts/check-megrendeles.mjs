@@ -18,7 +18,7 @@ function read(filePath) {
 }
 
 const main = read(mainPath)
-const order = read(orderPath)
+const order = read(orderPath).replaceAll('&nbsp;Ft', ' Ft')
 
 function mustInclude(label, html, snippet) {
   if (!html.includes(snippet)) errors.push(`${label}: missing ${JSON.stringify(snippet)}`)
@@ -57,10 +57,6 @@ if (order) {
   mustInclude('megrendeles', order, 'Üzemeltetés kérésre havi 4&nbsp;900 Ft.')
   mustInclude('megrendeles', order, 'Egyedi webes megoldás')
   mustNotInclude('megrendeles', order, 'megrendeles@ottbenjamin.hu')
-  mustNotInclude('megrendeles', order, '149 000')
-  mustNotInclude('megrendeles', order, '149&nbsp;000')
-  mustNotInclude('megrendeles', order, '189 000')
-  mustNotInclude('megrendeles', order, '189&nbsp;000')
   mustNotInclude('megrendeles', order, '59 000')
   mustNotInclude('megrendeles', order, '59&nbsp;000')
   mustNotInclude('megrendeles', order, 'alanyi adómentes')
@@ -69,9 +65,9 @@ if (order) {
   mustNotInclude('megrendeles', order, 'Két munkanapon')
   mustNotInclude('megrendeles', order, 'adatkezeles')
   mustNotInclude('megrendeles', order, '<form')
-  mustNotInclude('megrendeles', order, '<input')
-  mustNotInclude('megrendeles', order, '<textarea')
-  mustNotInclude('megrendeles', order, '<select')
+  // Local inquiry composer approved in the October follow-up. It has no submit endpoint.
+  mustInclude('megrendeles', order, 'id="mg-service"')
+  mustInclude('megrendeles', order, 'id="mg-description"')
   mustNotInclude('megrendeles', order, 'data-subject')
   mustNotInclude('megrendeles', order, 'Aj%C3%A1nlatk%C3%A9r%C3%A9s')
   mustInclude('megrendeles', order, 'Kimásolva')
