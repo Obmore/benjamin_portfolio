@@ -290,14 +290,15 @@ export async function startHero3d(box: HTMLElement): Promise<() => void> {
     if (disposed) return
     if (lostTimer) window.clearTimeout(lostTimer)
     lostTimer = 0
-    sizeToBox()
-    applyHeroPose(root, progress)
-    renderer.render(scene, cam)
-    lastPainted = progress
     requestAnimationFrame(() => {
       if (disposed) return
+      sizeToBox()
+      applyHeroPose(root, progress)
+      renderer.render(scene, cam)
+      lastPainted = progress
       box.classList.add('is-live')
       setPhase(box, 'live')
+      requestRender(true)
     })
   }
 
@@ -369,11 +370,10 @@ export async function startHero3d(box: HTMLElement): Promise<() => void> {
 
   ticker = gsap.ticker
   stopScroll = attachHeroScroll((p) => {
-    if (Math.abs(p - progress) <= PAINT_EPS) return
     pulseStart = 0
     mats.accent.color.copy(accent0)
     progress = p
-    requestRender()
+    requestRender(true)
   }, { skipInitial: true })
 
   return dispose

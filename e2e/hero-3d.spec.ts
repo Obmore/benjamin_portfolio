@@ -195,9 +195,9 @@ function glbJson() {
   const buf = fs.readFileSync(path.join(process.cwd(), 'dist/hero/k1.glb'))
   const jsonLen = buf.readUInt32LE(12)
   return JSON.parse(buf.subarray(20, 20 + jsonLen).toString('utf8')) as {
-    nodes: { name?: string; mesh?: number; children?: number[] }[]
+    nodes: { name?: string; mesh?: number; children?: number[]; scale?: number[] }[]
     meshes: { primitives: { attributes: { POSITION: number } }[] }[]
-    accessors: { min?: number[]; max?: number[] }[]
+    accessors: { min?: number[]; max?: number[]; normalized?: boolean; componentType?: number }[]
   }
 }
 
@@ -226,21 +226,24 @@ async function prepareDesktop3d(page: Page, browser: Browser, spoofGpu = 'NVIDIA
     ({ spoofGpu, stripCaveat }) => {
       const orig = HTMLCanvasElement.prototype.getContext
       HTMLCanvasElement.prototype.getContext = function (type, attrs) {
+        const isGl = type === 'webgl' || type === 'webgl2' || type === 'experimental-webgl'
+        if (!isGl) return orig.call(this, type, attrs)
         let next = attrs
         if (stripCaveat && next && typeof next === 'object') {
           next = { ...next, failIfMajorPerformanceCaveat: false }
         }
         const gl = orig.call(this, type, next as WebGLContextAttributes)
-        if (gl && spoofGpu) {
-          const getParam = gl.getParameter.bind(gl)
-          const getExt = gl.getExtension.bind(gl)
-          gl.getExtension = function (name) {
+        if (gl && spoofGpu && 'getParameter' in gl) {
+          const webgl = gl as WebGLRenderingContext
+          const getParam = webgl.getParameter.bind(webgl)
+          const getExt = webgl.getExtension.bind(webgl)
+          webgl.getExtension = function (name) {
             if (name === 'WEBGL_debug_renderer_info') {
               return { UNMASKED_RENDERER_WEBGL: 0x9246, UNMASKED_VENDOR_WEBGL: 0x9245 }
             }
             return getExt(name)
           }
-          gl.getParameter = function (pname) {
+          webgl.getParameter = function (pname) {
             if (pname === 0x9246) return spoofGpu
             if (pname === 0x9245) return 'NVIDIA Corporation'
             return getParam(pname)
@@ -276,36 +279,45 @@ async function waitLive(page: Page) {
 
 async function seekProgress(page: Page, progress: number) {
   await page.evaluate((p) => {
+    document.documentElement.style.scrollBehavior = 'auto'
     const hero = document.getElementById('hero')
     if (!hero) return
     const top = hero.getBoundingClientRect().top + window.scrollY
     const span = Math.max(1, hero.offsetHeight - window.innerHeight * 0.35)
-    window.scrollTo({ top: top + p * span, behavior: 'instant' })
+    window.scrollTo(0, top + p * span)
   }, progress)
-  await page.waitForTimeout(1200)
+  await page.waitForTimeout(800)
 }
 
-async function pngFromLocator(page: Page, selector: string) {
-  return page.locator(selector).screenshot({ omitBackground: true })
+async function screenshotCanvas(page: Page) {
+  await page.locator('.site-header').evaluate((el) => {
+    el.style.visibility = 'hidden'
+  })
+  const png = await page.locator('.hero-3d canvas').screenshot({ omitBackground: true })
+  await page.locator('.site-header').evaluate((el) => {
+    el.style.visibility = ''
+  })
+  return png
 }
 
-async function pngFromPosterImg(page: Page, width: number, height: number) {
-  const dataUrl = await page.evaluate(
-    async ({ width, height }) => {
-      const img = document.querySelector('.hero-3d-poster') as HTMLImageElement | null
-      if (!img) throw new Error('poster')
-      await img.decode()
-      const canvas = document.createElement('canvas')
-      canvas.width = width
-      canvas.height = height
-      const ctx = canvas.getContext('2d')
-      if (!ctx) throw new Error('ctx')
-      ctx.drawImage(img, 0, 0, width, height)
-      return canvas.toDataURL('image/png')
-    },
-    { width, height },
-  )
-  return Buffer.from(dataUrl.split(',')[1] ?? '', 'base64')
+async function screenshotPoster(page: Page) {
+  await page.evaluate(() => {
+    const header = document.querySelector('.site-header') as HTMLElement | null
+    const canvas = document.querySelector('.hero-3d canvas') as HTMLElement | null
+    const img = document.querySelector('.hero-3d-poster') as HTMLElement | null
+    if (header) header.style.visibility = 'hidden'
+    if (canvas) canvas.style.visibility = 'hidden'
+    img?.classList.remove('is-done')
+    if (img) img.style.visibility = 'visible'
+  })
+  const png = await page.locator('.hero-3d-poster').screenshot({ omitBackground: true })
+  await page.evaluate(() => {
+    const header = document.querySelector('.site-header') as HTMLElement | null
+    const canvas = document.querySelector('.hero-3d canvas') as HTMLElement | null
+    if (header) header.style.visibility = ''
+    if (canvas) canvas.style.visibility = ''
+  })
+  return png
 }
 
 test.describe('hero B desktop 3d', () => {
@@ -358,9 +370,8 @@ test.describe('hero B desktop 3d', () => {
     await prepareDesktop3d(page, browser)
     await gotoDesktop(page)
     await waitPhase(page, 'live')
-    const canvasPng = await pngFromLocator(page, '.hero-3d canvas')
-    const canvasImg = decodePngRgba(canvasPng)
-    const posterPng = await pngFromPosterImg(page, canvasImg.width, canvasImg.height)
+    const canvasPng = await screenshotCanvas(page)
+    const posterPng = await screenshotPoster(page)
     fs.mkdirSync(ARTIFACTS, { recursive: true })
     fs.writeFileSync(path.join(ARTIFACTS, 'b1-canvas.png'), canvasPng)
     fs.writeFileSync(path.join(ARTIFACTS, 'b1-poster.png'), posterPng)
@@ -376,7 +387,7 @@ test.describe('hero B desktop 3d', () => {
     await waitLive(page)
     const accent: Rgb = [30, 58, 95]
     const countAccent = async () => {
-      const png = await pngFromLocator(page, '.hero-3d canvas')
+      const png = await screenshotCanvas(page)
       const img = decodePngRgba(png)
       let n = 0
       for (let p = 0; p < img.pixels.length; p += 4) {
@@ -398,7 +409,7 @@ test.describe('hero B desktop 3d', () => {
     await gotoDesktop(page)
     await waitLive(page)
     await seekProgress(page, 1)
-    const png = await page.locator('.hero-3d canvas').screenshot({ omitBackground: true })
+    const png = await screenshotCanvas(page)
     const img = decodePngRgba(png)
     const surface: Rgb = [255, 255, 255]
     const ink: Rgb = [123, 127, 138]
@@ -465,21 +476,24 @@ test.describe('hero B desktop 3d', () => {
           }
           const orig = HTMLCanvasElement.prototype.getContext
           HTMLCanvasElement.prototype.getContext = function (type, attrs) {
+            const isGl = type === 'webgl' || type === 'webgl2' || type === 'experimental-webgl'
+            if (!isGl) return orig.call(this, type, attrs)
             let next = attrs
             if (stripCaveat && next && typeof next === 'object') {
               next = { ...next, failIfMajorPerformanceCaveat: false }
             }
             const gl = orig.call(this, type, next as WebGLContextAttributes)
-            if (gl) {
-              const getParam = gl.getParameter.bind(gl)
-              const getExt = gl.getExtension.bind(gl)
-              gl.getExtension = function (name) {
+            if (gl && 'getParameter' in gl) {
+              const webgl = gl as WebGLRenderingContext
+              const getParam = webgl.getParameter.bind(webgl)
+              const getExt = webgl.getExtension.bind(webgl)
+              webgl.getExtension = function (name) {
                 if (name === 'WEBGL_debug_renderer_info') {
                   return { UNMASKED_RENDERER_WEBGL: 0x9246, UNMASKED_VENDOR_WEBGL: 0x9245 }
                 }
                 return getExt(name)
               }
-              gl.getParameter = function (pname) {
+              webgl.getParameter = function (pname) {
                 if (pname === 0x9246) return 'NVIDIA GeForce GTX 1060'
                 if (pname === 0x9245) return 'NVIDIA Corporation'
                 return getParam(pname)
@@ -508,7 +522,7 @@ test.describe('hero B desktop 3d', () => {
     const errors = collectConsoleErrors(page)
     await gotoDesktop(page)
     await waitLive(page)
-    const before = await page.locator('.hero-3d canvas').screenshot({ omitBackground: true })
+    const before = await screenshotCanvas(page)
     await page.evaluate(() => {
       const canvas = document.querySelector('.hero-3d canvas') as HTMLCanvasElement
       const gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
@@ -516,9 +530,9 @@ test.describe('hero B desktop 3d', () => {
       ext?.loseContext()
       window.setTimeout(() => ext?.restoreContext(), 50)
     })
-    await page.waitForTimeout(400)
+    await page.waitForTimeout(600)
     await expect(page.locator('.hero-3d')).toHaveAttribute('data-hero3d', 'live')
-    const after = await page.locator('.hero-3d canvas').screenshot({ omitBackground: true })
+    const after = await screenshotCanvas(page)
     const cov = twoWayInk(before, after, 1)
     expect(cov.aInB).toBeGreaterThanOrEqual(0.98)
     expect(cov.bInA).toBeGreaterThanOrEqual(0.98)
@@ -598,7 +612,10 @@ test.describe('hero B desktop 3d', () => {
       const acc = mesh ? json.accessors[mesh.primitives[0].attributes.POSITION] : undefined
       const min = acc?.min ?? [0, 0, 0]
       const max = acc?.max ?? [0, 0, 0]
-      return { x: max[0] - min[0], z: max[2] - min[2] }
+      const sx = child?.scale?.[0] ?? 1
+      const sz = child?.scale?.[2] ?? child?.scale?.[0] ?? 1
+      const den = acc?.normalized && acc.componentType === 5122 ? 32767 : 1
+      return { x: ((max[0] - min[0]) / den) * sx, z: ((max[2] - min[2]) / den) * sz }
     }
     const body = extent('chip-body')
     const lid = extent('chip-lid')
