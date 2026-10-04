@@ -541,6 +541,8 @@ async function bootScene() {
   const tier = hero3dWidthTier()
   if (qa) boxEl.dataset.hero3dTier = tier
 
+  const bootStart = performance.now()
+  const bootTooSlow = () => performance.now() - bootStart > 6000
   await nextFrame()
   if (aborted(my)) {
     booting = false
@@ -548,13 +550,21 @@ async function bootScene() {
   }
   await import('./three-core')
   await nextFrame()
-  if (aborted(my)) {
+  if (aborted(my) || bootTooSlow()) {
+    if (bootTooSlow()) {
+      mark3dWatchdog()
+      fallbackStatic()
+    }
     booting = false
     return
   }
   if (!hero) hero = await import('./hero-k1')
   await nextFrame()
-  if (aborted(my)) {
+  if (aborted(my) || bootTooSlow()) {
+    if (!aborted(my) && bootTooSlow()) {
+      mark3dWatchdog()
+      fallbackStatic()
+    }
     booting = false
     return
   }
@@ -606,15 +616,20 @@ async function bootScene() {
   let built: K1Scene
   try {
     built = await hero.createK1Scene(readColors(boxEl), lite, async () => {
-      if (aborted(my)) throw new Error('abort')
+      if (aborted(my) || bootTooSlow()) throw new Error('abort')
       await nextFrame()
     })
   } catch {
     if (my === gen) {
-      renderer?.dispose()
-      canvas?.remove()
-      renderer = null
-      canvas = null
+      if (bootTooSlow()) {
+        mark3dWatchdog()
+        fallbackStatic()
+      } else {
+        renderer?.dispose()
+        canvas?.remove()
+        renderer = null
+        canvas = null
+      }
     }
     booting = false
     return
@@ -650,6 +665,14 @@ async function bootScene() {
     return
   }
   await compileQuiet(r, sc, k1.camera)
+  if (aborted(my) || bootTooSlow()) {
+    if (!aborted(my) && bootTooSlow()) {
+      mark3dWatchdog()
+      fallbackStatic()
+    }
+    booting = false
+    return
+  }
 
   await nextFrame()
   if (aborted(my)) {

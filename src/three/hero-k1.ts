@@ -371,6 +371,8 @@ export async function createK1Scene(
   addPolys(inkBuf, [boardOutline], 0, LY.sub)
   await pause()
   addPolys(inkBuf, [boardOutline], topY, LY.top)
+  addPolys(inkBuf, allTopPads(), topY, LY.top)
+  for (const route of topRoutes) addRoute(route, topY, LY.top, 'top')
   for (const route of botRoutes) addRoute(route, botY, LY.bot, 'bot')
   await pause()
   const inkLines = new LineSegments(lineGeometry(inkBuf), ink)
@@ -381,19 +383,6 @@ export async function createK1Scene(
   await pause()
 
   const accentBuf: LineBuf = { pos: [], layer: [] }
-  addPolys(accentBuf, allTopPads(), topY, LY.top)
-  const addAccentRoute = (route: (typeof topRoutes)[number]) => {
-    const startVert = accentBuf.pos.length / 3
-    addPolys(accentBuf, [route.poly], topY, LY.top)
-    const endVert = accentBuf.pos.length / 3 - 1
-    const first = route.poly[0]
-    const last = route.poly[route.poly.length - 1]
-    endPairs.push({ x: first[0], z: first[1], layer: 'top', id: route.startId })
-    endVerts.push({ which: 'accent', vert: startVert })
-    endPairs.push({ x: last[0], z: last[1], layer: 'top', id: route.endId })
-    endVerts.push({ which: 'accent', vert: endVert })
-  }
-  for (const route of topRoutes) addAccentRoute(route)
   await pause()
   for (const [x, z] of vias) {
     accentBuf.pos.push(x, topY, z, x, botY, z)
@@ -490,8 +479,12 @@ export function applyK1Progress(scene: K1Scene, p: number, pulseU: number) {
   const pulseLim = 1 - 1 / Math.max(1, loop.length - 1)
   const uPulse = Math.min(pulseU, pulseLim)
   for (let i = 0; i < 3; i++) {
-    const u0 = Math.max(0, uPulse - (trail * (i + 1)) / 3)
-    const u1 = Math.max(0, uPulse - (trail * i) / 3)
+    let u0 = Math.max(0, uPulse - (trail * (i + 1)) / 3)
+    let u1 = Math.max(0, uPulse - (trail * i) / 3)
+    if (uPulse <= 1e-6 && i === 0) {
+      u0 = 0
+      u1 = 0.06
+    }
     sampleLoop(u0, ys, _pulseA)
     sampleLoop(u1, ys, _pulseB)
     const o = base + i * 6
