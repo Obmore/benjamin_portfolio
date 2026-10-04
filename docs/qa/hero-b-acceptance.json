@@ -1,0 +1,14 @@
+{
+  "source": "portfolio_handoff_prompt_2026-10-04.md; thresholds fixed before the single repair round",
+  "baselineHead": "7cd6aa790279e2243ddfaf9af83233c44ab74c82",
+  "viewport": [1440, 900],
+  "B1": { "dpr": [1, 2], "radius": 1, "coverageBothWays": 0.98, "bboxHeightDelta": 0.01 },
+  "B2": { "maxContourGapPx": 2, "visiblePins": 10 },
+  "B3": { "allTraceEnds": 28, "accentAt40": 0, "accentAt60And100Min": 1 },
+  "B4": { "cpuRate": 4, "runs": 3, "maxTaskMs": 120 },
+  "B5": { "coverageBothWays": 0.98, "bboxHeightDelta": 0.01, "restoreRafMax": 1, "lostTimeoutMs": 2000 },
+  "B6": { "glbBytesMax": 40960, "poster2xBytesMax": 51200 },
+  "B8": { "reference": "b33c9d88498899e8806fec1d89653f181166d849", "dpr": 2, "radius": 2, "coverageBothWays": 0.98, "traceEnds": 28 },
+  "budgets": { "criticalJsGzip9": 73511, "cssGzip9": 9420, "lcpVsMainMax": 1.1, "cls": 0, "idleRaf": 0, "scrubTaskMsMax": 50 },
+  "decision": "All handoff rows must pass on the tested head. Otherwise NOGO after one repair round."
+}

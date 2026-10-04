@@ -9,29 +9,20 @@ import {
   type WebGLRendererParameters,
 } from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
-import gsap from 'gsap'
-import { attachHeroScroll } from '@/three/hero-scroll'
 
 export type HeroPhase = 'poster' | 'boot' | 'live' | 'lost'
 
-const INTRO_MS = 700
 const PULSE_MS = 1200
 const LOST_MS = 2000
-const DPR_CAP = 1.5
+const DPR_CAP = 2
 const PAINT_EPS = 1e-4
 const FRUSTUM = 1.48
 const BW = 2.4
 const EXPLODE = 0.18
 const CHIP_LIFT = 0.08
-const ACCENT_HIDE_Y = 1000
 const FILL = 0xffffff
 const INK = 0x7b7f8a
 const ACCENT = 0x1e3a5f
-
-type GsapTicker = {
-  add: (fn: () => void) => void
-  remove: (fn: () => void) => void
-}
 
 function yieldTask(): Promise<void> {
   return new Promise((resolve) => {
@@ -88,7 +79,7 @@ export function applyHeroPose(root: Object3D, p: number) {
     else if (obj.name === 'layer-sub') obj.position.setY(ys.sub)
     else if (obj.name === 'layer-top') obj.position.setY(ys.top)
     else if (obj.name === 'layer-chip') obj.position.setY(ys.chip)
-    else if (obj.name === 'track-accent') obj.position.setY(showAccent ? 0 : ACCENT_HIDE_Y)
+    else if (obj.name === 'track-accent') obj.visible = showAccent
   })
 }
 
@@ -136,246 +127,110 @@ function posterEl(box: HTMLElement) {
   return box.querySelector<HTMLElement>('.hero-3d-poster')
 }
 
-export async function startHero3d(box: HTMLElement): Promise<() => void> {
-  setPhase(box, 'boot')
-  const glbBuf = fetch('/hero/k1.glb').then((res) => {
-    if (!res.ok) throw new Error('glb')
-    return res.arrayBuffer()
-  })
-
+/** One context and requested frames only; no perpetual animation ticker. */
+export async function startHero3d(box: HTMLElement, canvas: HTMLCanvasElement,
+  context: WebGL2RenderingContext, signal: AbortSignal): Promise<() => void> {
+  const response = await fetch('/hero/k1.glb', { signal })
+  if (!response.ok) throw new Error('glb')
+  const buffer = await response.arrayBuffer()
   await yieldTask()
-  const loader = new GLTFLoader()
+  const gltf = await new GLTFLoader().parseAsync(buffer, '/hero/')
+  signal.throwIfAborted()
   await yieldTask()
-  const buf = await glbBuf
-  await yieldTask()
-  const gltf = await loader.parseAsync(buf, '/hero/')
-  await yieldTask()
-
-  const scene = new Scene()
-  const root = gltf.scene
+  const scene = new Scene(), root = gltf.scene
   scene.add(root)
-  const cam = (gltf.cameras[0] ?? root.getObjectByName('hero-cam')) as OrthographicCamera | undefined
-  if (!cam) throw new Error('cam')
-
-  const accent0 = readAccent(box)
-  const mats = bindHeroMaterials(root, accent0)
-  const pulseTo = accent0.clone().lerp(new Color(0xffffff), 0.35)
-
-  const canvas = document.createElement('canvas')
-  canvas.setAttribute('aria-hidden', 'true')
-  canvas.tabIndex = -1
+  const cam = gltf.cameras[0] as OrthographicCamera
+  if (!cam?.isOrthographicCamera) throw new Error('camera')
+  const accent = readAccent(box), mats = bindHeroMaterials(root, accent)
+  const pulseTo = accent.clone().lerp(new Color(0xffffff), .35)
+  const params: WebGLRendererParameters = { canvas, context, alpha: true, antialias: true,
+    powerPreference: 'low-power', failIfMajorPerformanceCaveat: true }
+  const renderer = new WebGLRenderer(params)
+  renderer.setClearColor(0, 0)
+  canvas.setAttribute('aria-hidden', 'true'); canvas.tabIndex = -1
   box.appendChild(canvas)
-
-  const params: WebGLRendererParameters = {
-    canvas,
-    alpha: true,
-    antialias: true,
-    powerPreference: 'low-power',
-    failIfMajorPerformanceCaveat: true,
+  let disposed = false, lost = false, ready = false, frame = 0, lostTimer = 0
+  let progress = 0, painted = NaN, pulse = 0
+  const hero = document.getElementById('hero')!
+  const size = () => {
+    const { width, height } = box.getBoundingClientRect()
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, DPR_CAP))
+    renderer.setSize(Math.max(1, width), Math.max(1, height), false)
+    fitCam(cam, width / height)
   }
-  let renderer: WebGLRenderer
-  try {
-    renderer = new WebGLRenderer(params)
-  } catch {
-    canvas.remove()
-    setPhase(box, 'poster')
-    return () => {}
+  const readProgress = () => Math.max(0, Math.min(1,
+    -hero.getBoundingClientRect().top / Math.max(1, hero.offsetHeight - innerHeight * .35)))
+  const poster = (phase: HeroPhase) => {
+    box.classList.remove('is-live'); posterEl(box)?.classList.remove('is-done'); setPhase(box, phase)
   }
-  renderer.setClearColor(0x000000, 0)
-  renderer.autoClear = true
-  renderer.setAnimationLoop(null)
-  await yieldTask()
-
-  let progress = 0
-  let disposed = false
-  let live = false
-  let forcePaint = false
-  let lastPainted = Number.NaN
-  let pulseStart = 0
-  let ticker: GsapTicker | null = null
-  let tickerBound = false
-  let stopScroll = () => {}
-  let lostTimer = 0
-
-  const sizeToBox = () => {
-    const w = Math.max(1, box.clientWidth)
-    const h = Math.max(1, box.clientHeight)
-    const dpr = Math.min(Math.max(1, window.devicePixelRatio || 1), DPR_CAP)
-    renderer.setPixelRatio(dpr)
-    renderer.setSize(w, h, false)
-    fitCam(cam, w / h)
-  }
-
-  const paint = () => {
-    applyHeroPose(root, progress)
-    if (pulseStart) {
-      const t = Math.min(1, (performance.now() - pulseStart) / PULSE_MS)
-      const u = t < 0.5 ? t * 2 : (1 - t) * 2
-      mats.accent.color.copy(accent0).lerp(pulseTo, u)
-      if (t >= 1) {
-        mats.accent.color.copy(accent0)
-        pulseStart = 0
-      }
+  const draw = () => {
+    frame = 0
+    if (disposed || lost || document.hidden) return
+    progress = readProgress(); applyHeroPose(root, progress)
+    if (pulse) {
+      const t = Math.min(1, (performance.now() - pulse) / PULSE_MS)
+      mats.accent.color.copy(accent).lerp(pulseTo, Math.sin(t * Math.PI))
+      if (t >= 1) pulse = 0
     }
-    renderer.render(scene, cam)
+    renderer.render(scene, cam); painted = progress
+    if (pulse) request()
   }
-
-  const stopTicker = () => {
-    if (!tickerBound || !ticker) return
-    ticker.remove(onTicker)
-    tickerBound = false
+  const request = () => {
+    if (!frame && ready && !disposed && !lost && !document.hidden) frame = requestAnimationFrame(draw)
   }
-
-  function onTicker() {
-    if (disposed) {
-      stopTicker()
-      return
-    }
-    const pulsing = pulseStart > 0
-    const force = forcePaint || pulsing
-    forcePaint = false
-    if (!force && Number.isFinite(lastPainted) && Math.abs(progress - lastPainted) <= PAINT_EPS) {
-      stopTicker()
-      return
-    }
-    lastPainted = progress
-    paint()
-    if (pulsing) requestRender(true)
-    else stopTicker()
+  const stop = () => { cancelAnimationFrame(frame); frame = 0; pulse = 0 }
+  const scroll = () => {
+    const p = readProgress()
+    if (p >= .5 && painted < .5 && box.getBoundingClientRect().bottom > 0) pulse = performance.now()
+    if (Math.abs(p - painted) > PAINT_EPS) request()
   }
-
-  function requestRender(force = false) {
-    if (force) forcePaint = true
-    if (!ticker || tickerBound) return
-    tickerBound = true
-    ticker.add(onTicker)
-  }
-
-  const reveal = () => {
-    if (disposed || live) return
-    live = true
-    box.classList.add('is-live')
-    setPhase(box, 'live')
-    const img = posterEl(box)
-    const finish = () => img?.classList.add('is-done')
-    canvas.addEventListener('transitionend', (ev) => {
-      if (ev.propertyName === 'opacity') finish()
-    })
-    window.setTimeout(finish, 360)
-    window.setTimeout(() => {
-      if (disposed || progress > PAINT_EPS) return
-      pulseStart = performance.now()
-      requestRender(true)
-    }, INTRO_MS)
-  }
-
-  const showPoster = (phase: HeroPhase) => {
-    live = false
-    box.classList.remove('is-live')
-    posterEl(box)?.classList.remove('is-done')
-    setPhase(box, phase)
-  }
-
+  const resize = () => { if (!lost && !disposed) { size(); request() } }
+  const visibility = () => { if (document.hidden) stop(); else request() }
   const onLost = (event: Event) => {
-    event.preventDefault()
-    stopTicker()
-    stopScroll()
-    if (lostTimer) window.clearTimeout(lostTimer)
-    lostTimer = window.setTimeout(() => {
-      if (disposed) return
-      showPoster('lost')
-    }, LOST_MS)
+    event.preventDefault(); lost = true; stop(); poster('lost'); clearTimeout(lostTimer)
+    lostTimer = window.setTimeout(() => poster('lost'), LOST_MS)
   }
-
+  // Renderer registers first: its internal restoration precedes this one frame.
   const onRestored = () => {
     if (disposed) return
-    if (lostTimer) window.clearTimeout(lostTimer)
-    lostTimer = 0
-    requestAnimationFrame(() => {
-      if (disposed) return
-      sizeToBox()
-      applyHeroPose(root, progress)
-      renderer.render(scene, cam)
-      lastPainted = progress
-      box.classList.add('is-live')
-      setPhase(box, 'live')
-      requestRender(true)
+    clearTimeout(lostTimer); lost = false; size()
+    frame = requestAnimationFrame(() => {
+      draw()
+      if (disposed || document.hidden) return
+      box.classList.add('is-live'); posterEl(box)?.classList.add('is-done'); setPhase(box, 'live')
     })
   }
-
-  const onTheme = () => {
-    const next = readAccent(box)
-    accent0.copy(next)
-    pulseTo.copy(next).lerp(new Color(0xffffff), 0.35)
-    mats.accent.color.copy(next)
-    requestRender(true)
-  }
-
+  const ro = new ResizeObserver(resize)
   const dispose = () => {
     if (disposed) return
-    disposed = true
-    if (lostTimer) window.clearTimeout(lostTimer)
-    stopTicker()
-    stopScroll()
-    document.removeEventListener('visibilitychange', onVis)
-    window.removeEventListener('pagehide', dispose)
-    themeMo.disconnect()
-    ro.disconnect()
-    canvas.removeEventListener('webglcontextlost', onLost, true)
-    canvas.removeEventListener('webglcontextrestored', onRestored, true)
-    root.traverse((obj) => {
-      const mesh = obj as Object3D & { geometry?: { dispose: () => void } }
-      mesh.geometry?.dispose()
-    })
-    mats.fill.dispose()
-    mats.ink.dispose()
-    mats.accent.dispose()
-    renderer.dispose()
-    canvas.remove()
-    showPoster('poster')
+    disposed = true; stop(); clearTimeout(lostTimer); ro.disconnect()
+    window.removeEventListener('scroll', scroll)
+    document.removeEventListener('visibilitychange', visibility)
+    signal.removeEventListener('abort', dispose)
+    canvas.removeEventListener('webglcontextlost', onLost)
+    canvas.removeEventListener('webglcontextrestored', onRestored)
+    root.traverse(obj => (obj as Object3D & {geometry?: {dispose: () => void}}).geometry?.dispose())
+    mats.fill.dispose(); mats.ink.dispose(); mats.accent.dispose()
+    renderer.dispose(); canvas.remove(); poster('poster')
   }
-
-  const onVis = () => {
-    if (document.hidden) {
-      stopTicker()
-      return
-    }
-    requestRender(true)
-  }
-
-  canvas.addEventListener('webglcontextlost', onLost, true)
-  canvas.addEventListener('webglcontextrestored', onRestored, true)
-  document.addEventListener('visibilitychange', onVis)
-  window.addEventListener('pagehide', dispose)
-  const themeMo = new MutationObserver(onTheme)
-  themeMo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
-  const ro = new ResizeObserver(() => {
-    sizeToBox()
-    requestRender(true)
-  })
-  ro.observe(box)
-
-  sizeToBox()
-  await yieldTask()
+  signal.addEventListener('abort', dispose, { once: true })
+  canvas.addEventListener('webglcontextlost', onLost)
+  canvas.addEventListener('webglcontextrestored', onRestored)
+  window.addEventListener('scroll', scroll, { passive: true })
+  document.addEventListener('visibilitychange', visibility)
   try {
-    await renderer.compileAsync(scene, cam)
-  } catch {
-    renderer.compile(scene, cam)
-  }
-  await yieldTask()
-  paint()
-  lastPainted = progress
-  requestAnimationFrame(() => {
-    if (!disposed) reveal()
-  })
-
-  ticker = gsap.ticker
-  stopScroll = attachHeroScroll((p) => {
-    pulseStart = 0
-    mats.accent.color.copy(accent0)
-    progress = p
-    requestRender(true)
-  }, { skipInitial: true })
-
-  return dispose
+    size(); progress = readProgress(); applyHeroPose(root, progress)
+    await yieldTask(); await renderer.compileAsync(scene, cam); await yieldTask()
+    signal.throwIfAborted()
+    if (lost) return dispose
+    draw(); ready = true
+    frame = requestAnimationFrame(() => {
+      frame = 0
+      if (disposed || lost || document.hidden) return
+      box.classList.add('is-live'); posterEl(box)?.classList.add('is-done'); setPhase(box, 'live')
+    })
+    ro.observe(box)
+    return dispose
+  } catch (error) { dispose(); throw error }
 }
+

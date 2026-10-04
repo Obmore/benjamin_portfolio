@@ -29,9 +29,18 @@ export function HeroVisual() {
     if (HERO_POSTER_PATH) return
     let stop = () => {}
     let cancelled = false
-    void import('@/lib/hero3d-boot').then((mod) => {
-      if (!cancelled) stop = mod.bootHero3d()
-    })
+    const image = document.querySelector<HTMLImageElement>('.hero-3d-poster')
+    void image?.decode().then(() => {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const start = () => {
+          if (!cancelled) void import('@/lib/hero3d-boot').then(mod => {
+            if (!cancelled) stop = mod.bootHero3d()
+          }).catch(() => {})
+        }
+        if ('requestIdleCallback' in window) window.requestIdleCallback(start)
+        else setTimeout(start, 0)
+      }))
+    }).catch(() => {})
     return () => {
       cancelled = true
       stop()

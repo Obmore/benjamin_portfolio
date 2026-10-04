@@ -89,7 +89,10 @@ export function buildK1Scene(THREE, layout) {
   trackAccent.name = 'track-accent'
   root.add(layerBot, layerSub, layerTop, layerChip, trackAccent)
 
-  addBox(THREE, layerSub, 'board', layout.BW, layout.BT, layout.BD, 0, 0, 0, fill, ink)
+  // A blueprint substrate is an outline; a solid board hides the lower traces.
+  const board = new THREE.LineSegments(lineGeometry(THREE, polysToPositions([layout.boardOutline], 0)), ink)
+  board.name = 'board'
+  layerSub.add(board)
 
   const botInk = [
     ...polysToPositions([layout.boardOutline], layout.BOT_Y),
