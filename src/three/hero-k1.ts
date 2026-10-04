@@ -419,7 +419,9 @@ export async function createK1Scene(
   lidMat.depthTest = false
   lidMat.depthWrite = false
   lidMat.polygonOffset = false
-  lidMat.opacity = 1
+  // material.opacity 1 lets the renderer skip blending; 0.999 keeps src-over
+  // so SwiftShader actually overwrites the transparent ink under the chip.
+  lidMat.opacity = 0.999
 
   await pause()
 
