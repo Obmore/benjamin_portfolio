@@ -151,12 +151,12 @@ function makeFillMat(
     vertexShader: FILL_VERT,
     fragmentShader: FILL_FRAG,
     transparent,
-    depthWrite: !transparent,
+    depthWrite: opacity >= 0.999,
     depthTest: true,
     polygonOffset: true,
     polygonOffsetFactor: 1,
     polygonOffsetUnits: 1,
-    blending: transparent ? NormalBlending : NoBlending,
+    blending: opacity >= 0.999 ? NoBlending : NormalBlending,
   })
   Object.defineProperty(mat, 'color', {
     configurable: true,
@@ -294,7 +294,7 @@ export async function createK1Scene(
   pause: () => Promise<void> = () => Promise.resolve(),
 ): Promise<K1Scene> {
   const uLayerY = { value: new Vector4(0, 0, 0, 0) }
-  const fill = makeFillMat(colors.surface, uLayerY, false, 1)
+  const fill = makeFillMat(colors.surface, uLayerY, true, 1)
   const subMat = makeFillMat(colors.surface, uLayerY, true, 0.92)
   const ink = new LineBasicMaterial({
     color: colors.ink,
