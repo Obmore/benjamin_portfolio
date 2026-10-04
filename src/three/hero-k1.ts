@@ -352,6 +352,9 @@ export async function createK1Scene(
   const fill = makeFillMat(colors.surface, uLayerY, false, 1)
   const subMat = makeFillMat(colors.surface, uLayerY, true, 0.92)
   const lidMat = makeFillMat(colors.surface, uLayerY, true, 1)
+  // NoBlending + opaque white on SwiftShader leaves the destination traces;
+  // NormalBlending with alpha 1 overwrites after the transparent ink pass.
+  lidMat.blending = NormalBlending
   const ink = new LineBasicMaterial({
     color: colors.ink,
     transparent: true,
