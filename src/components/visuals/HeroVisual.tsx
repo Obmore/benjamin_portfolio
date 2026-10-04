@@ -11,8 +11,8 @@ const DRAWING_SUBJECT = {
 
 const HERO_POSTER_PATH = document.documentElement.classList.contains('is-hero-poster')
 
-const POSTER_W = 400
-const POSTER_H = 300
+const POSTER_W = 350
+const POSTER_H = 263
 
 export function HeroVisual() {
   const { locale } = useI18n()

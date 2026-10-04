@@ -8,8 +8,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const glbRel = '/public/hero/k1.glb'
 const out1 = path.join(root, 'public/hero/k1-p0@1x.webp')
 const out2 = path.join(root, 'public/hero/k1-p0@2x.webp')
-const W = 400
-const H = 300
+const W = 350
+const H = 263
 
 const { server, url } = await serveRoot(root)
 const browser = await chromium.launch()

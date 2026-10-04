@@ -286,7 +286,7 @@ async function seekProgress(page: Page, progress: number) {
     const span = Math.max(1, hero.offsetHeight - window.innerHeight * 0.35)
     window.scrollTo(0, top + p * span)
   }, progress)
-  await page.waitForTimeout(800)
+  await page.waitForTimeout(1000)
 }
 
 async function screenshotCanvas(page: Page) {
@@ -329,8 +329,8 @@ test.describe('hero B desktop 3d', () => {
     await expect(preload).toHaveAttribute('media', PRELOAD_MEDIA)
     await expect(preload).toHaveAttribute('fetchpriority', 'high')
     const img = page.locator('.hero-3d-poster')
-    await expect(img).toHaveAttribute('width', '400')
-    await expect(img).toHaveAttribute('height', '300')
+    await expect(img).toHaveAttribute('width', '350')
+    await expect(img).toHaveAttribute('height', '263')
     await expect(img).toHaveAttribute('alt', '')
     await expect(img).toHaveAttribute('fetchpriority', 'high')
   })

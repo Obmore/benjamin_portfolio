@@ -44,9 +44,16 @@
     })
     root.traverse((obj) => {
       if (obj.isMesh) obj.material = fill
-      if (obj.isLineSegments) {
-        const accented = obj.name.startsWith('via-') || obj.name === 'track-accent'
-          || (obj.parent && obj.parent.name === 'track-accent')
+      if (obj.isLine || obj.isLineSegments) {
+        let node = obj
+        let accented = false
+        while (node) {
+          if (node.name === 'track-accent' || node.name.startsWith('via-')) {
+            accented = true
+            break
+          }
+          node = node.parent
+        }
         obj.material = accented ? accent : ink
       }
     })

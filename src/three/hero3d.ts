@@ -72,6 +72,15 @@ function isLine(obj: Object3D): obj is Object3D & { isLine: true; material: unkn
   return Boolean(rec.isLine || rec.isLineSegments)
 }
 
+function isAccentNode(obj: Object3D) {
+  let node: Object3D | null = obj
+  while (node) {
+    if (node.name === 'track-accent' || node.name.startsWith('via-')) return true
+    node = node.parent
+  }
+  return false
+}
+
 export function applyHeroPose(root: Object3D, p: number) {
   const ys = poseYs(p)
   const showAccent = p >= 0.5
@@ -113,11 +122,7 @@ export function bindHeroMaterials(root: Object3D, accent: Color) {
   })
   root.traverse((obj) => {
     if (isMesh(obj)) obj.material = fill
-    if (isLine(obj)) {
-      const named = obj.name.startsWith('via-') || obj.name === 'track-accent'
-      const parent = obj.parent?.name === 'track-accent'
-      obj.material = named || parent ? accentMat : ink
-    }
+    if (isLine(obj)) obj.material = isAccentNode(obj) ? accentMat : ink
   })
   applyHeroPose(root, 0)
   return { fill, ink, accent: accentMat }
