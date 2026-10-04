@@ -375,7 +375,7 @@ export async function createK1Scene(
     transparent: true,
     opacity: 0.55,
     depthWrite: false,
-    depthTest: false,
+    depthTest: true,
     polygonOffset: false,
   })
   bindLayer(bodyMat, uLayerY, 'k1y-body')
@@ -401,7 +401,8 @@ export async function createK1Scene(
   for (const g of fillGeos) {
     const la = g.getAttribute('aLayer')
     const layer = la ? (la.array as Float32Array)[0] : LY.top
-    addFacingEdges(bodyBuf, g, layer, layer >= 2.5 ? ys1.chip : ys1.top)
+    if (layer >= 2.5) continue
+    addFacingEdges(bodyBuf, g, layer, ys1.top)
   }
   const fillMesh = new Mesh(mergeMesh(fillGeos), fill)
   fillMesh.frustumCulled = false
