@@ -4,7 +4,7 @@ export const contentHu: SiteContent = {
   meta: {
     title: 'Ott Benjámin, villamosmérnök és szoftverfejlesztő',
     description:
-      'Ott Benjámin, villamosmérnök és szoftverfejlesztő. Python, full-stack fejlesztés, ipari rendszerek, energetika és telekommunikációs K+F.',
+      'Ott Benjámin, villamosmérnök és szoftverfejlesztő. Python, webfejlesztés, ipari rendszerek, energetika és távközlési kutatás-fejlesztés.',
   },
   nav: {
     about: 'Rólam',
@@ -16,12 +16,12 @@ export const contentHu: SiteContent = {
   },
   hero: {
     headline:
-      'Villamosmérnök és szoftverfejlesztő, aki mérnöki rendszereket köt össze modern szoftveres megoldásokkal.',
+      'Villamosmérnökként és szoftverfejlesztőként mérnöki rendszerekhez készítek szoftveres megoldásokat.',
     subheadline:
-      'Python, full-stack fejlesztés, ipari kommunikáció, energetikai rendszerek, telekommunikációs K+F és műszaki projektmenedzsment egy kézben.',
+      'Webalkalmazások fejlesztése, Python-alapú automatizálás, ipari kommunikáció, energetikai rendszerek, távközlési kutatás-fejlesztés és műszaki projektvezetés.',
     ctaContact: 'Kapcsolatfelvétel',
     ctaCv: 'Önéletrajz letöltése',
-    ctaLinkedIn: 'LinkedIn profil',
+    ctaLinkedIn: 'LinkedIn-profil',
     chips: [
       'Python',
       'React',
@@ -38,22 +38,22 @@ export const contentHu: SiteContent = {
   },
   about: {
     title: 'Rólam',
-    text: 'Villamosmérnöki háttérrel rendelkező szoftverfejlesztő és műszaki projektmérnök vagyok. Olyan feladatok érdekelnek, ahol a mérnöki gondolkodás, a szoftverfejlesztés és a rendszerszintű problémamegoldás találkozik.\n\nDolgoztam webes és backend fejlesztéseken, Python-alapú mérnöki feladatokon, telekommunikációs K+F környezetben, valamint ipari és energetikai projektek műszaki koordinációján. Erősségem, hogy képes vagyok hidat képezni a fejlesztői, mérnöki és üzleti szereplők között.',
+    text: 'Villamosmérnök, szoftverfejlesztő és műszaki projektmérnök vagyok. Olyan feladatokon szeretek dolgozni, amelyekhez mérnöki gondolkodásra, programozásra és a teljes rendszer átlátására is szükség van.\n\nFejlesztettem webes felületeket, szerveroldali rendszereket és Python-alapú mérnöki eszközöket. Dolgoztam távközlési kutatás-fejlesztésben, valamint ipari és energetikai projektek műszaki koordinációján is. A fejlesztők, mérnökök és üzleti partnerek közötti együttműködést is segítem.',
     highlights: [
       {
         title: 'Mérnöki rendszerszemlélet',
         description:
-          'Strukturált elemzés, rendszerszintű gondolkodás és műszaki problémák átfogó megközelítése.',
+          'A műszaki problémákat az összefüggéseikkel együtt vizsgálom, a teljes rendszer működését szem előtt tartva.',
       },
       {
         title: 'Szoftverfejlesztési háttér',
         description:
-          'Full-stack tapasztalat modern webes és backend technológiákkal, valamint Python-alapú mérnöki fejlesztésekkel.',
+          'Webes felületeket, szerveroldali rendszereket és Python-alapú mérnöki eszközöket fejlesztek.',
       },
       {
         title: 'Projekt- és partnerkoordináció',
         description:
-          'Fejlesztői, mérnöki és üzleti szereplők közötti egyeztetés, dokumentáció és tesztelési folyamatok támogatása.',
+          'Összehangolom a fejlesztők, mérnökök és üzleti partnerek munkáját, és segítem a dokumentálást és a tesztelést.',
       },
     ],
   },
@@ -77,7 +77,7 @@ export const contentHu: SiteContent = {
         bullets: [
           'Energetikai és ipari rendszerekhez kapcsolódó műszaki projektek koordinációja.',
           'Ipari kommunikációs, adatgyűjtési és távfelügyeleti feladatok támogatása.',
-          'Partnerekkel, fejlesztőkkel és műszaki szereplőkkel való egyeztetés.',
+          'Egyeztetés a partnerekkel, fejlesztőkkel és műszaki szakemberekkel.',
           'Rendszerszintű hibakeresés, dokumentáció és tesztelési folyamatok támogatása.',
         ],
       },
@@ -86,10 +86,10 @@ export const contentHu: SiteContent = {
         company: 'Rollin',
         period: '2023 és 2025 között',
         bullets: [
-          'Webalkalmazások frontend és backend fejlesztése.',
-          'React, Vite, Tailwind CSS és Ant Design használata frontend oldalon.',
+          'Webalkalmazások felületének és szerveroldali működésének fejlesztése.',
+          'Felületfejlesztés React, Vite, Tailwind CSS és Ant Design használatával.',
           'Backend- és API-fejlesztési feladatok C#, Microsoft SQL és Quartz környezetben.',
-          'Azure DevOps, Git és CI/CD szemléletű fejlesztési folyamatok használata.',
+          'Verziókezelés, automatikus tesztelés és telepítés Git és Azure DevOps használatával.',
         ],
       },
       {
@@ -99,7 +99,7 @@ export const contentHu: SiteContent = {
         bullets: [
           'Kvantumkommunikációhoz és QKD-rendszerekhez kapcsolódó K+F feladatok.',
           'Szoftverfejlesztés több programozási nyelven, valamint mérési és kísérleti munkák támogatása.',
-          'Szoftveres és hardveres problémák elemzése telekommunikációs kutatási környezetben.',
+          'Szoftveres és hardveres problémák elemzése távközlési kutatások során.',
           'Git-alapú verziókezelés és mérnöki dokumentáció.',
         ],
       },
@@ -108,9 +108,9 @@ export const contentHu: SiteContent = {
         company: '',
         period: '2024 óta',
         bullets: [
-          'Webes és technikai megoldások fejlesztése üzleti igények alapján.',
-          'Frontend, backend és automatizációs jellegű feladatok.',
-          'Modern fejlesztői eszközök és AI-támogatott munkafolyamatok alkalmazása.',
+          'Webes és műszaki megoldások fejlesztése üzleti igények alapján.',
+          'Felületfejlesztés, szerveroldali fejlesztés és ismétlődő feladatok automatizálása.',
+          'Modern fejlesztőeszközök és mesterséges intelligenciával támogatott munkafolyamatok használata.',
         ],
       },
     ],
@@ -170,7 +170,7 @@ export const contentHu: SiteContent = {
   },
   projects: {
     title: 'Munkáim',
-    indexLabel: 'Munkajegyzék',
+    indexLabel: 'Munkáim áttekintése',
     sampleBadge: 'Minta',
     items: [
       {
@@ -214,7 +214,7 @@ export const contentHu: SiteContent = {
       {
         id: 'lelek-es-nyelv',
         title: 'Lélek & Nyelv',
-        subtitle: 'Bemutatkozó oldal minta',
+        subtitle: 'Bemutatkozó mintaoldal',
         sample: true,
         site: {
           label: 'obmore.github.io/lelek-es-nyelv-portfolio',
@@ -233,14 +233,14 @@ export const contentHu: SiteContent = {
   },
   cv: {
     title: 'Önéletrajz',
-    text: 'Töltse le a szakmai önéletrajzomat, vagy keressen meg LinkedInen.',
-    downloadHu: 'Magyar CV letöltése',
-    downloadEn: 'Angol CV letöltése',
+    text: 'Töltse le a szakmai önéletrajzomat, vagy keressen meg a LinkedInen.',
+    downloadHu: 'Magyar önéletrajz',
+    downloadEn: 'Angol önéletrajz',
     linkedIn: 'LinkedIn',
   },
   contact: {
     title: 'Kapcsolat',
-    text: 'Nyitott vagyok szoftverfejlesztői, műszaki projektmérnöki, ipari és energetikai rendszerekkel és K+F-fel kapcsolatos lehetőségekre.',
+    text: 'Szívesen dolgozom szoftverfejlesztési és műszaki projekteken, ipari és energetikai rendszereken, valamint kutatás-fejlesztési feladatokon.',
     email: 'bendzsiott1998@gmail.com',
     location: 'Budapest',
     linkedIn: 'linkedin.com/in/benjaminottee',

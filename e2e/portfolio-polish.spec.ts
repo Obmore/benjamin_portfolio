@@ -9,6 +9,11 @@ for (const width of [360,390,1024,1440]) test(`light-only, full domain labels, f
   expect(await page.locator('html').evaluate(e=>getComputedStyle(e).colorScheme)).toBe('light')
   const clipped=await page.locator('.work-shot-domain').evaluateAll(es=>es.filter(e=>e.scrollWidth>e.clientWidth+1||e.scrollHeight>e.clientHeight+1).map(e=>e.textContent))
   expect(clipped).toEqual([])
+  const labelPadding = await page.locator('.work-shot-chrome').evaluateAll(es => es.map(e => {
+    const style = getComputedStyle(e)
+    return Math.min(parseFloat(style.paddingTop), parseFloat(style.paddingBottom))
+  }))
+  for (const padding of labelPadding) expect(padding).toBeGreaterThanOrEqual(6)
   expect(await page.locator('.work-shot').evaluateAll(es=>[...new Set(es.map(e=>getComputedStyle(e).marginBottom))])).toEqual(['24px'])
   const missing=await page.locator('svg path,svg line,svg rect,svg circle,svg polyline,svg polygon').evaluateAll(es=>es.filter(e=>{
     const cs=getComputedStyle(e)

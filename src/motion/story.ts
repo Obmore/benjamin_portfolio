@@ -57,10 +57,10 @@ export function createStory(section: HTMLElement) {
       caption.querySelector('h2')!.textContent = cards[i]?.querySelector('h3')?.textContent ?? ''
       caption.querySelector('p')!.textContent = cards[i]?.querySelector('p')?.textContent ?? ''
     })
-    section.setAttribute('aria-label', english ? 'Engineering, software, connection' : 'Mérnöki szemlélet, szoftver, kapcsolódás')
+    section.setAttribute('aria-label', english ? 'Engineering, software, connection' : 'Mérnöki szemlélet, szoftverfejlesztés és együttműködés')
     get('.cs-eyebrow-label').textContent = english ? 'BEHIND THE SURFACE' : 'A FELSZÍN MÖGÖTT'
     get('.cs-skip').textContent = english ? 'Explore my work ↗' : 'Tovább a munkáimhoz ↗'
-    get('.cs-hint').textContent = english ? 'Scroll to explore' : 'Görgess, és nézz a felszín mögé'
+    get('.cs-hint').textContent = english ? 'Scroll to explore' : 'A történet görgetéssel folytatódik'
   }
   const render = (y: number) => {
     const p = clamp((y - top) / travel)

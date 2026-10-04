@@ -9,8 +9,8 @@ export function mountInquiry(copyText: (text: string) => Promise<boolean>) {
   const directEmail = write.href
   let copiedTimer = 0
   const draft = () => {
-    const topic = service.value ? service.selectedOptions[0].text : 'Segítséget szeretnék kérni a megfelelő megoldás kiválasztásához.'
-    return `Kedves Benjámin!\n\n${topic}\n\n${description.value.trim() || 'Jelenleg így működik a feladat:\n\nEzt szeretném egyszerűbbé tenni:\n\nA kívánt eredmény:'}\n`
+    const topic = service.value ? `Ez a szolgáltatás érdekel: ${service.selectedOptions[0].text}.` : 'Segítséget szeretnék kérni a megfelelő megoldás kiválasztásához.'
+    return `Kedves Benjámin!\n\n${topic}\n\n${description.value.trim() || 'Jelenleg így dolgozom:\n\nEzt szeretném egyszerűbbé tenni:\n\nA kívánt eredmény:'}\n`
   }
   const update = () => {
     clearTimeout(copiedTimer)
@@ -32,13 +32,13 @@ export function mountInquiry(copyText: (text: string) => Promise<boolean>) {
         copy.textContent = 'Levélszöveg kimásolva'
         clearTimeout(copiedTimer)
         copiedTimer = window.setTimeout(() => { copy.textContent = 'Levélszöveg másolása' }, 2500)
-        status.textContent = 'A levélszöveg a vágólapra másolva. Beillesztheti a saját levelezőjébe.'
+        status.textContent = 'A levél szövegét kimásoltam. Beillesztheti a saját levelezőjébe.'
       } else {
         fallback.value = text
         fallback.hidden = false
         fallback.focus({ preventScroll: true })
         fallback.select()
-        status.textContent = 'Az automatikus másolás nem sikerült. Jelölje ki és másolja ki a levélszöveget az alábbi mezőből.'
+        status.textContent = 'Az automatikus másolás nem sikerült. A levél szövegét az alábbi mezőből másolhatja ki.'
       }
     })()
   })
@@ -67,7 +67,7 @@ export function mountInquiry(copyText: (text: string) => Promise<boolean>) {
   const captions = [
     'A mostani Excel- vagy PDF-lapból indulunk ki.',
     'Az adatokat a vevő egy webes űrlapon adhatja meg.',
-    'A kérés e-mailben érkezik, vagy a választott csomaggal a saját táblázatába kerül.',
+    'A beérkező adatokat a választott csomagtól függően e-mailben vagy a saját táblázatában kapja meg.',
   ]
   const steps = [...document.querySelectorAll<HTMLButtonElement>('[data-flow-step]')]
   for (const button of steps) button.addEventListener('click', () => {
