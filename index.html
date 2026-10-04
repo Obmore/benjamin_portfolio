@@ -2,7 +2,7 @@
 <html lang="hu">
   <head>
     <script>
-      document.documentElement.classList.add('js')
+      document.documentElement.classList.add('js', 'is-hero-poster')
       if (location.hash) document.documentElement.style.scrollBehavior = 'auto'
       try {
         var n = navigator
@@ -11,15 +11,7 @@
         if ((connection && connection.saveData) || (mem && mem <= 2)) {
           document.documentElement.classList.add('is-static-motion')
         }
-        if (
-          (connection && connection.saveData) ||
-          (mem && mem <= 4) ||
-          matchMedia('(max-width: 1023px)').matches ||
-          matchMedia('(pointer: coarse)').matches ||
-          matchMedia('(prefers-reduced-motion: reduce)').matches
-        ) {
-          document.documentElement.classList.add('is-hero-poster')
-        }
+
       } catch (e) {}
     </script>
     <meta charset="UTF-8" />
