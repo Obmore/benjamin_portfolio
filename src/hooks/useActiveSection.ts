@@ -1,10 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-  FORBIDDEN_HASH_IDS,
-  isHashTargetInView,
-  rawLocationHash,
-  replaceLocationHash,
-} from '@/lib/hash'
 import { prefersReducedMotion } from '@/lib/motion'
 
 const HEADER_OFFSET_PX = 64
@@ -22,7 +16,6 @@ function useSectionSpy(
   factor: number,
   fallback: string,
   toDomId: (id: string) => string,
-  syncHash = false,
 ) {
   const [activeId, setActiveId] = useState(fallback)
   const idsKey = ids.join(',')
@@ -47,18 +40,7 @@ function useSectionSpy(
       pageHeight = document.documentElement.scrollHeight
     }
 
-    const syncUrlHash = (next: string) => {
-      if (!syncHash || pendingSnap) return
-      const raw = rawLocationHash()
-      if (window.location.hash === '#' || FORBIDDEN_HASH_IDS.has(raw)) {
-        replaceLocationHash(null)
-        return
-      }
-      if (raw && isHashTargetInView(raw, HEADER_OFFSET_PX)) return
-      replaceLocationHash(next || null)
-    }
-
-    const pick = (fromScroll = false) => {
+    const pick = () => {
       const y = window.scrollY
       const vh = window.innerHeight
       let next = fallbackRef.current
@@ -74,24 +56,23 @@ function useSectionSpy(
         last = next
         setActiveId(next)
       }
-      if (fromScroll) syncUrlHash(next)
     }
 
     const onScroll = () => {
       if (frame) return
       frame = window.requestAnimationFrame(() => {
         frame = 0
-        pick(true)
+        pick()
       })
     }
 
     const onResize = () => {
       recache()
-      pick(false)
+      pick()
     }
 
     recache()
-    pick(false)
+    pick()
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize)
     const observer = new ResizeObserver(onResize)
@@ -103,13 +84,13 @@ function useSectionSpy(
       observer.disconnect()
       if (frame) window.cancelAnimationFrame(frame)
     }
-  }, [factor, idsKey, syncHash, toDomId])
+  }, [factor, idsKey, toDomId])
 
   return activeId
 }
 
 export function useActiveSection(sectionIds: string[]) {
-  return useSectionSpy(sectionIds, 0.35, '', identityId, true)
+  return useSectionSpy(sectionIds, 0.35, '', identityId)
 }
 
 export function useWorkIndex(ids: string[]) {

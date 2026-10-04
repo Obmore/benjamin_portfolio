@@ -52,19 +52,52 @@
       <section class="mg-intro">
         <div class="mg-wrap">
           <div class="mg-intro-inner">
+            <div class="mg-intro-copy">
+            <p class="mg-eyebrow">WEB · AUTOMATIZÁLÁS · MÉRNÖKI ADATOK</p>
             <h1 class="mg-title">Megrendelés és ajánlatkérés</h1>
             <p class="mg-lead">
               Egyszerű bemutatkozó oldalt fix áron rendelhet. Egyedi webes megoldásnál előbb
               megbeszéljük, mire van szüksége, és utána küldök ajánlatot.
             </p>
+            <p class="mg-intro-note">Induljunk abból, amit egyszerűbbé szeretne tenni.</p>
+            <a class="mg-text-link" href="/#munkaim">Korábbi munkáim megtekintése ↗</a>
+            </div>
+            <div class="mg-flow" data-step="0">
+              <p class="mg-eyebrow">EGY LEHETSÉGES MUNKAFOLYAMAT</p>
+              <div class="mg-flow-art" aria-hidden="true">
+                <div class="mg-flow-orbit"></div>
+                <div class="mg-flow-object">
+                  <div class="mg-flow-sheet mg-flow-file"><span class="mg-flow-label">EXCEL / PDF</span><div class="mg-flow-table"></div><span class="mg-file-fold"></span></div>
+                  <div class="mg-flow-sheet mg-flow-form"><span class="mg-flow-label">WEBES ŰRLAP</span><i></i><i></i><i></i><b>→</b></div>
+                  <div class="mg-flow-sheet mg-flow-result"><span class="mg-flow-label">RENDEZETT ADATOK</span><div class="mg-flow-check">✓</div><div class="mg-flow-table"></div></div>
+                </div>
+              </div>
+              <div class="mg-flow-steps" role="group" aria-label="A bemutató lépései">
+                <button type="button" data-flow-step="0" aria-pressed="true" aria-controls="mg-flow-caption">01 <span>Kiindulás</span></button>
+                <button type="button" data-flow-step="1" aria-pressed="false" aria-controls="mg-flow-caption">02 <span>Átalakítás</span></button>
+                <button type="button" data-flow-step="2" aria-pressed="false" aria-controls="mg-flow-caption">03 <span>Eredmény</span></button>
+              </div>
+              <p id="mg-flow-caption" class="mg-flow-caption" aria-live="polite">A mostani Excel- vagy PDF-lapból indulunk ki.</p>
+            </div>
           </div>
+          <nav class="mg-choose" aria-label="Válasszon a feladata alapján">
+            <h2>Miben segíthetek?</h2>
+            <div class="mg-choose-grid">
+              <a href="#szolgaltatas-rendelolap"><span>01</span><strong>Rendelések fogadása</strong><small>Webes űrlap · fix díj</small><b aria-hidden="true">↗</b></a>
+              <a href="#szolgaltatas-automatizalas"><span>02</span><strong>Kevesebb kézi munka</strong><small>Ismétlődő feladatok · egyeztetett keret</small><b aria-hidden="true">↗</b></a>
+              <a href="#szolgaltatas-adatok"><span>03</span><strong>Mérések feldolgozása</strong><small>Táblázatok, grafikonok · Python</small><b aria-hidden="true">↗</b></a>
+              <a href="#szolgaltatas-egyedi"><span>04</span><strong>Egyedi webes rendszer</strong><small>Számítás, nyilvántartás, kezelőfelület</small><b aria-hidden="true">↗</b></a>
+              <a href="#szolgaltatas-bemutatkozo"><span>05</span><strong>Bemutatkozó honlap</strong><small>Szolgáltatások és elérhetőség · fix díj</small><b aria-hidden="true">↗</b></a>
+              <a href="#szolgaltatas-uzemeltetes"><span>06</span><strong>Üzemeltetés</strong><small>Választható havi szolgáltatás</small><b aria-hidden="true">↗</b></a>
+            </div>
+          </nav>
         </div>
       </section>
 
       <section class="mg-plans-section">
         <div class="mg-wrap">
           <div class="mg-plans">
-            <article class="mg-plan"><svg class="mg-plan-frame" aria-hidden="true" focusable="false">
+            <article class="mg-plan" id="szolgaltatas-rendelolap"><svg class="mg-plan-frame" aria-hidden="true" focusable="false">
                 <rect
                   class="mg-plan-stroke"
                   pathLength="1"
@@ -86,7 +119,7 @@
 <p class="mg-plan-copy">Nem tartalmaz árkalkulációt, adatbázist és a meglévő rendszereivel való összekötést. Ezeket egyeztetés után külön árazom.</p></div><div class="mg-plan-terms"><p class="mg-price">149&nbsp;000&nbsp;Ft egyszeri díj.</p><p class="mg-plan-copy">Üzemeltetés kérésre havi 4&nbsp;900&nbsp;Ft.</p><p class="mg-plan-copy">Általában három héten belül elkészül, miután megkaptam a mostani lapot és a mezők listáját.</p><section class="mg-subplan"><h3 class="mg-plan-title">Rendelőlap a saját táblázata szerint</h3><p class="mg-plan-copy">Ha a beérkező kérésekkel táblázatban dolgozik tovább, minden kérés ugyanabban az oszloprendben, új sorként érkezik a saját online táblázatába, amelyet Excel-fájlként is letölthet. Így nem kell kézzel átmásolnia az adatokat. A táblázat formáját a mostani táblázata alapján állítom be.</p>
 <p class="mg-price">189&nbsp;000&nbsp;Ft egyszeri díj.</p></section></div></div><a class="mg-btn-outline mg-plan-cta" href="#kapcsolat-email">Megrendelés</a></article>
 
-<article class="mg-plan"><svg class="mg-plan-frame" aria-hidden="true" focusable="false">
+<article class="mg-plan" id="szolgaltatas-automatizalas"><svg class="mg-plan-frame" aria-hidden="true" focusable="false">
                 <rect
                   class="mg-plan-stroke"
                   pathLength="1"
@@ -105,7 +138,7 @@
               </div>
               <p class="mg-plan-sheet">LAP B · EGYEDI</p><div class="mg-plan-body"><div class="mg-plan-content"><h2 class="mg-plan-title">Ismétlődő feladatok automatizálása</h2><p class="mg-plan-copy">Ha valamit hetente vagy naponta ugyanúgy, kézzel végeznek, például táblázatokat másolnak össze, adatokat írnak át egyik helyről a másikra, vagy ugyanazt az e-mailt küldik ki sokszor, azt gyakran egy kis program is el tudja végezni. Excel-fájlokkal, CSV-exportokkal és e-mailekkel dolgozom, a programot Pythonban írom. A munka végén rövid leírást kap arról, hogyan kell használni.</p></div><div class="mg-plan-terms"><p class="mg-plan-copy">Óradíj alapján, előre egyeztetett felső kerettel. A keretet a feladat átnézése után írásban megadom.</p></div></div><a class="mg-btn-outline mg-plan-cta" href="#kapcsolat-email">Kérjen ajánlatot</a></article>
 
-<article class="mg-plan"><svg class="mg-plan-frame" aria-hidden="true" focusable="false">
+<article class="mg-plan" id="szolgaltatas-adatok"><svg class="mg-plan-frame" aria-hidden="true" focusable="false">
                 <rect
                   class="mg-plan-stroke"
                   pathLength="1"
@@ -124,7 +157,7 @@
               </div>
               <p class="mg-plan-sheet">LAP C · EGYEDI</p><div class="mg-plan-body"><div class="mg-plan-content"><h2 class="mg-plan-title">Mérési és műszaki adatok feldolgozása Pythonban</h2><p class="mg-plan-copy">Villamosmérnökként és szoftverfejlesztőként mérési és műszaki adatokkal is dolgozom. Ha a műszerekből vagy rendszerekből exportált fájlokat ma kézzel rendezik és összesítik, ezt egy bármikor újra lefuttatható Python-program is elvégezheti. Az eredmény egy összesítő táblázat vagy grafikon, és egy rövid leírás.</p></div><div class="mg-plan-terms"><p class="mg-plan-copy">Óradíj alapján, előre egyeztetett felső kerettel.</p></div></div><a class="mg-btn-outline mg-plan-cta" href="#kapcsolat-email">Kérjen ajánlatot</a></article>
 
-<article class="mg-plan"><svg class="mg-plan-frame" aria-hidden="true" focusable="false">
+<article class="mg-plan" id="szolgaltatas-egyedi"><svg class="mg-plan-frame" aria-hidden="true" focusable="false">
                 <rect
                   class="mg-plan-stroke"
                   pathLength="1"
@@ -143,7 +176,7 @@
               </div>
               <p class="mg-plan-sheet">LAP D · EGYEDI</p><div class="mg-plan-body"><div class="mg-plan-content"><h2 class="mg-plan-title">Egyedi webes megoldás</h2><p class="mg-plan-copy">Ha a rendelés vagy az ajánlatkérés számolást, állapotkövetést vagy saját kezelőfelületet igényel, vagy egy belső nyilvántartást szeretne egyszerűbbé tenni, ahhoz egyedi webes megoldást készítek. Ahol már létezik kész, megbízható megoldás, arra építek, és nem írok meg mindent az alapoktól. Írja le röviden, hogyan működik most. Átnézem, egyeztetünk, és utána írásos ajánlatot küldök, benne a pontos tartalommal, az árral és a várható időtartammal. Nagyobb munkánál először egy kisebb, de már használható változat készül el.</p></div><div class="mg-plan-terms"><p class="mg-plan-copy">Az árat az igényfelmérés után adom meg.</p></div></div><a class="mg-btn-outline mg-plan-cta" href="#kapcsolat-email">Kérjen ajánlatot</a></article>
 
-<article class="mg-plan"><svg class="mg-plan-frame" aria-hidden="true" focusable="false">
+<article class="mg-plan" id="szolgaltatas-bemutatkozo"><svg class="mg-plan-frame" aria-hidden="true" focusable="false">
                 <rect
                   class="mg-plan-stroke"
                   pathLength="1"
@@ -164,7 +197,7 @@
 <p class="mg-plan-copy">Mit tartalmaz:</p><ul class="mg-list"><li>legfeljebb hat tartalmi rész, például bemutatkozás, szolgáltatások, munkák, elérhetőség</li><li>legalább hat, legfeljebb tíz fotó, amelyet Ön ad át, és amelyek felhasználására jogosult</li><li>kapcsolatfelvételi lehetőség</li><li>alapvető keresőbeállítás: oldalcím és leírás a Google-találatokhoz, valamint az oldal regisztrálása a Google Search Console-ban</li><li>egy javítási kör</li></ul>
 <p class="mg-plan-copy">A domain díja külön fizetendő, és a domain az Ön nevére szól.</p></div><div class="mg-plan-terms"><p class="mg-price">129&nbsp;000&nbsp;Ft egyszeri díj.</p><p class="mg-plan-copy">Üzemeltetés kérésre havi 4&nbsp;900&nbsp;Ft.</p><p class="mg-plan-copy">Általában három héten belül elkészül, miután megkaptam a szövegeket és a fotókat.</p></div></div><a class="mg-btn-outline mg-plan-cta" href="#kapcsolat-email">Megrendelés</a></article>
 
-<article class="mg-plan"><svg class="mg-plan-frame" aria-hidden="true" focusable="false">
+<article class="mg-plan" id="szolgaltatas-uzemeltetes"><svg class="mg-plan-frame" aria-hidden="true" focusable="false">
                 <rect
                   class="mg-plan-stroke"
                   pathLength="1"
@@ -188,6 +221,26 @@
         </div>
       </section>
 
+      <section class="mg-process mg-wrap" aria-labelledby="mg-process-title">
+        <p class="mg-eyebrow">A KÖVETKEZŐ LÉPÉSEK</p>
+        <h2 id="mg-process-title">A feladattól az átadásig</h2>
+        <ol>
+          <li><span>01</span><h3>Leírja, hogyan dolgozik most</h3><p>Mi vesz el időt, milyen fájlokkal dolgozik, és mi lenne a kívánt eredmény? Egy rövid leírásból is el tudunk indulni.</p></li>
+          <li><span>02</span><h3>Pontosítjuk a tartalmat és a díjat</h3><p>A csomagok tartalmát a szolgáltatáskártyákon találja. Az egyedi igényekről egyeztetünk; a keretet vagy az ajánlatot írásban adom meg.</p></li>
+          <li><span>03</span><h3>Elkészül a megoldás</h3><p>A megvalósítás alapja az egyeztetett feladat. Nagyobb webes munkánál először egy kisebb, már használható változat készül el.</p></li>
+        </ol>
+      </section>
+
+      <section class="mg-faq mg-wrap" aria-labelledby="mg-faq-title">
+        <div><p class="mg-eyebrow">MÉG AZ ELSŐ LEVÉL ELŐTT</p><h2 id="mg-faq-title">Amit érdemes tisztázni</h2></div>
+        <div class="mg-faq-items">
+          <details><summary>Mit írjak az első üzenetbe?</summary><p>Írja le, hogyan működik most a feladat, mi okoz nehézséget, és milyen eredményt szeretne. Hasznos lehet a meglévő oldal címe vagy egy személyes és bizalmas adatok nélküli mintafájl. A részleteket utána pontosítjuk.</p></details>
+          <details><summary>Mi tartozik a csomagárba?</summary><p>A szolgáltatáskártyák felsorolják a csomag tartalmát és korlátait. A rendelőlap alapára például nem tartalmaz árkalkulációt, adatbázist vagy rendszer-összekötést. Az ilyen bővítéseket külön egyeztetjük és árazzuk.</p></details>
+          <details><summary>Kötelező az üzemeltetést is kérnem?</summary><p>Az üzemeltetés a webes csomagokhoz választható kiegészítő. A domain díja külön fizetendő; a domain az Ön nevére szól.</p></details>
+          <details><summary>Mikor lehet pontos árat és időtartamot mondani?</summary><p>A fix díjas csomagok ára és feltételei a kártyákon szerepelnek. Egyedi megoldásnál a feladat áttekintése és az egyeztetés után adok írásos ajánlatot, a pontos tartalommal, árral és várható időtartammal.</p></details>
+        </div>
+      </section>
+
       <div class="mg-wrap">
         <div class="mg-mail-grid">
           <section
@@ -197,6 +250,22 @@
           >
             <h2 class="mg-mail-title" id="kapcsolat-email-cim">E-mail</h2>
             <p class="mg-mail-lead">Írjon nekem e-mailt, és hamarosan válaszolok.</p>
+            <div class="mg-brief">
+              <label for="mg-service">Melyik szolgáltatás érdekli?</label>
+              <select id="mg-service">
+                <option value="">Még nem tudom pontosan</option>
+                <option value="rendelolap">Webes rendelőlap vagy ajánlatkérő</option>
+                <option value="automatizalas">Ismétlődő feladatok automatizálása</option>
+                <option value="adatok">Mérési és műszaki adatok feldolgozása Pythonban</option>
+                <option value="egyedi">Egyedi webes megoldás</option>
+                <option value="bemutatkozo">Bemutatkozó oldal</option>
+                <option value="uzemeltetes">Üzemeltetés</option>
+              </select>
+              <label for="mg-description">Röviden a feladatról <span>(nem kötelező)</span></label>
+              <p class="mg-field-hint" id="mg-description-hint">Hogyan működik most, és mit szeretne egyszerűbbé tenni?</p>
+              <textarea id="mg-description" rows="4" maxlength="1200" aria-describedby="mg-description-hint"></textarea>
+              <p class="mg-field-hint">Az alábbi gomb a saját levelezőjében készíti elő az üzenetet. Az e-mailt ott tudja elküldeni.</p>
+            </div>
             <p class="mg-mail-address" id="mg-email-text">bendzsiott1998@gmail.com</p>
             <div class="mg-mail-actions">
               <a
@@ -254,7 +323,9 @@
                   <span class="mg-copy-done" aria-hidden="true">Kimásolva</span>
                 </span>
               </button>
+              <button type="button" class="mg-btn-copy mg-draft-copy" id="mg-draft-copy" hidden>Levélszöveg másolása</button>
             </div>
+            <textarea id="mg-draft-fallback" class="mg-draft-fallback" rows="8" readonly hidden aria-label="Másolható levélszöveg"></textarea>
             <p class="mg-status" id="mg-status" role="status" aria-live="polite" aria-atomic="true"></p>
           </section>
         </div>

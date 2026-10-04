@@ -65,9 +65,9 @@ if (order) {
   mustNotInclude('megrendeles', order, 'Két munkanapon')
   mustNotInclude('megrendeles', order, 'adatkezeles')
   mustNotInclude('megrendeles', order, '<form')
-  mustNotInclude('megrendeles', order, '<input')
-  mustNotInclude('megrendeles', order, '<textarea')
-  mustNotInclude('megrendeles', order, '<select')
+  // Local inquiry composer approved in the October follow-up. It has no submit endpoint.
+  mustInclude('megrendeles', order, 'id="mg-service"')
+  mustInclude('megrendeles', order, 'id="mg-description"')
   mustNotInclude('megrendeles', order, 'data-subject')
   mustNotInclude('megrendeles', order, 'Aj%C3%A1nlatk%C3%A9r%C3%A9s')
   mustInclude('megrendeles', order, 'Kimásolva')

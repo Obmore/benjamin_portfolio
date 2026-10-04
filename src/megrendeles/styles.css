@@ -688,3 +688,92 @@ html.js .mg-btn-copy {
   .mg-plan-body { display: contents; }
   .mg-plan-cta { align-self: end; justify-self: start; }
 }
+
+/* Inquiry guide: the approved catalog remains intact below this introduction. */
+.mg-intro { padding-top: 48px; padding-bottom: 48px; }
+.mg-intro .mg-wrap { display: block; }
+.mg-intro-inner { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: 64px; max-width: none; }
+.mg-eyebrow { color: var(--mg-blueprint-deep); font-family: var(--mg-mono); font-size: 10px; letter-spacing: .1em; margin: 0 0 20px; }
+.mg-intro-note { margin: 22px 0 14px; font-size: 16px; color: var(--mg-muted); }
+.mg-text-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; color: var(--mg-blueprint-deep); text-underline-offset: 5px; }
+.mg-flow { padding: 22px 22px 14px; min-width: 0; background: radial-gradient(ellipse at 50% 50%,#dcecf0,#edf1ef 70%); border: 1px solid #cfdddf; border-radius: 18px; }
+.mg-flow > .mg-eyebrow { margin: 0; font-size: 9px; }
+.mg-flow-art { position: relative; height: 240px; perspective: 800px; overflow: clip; }
+.mg-flow-orbit { position: absolute; width: 90%; height: 70%; left: 5%; top: 22%; border: 1px solid #adcad5; border-radius: 50%; transform: rotateX(64deg); }
+.mg-flow-object { position: absolute; width: 216px; height: 148px; top: 50%; left: 50%; transform: translate(-50%,-50%) rotateX(28deg) rotateY(-20deg) rotateZ(-8deg); transform-style: preserve-3d; }
+.mg-flow-sheet { position: absolute; inset: 0; padding: 16px; background: #fbfdff; border: 1px solid #a4bccc; border-radius: 8px; box-shadow: 3px 4px 0 #acc3d0; transition: transform 650ms var(--mg-ease),opacity 650ms var(--mg-ease); }
+.mg-flow-label { display: block; font: 600 10px var(--mg-mono); color: #275470; }
+.mg-flow-table { height: 70px; margin-top: 16px; background: repeating-linear-gradient(0deg,transparent 0 16px,#91b1be 16px 17px),repeating-linear-gradient(90deg,transparent 0 43px,#91b1be 43px 44px); border-top: 6px solid #8db5c2; border-left: 1px solid #91b1be; }
+.mg-flow-file { transform: translate3d(-18px,-12px,44px); }
+.mg-flow-form { transform: translate3d(5px,8px,0); background: #e9f1f5; }
+.mg-flow-result { transform: translate3d(27px,27px,-44px); background: #dceaf0; }
+.mg-flow-form i { display: block; height: 15px; margin-top: 9px; width: 75%; border: 1px solid #91b1be; border-radius: 3px; }
+.mg-flow-form b { display: grid; place-items: center; position: absolute; bottom: 15px; right: 15px; width: 36px; height: 22px; border-radius: 4px; background: #23526f; color: white; }
+.mg-flow-check { display: grid; place-items: center; position: absolute; top: 14px; right: 15px; width: 24px; height: 24px; border-radius: 50%; background: #235d68; color: #fff; font-size: 14px; }
+.mg-flow-result .mg-flow-table { margin-top: 24px; }
+.mg-file-fold { position: absolute; top: -1px; right: -1px; width: 28px; height: 28px; background: linear-gradient(45deg,#c7dce4 49%,#f1f5f7 50%); border-radius: 0 8px 0 4px; }
+.mg-flow[data-step="1"] .mg-flow-file { transform: translate3d(-55px,-24px,-65px) rotateZ(-10deg); opacity: .55; }
+.mg-flow[data-step="1"] .mg-flow-form { transform: translate3d(0,0,65px); }
+.mg-flow[data-step="1"] .mg-flow-result { transform: translate3d(50px,25px,-70px) rotateZ(9deg); opacity: .6; }
+.mg-flow[data-step="2"] .mg-flow-file { transform: translate3d(-16px,-14px,-90px); opacity: .5; }
+.mg-flow[data-step="2"] .mg-flow-form { transform: translate3d(8px,8px,-35px); opacity: .65; }
+.mg-flow[data-step="2"] .mg-flow-result { transform: translate3d(0,0,75px) rotateY(8deg); }
+.mg-flow-steps { display: none; grid-template-columns: repeat(3,1fr); gap: 5px; }
+.js .mg-flow-steps { display: grid; }
+.mg-flow-steps button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 5px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: #34576a; font: 400 10px var(--mg-mono); cursor: pointer; }
+.mg-flow-steps button span { font-family: var(--mg-sans); font-size: 12px; }
+.mg-flow-steps button[aria-pressed="true"] { background: #faffff; border-color: #adc6d1; color: #193c51; }
+.mg-flow-caption { min-height: 3.5em; font-size: 12px; color: #385868; line-height: 1.6; margin: 14px 0 0; }
+.mg-choose { margin-top: 56px; }
+.mg-choose h2 { font-size: 20px; font-weight: 600; letter-spacing: -.02em; margin: 0 0 18px; }
+.mg-choose-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.mg-choose-grid a { position: relative; display: grid; grid-template-columns: 23px 1fr; align-content: start; gap: 4px 10px; padding: 18px 28px 18px 16px; border: 1px solid #d4dedf; border-radius: 8px; background: #fffdf8; color: var(--mg-ink); text-decoration: none; }
+.mg-choose-grid a:hover { border-color: var(--mg-blueprint); }
+.mg-choose-grid span { grid-row: 1/3; font: 400 10px var(--mg-mono); padding-top: 4px; color: #526878; }
+.mg-choose-grid strong { font-size: 14px; font-weight: 600; }
+.mg-choose-grid small { grid-column: 2; color: var(--mg-muted); font-size: 11px; line-height: 1.5; }
+.mg-choose-grid b { position: absolute; right: 12px; top: 16px; color: var(--mg-blueprint); font-weight: 400; }
+.mg-plan { scroll-margin-top: 88px; }
+.mg-process { margin-top: 72px; margin-bottom: 64px; }
+.mg-process h2,.mg-faq h2 { font-size: clamp(25px,3vw,34px); letter-spacing: -.035em; font-weight: 600; margin: 0 0 28px; }
+.mg-process ol { display: grid; grid-template-columns: repeat(3,1fr); gap: 28px; list-style: none; padding: 0; margin: 0; }
+.mg-process li { border-top: 1px solid #b8cbd5; padding-top: 20px; }
+.mg-process li > span { font: 400 11px var(--mg-mono); color: var(--mg-blueprint-deep); }
+.mg-process h3 { margin: 18px 0 12px; font-size: 17px; font-weight: 600; }
+.mg-process p,.mg-faq p { margin: 0; color: var(--mg-muted); font-size: 14px; line-height: 1.75; }
+.mg-faq { display: grid; grid-template-columns: 1fr 1.6fr; gap: 48px; padding-bottom: 64px; }
+.mg-faq details { border-top: 1px solid #ccd8df; }
+.mg-faq details:last-child { border-bottom: 1px solid #ccd8df; }
+.mg-faq summary { cursor: pointer; padding: 20px 0; font-size: 15px; font-weight: 600; }
+.mg-faq details p { padding: 0 20px 22px 0; }
+.mg-brief { display: none; max-width: 680px; margin: 28px 0; }
+.js .mg-brief { display: block; }
+.mg-brief label { display: block; font-size: 14px; font-weight: 600; margin: 24px 0 9px; }
+.mg-brief label span { font-weight: 400; color: var(--mg-muted); font-size: 12px; }
+.mg-brief select,.mg-brief textarea,.mg-draft-fallback { display: block; width: 100%; max-width: 100%; min-width: 0; border: 1px solid #b5c5d1; background: #fff; color: var(--mg-ink); border-radius: 6px; padding: 12px; font: 400 16px/1.5 var(--mg-sans); }
+.mg-brief select { min-height: 48px; text-overflow: ellipsis; padding-right: 24px; }
+.mg-brief textarea { resize: vertical; min-height: 120px; }
+.mg-field-hint { font-size: 12px; line-height: 1.6; color: var(--mg-muted); margin: 8px 0 12px; }
+.mg-draft-fallback { margin-top: 16px; }
+.mg-draft-fallback[hidden] { display: none; }
+.mg-draft-copy { white-space: normal; min-width: 224px; }
+.mg-mail-actions { flex-wrap: wrap; }
+@media (max-width: 1023px) {
+  .mg-intro-inner { gap: 28px; grid-template-columns: 1fr 1fr; }
+  .mg-choose-grid { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width: 767px) {
+  .mg-intro { padding-top: 28px; padding-bottom: 32px; }
+  .mg-intro-inner { grid-template-columns: 1fr; gap: 28px; }
+  .mg-intro-copy .mg-eyebrow { font-size: 8px; }
+  .mg-flow { padding: 18px 16px 10px; }.mg-flow-art { height: 230px; }
+  .mg-flow-caption { min-height: 4.8em; }
+  .mg-choose { margin-top: 32px; }.mg-choose-grid { gap: 8px; }
+  .mg-choose-grid a { grid-template-columns: 1fr; padding: 14px 23px 14px 12px; }
+  .mg-choose-grid span { display: none; }.mg-choose-grid small { grid-column: 1; }
+  .mg-choose-grid strong { font-size: 13px; }.mg-choose-grid small { font-size: 11px; }
+  .mg-process { margin-top: 48px; margin-bottom: 44px; }.mg-process ol { grid-template-columns: 1fr; gap: 24px; }
+  .mg-process h3 { margin-top: 10px; }.mg-faq { grid-template-columns: 1fr; gap: 0; padding-bottom: 40px; }
+  .mg-brief label span { display: block; margin-top: 3px; }
+  .mg-mail-actions .mg-draft-copy { flex: 1 0 100%; }
+}

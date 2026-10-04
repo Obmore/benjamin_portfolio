@@ -39,11 +39,10 @@ test.describe('/megrendeles/', () => {
       await page.setViewportSize(viewport)
       await gotoOrder(page)
 
-      await expect(page.locator('form, input, textarea, select')).toHaveCount(0)
-      await expect(page.locator('a[href^="mailto:"]')).toHaveAttribute(
-        'href',
-        `mailto:${EMAIL}?subject=Megrendel%C3%A9s`,
-      )
+      await expect(page.locator('form, input')).toHaveCount(0)
+      await expect(page.locator('#mg-service')).toBeVisible()
+      await expect(page.locator('#mg-description')).toBeVisible()
+      expect(new URL((await page.locator('#mg-write').getAttribute('href'))!).searchParams.get('subject')).toBe('Megrendelés')
       await expect(page.locator('a[href*="Aj%C3%A1nlatk%C3%A9r%C3%A9s"]')).toHaveCount(0)
       await expect(page.locator('#mg-email-text')).toHaveText(EMAIL)
       await expect(page.locator('#adatkezeles')).toHaveCount(0)
@@ -106,9 +105,10 @@ test.describe('/megrendeles/', () => {
     await expect(page.locator('.mg-skip')).toBeFocused()
     await page.keyboard.press('Tab')
     await expect(page.locator('.mg-back')).toBeFocused()
-    for (let i = 0; i < 6; i++) {
+    const controls = [page.locator('.mg-text-link'), ...await page.locator('[data-flow-step]').all(), ...await page.locator('.mg-choose a').all(), ...await planLinks.all(), ...await page.locator('.mg-faq summary').all(), page.locator('#mg-service'), page.locator('#mg-description')]
+    for (const control of controls) {
       await page.keyboard.press('Tab')
-      await expect(planLinks.nth(i)).toBeFocused()
+      await expect(control).toBeFocused()
     }
     await page.keyboard.press('Tab')
     await expect(page.locator('#mg-write')).toBeFocused()
@@ -116,17 +116,11 @@ test.describe('/megrendeles/', () => {
     await expect(page.locator('#mg-copy')).toBeFocused()
 
     await planLinks.nth(1).click()
-    await expect(page.locator('#mg-write')).toBeFocused()
-    await expect(page.locator('#mg-write')).toHaveAttribute(
-      'href',
-      `mailto:${EMAIL}?subject=Megrendel%C3%A9s`,
-    )
+    await expect(page.locator('#mg-description')).toBeFocused()
+    expect(new URL((await page.locator('#mg-write').getAttribute('href'))!).searchParams.get('subject')).toBe('Megrendelés')
 
     await planLinks.nth(0).click()
-    await expect(page.locator('#mg-write')).toHaveAttribute(
-      'href',
-      `mailto:${EMAIL}?subject=Megrendel%C3%A9s`,
-    )
+    expect(new URL((await page.locator('#mg-write').getAttribute('href'))!).searchParams.get('subject')).toBe('Megrendelés')
   })
 
   test('readable without JavaScript', async ({ browser }) => {
@@ -137,7 +131,9 @@ test.describe('/megrendeles/', () => {
     expect(response?.status()).toBe(200)
     await expect(page.locator('#mg-email-text')).toHaveText(EMAIL)
     await expect(page.locator('h1')).toHaveText('Megrendelés és ajánlatkérés')
-    await expect(page.locator('form, input, textarea')).toHaveCount(0)
+    await expect(page.locator('form, input')).toHaveCount(0)
+    await expect(page.locator('.mg-brief')).toBeHidden()
+    await expect(page.locator('#mg-draft-fallback')).toBeHidden()
     await expect(page.locator('#mg-write')).toHaveAttribute(
       'href',
       `mailto:${EMAIL}?subject=Megrendel%C3%A9s`,

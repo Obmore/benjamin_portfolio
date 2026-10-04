@@ -1,4 +1,5 @@
 import { sculpture } from './sculpture'
+import { navigateTo } from '../lib/anchors'
 
 const clamp = (n: number) => Math.max(0, Math.min(1, n))
 const smooth = (n: number) => { const p = clamp(n); return p * p * (3 - 2 * p) }
@@ -27,6 +28,11 @@ export function createStory(section: HTMLElement) {
   </div>`
   const get = <T extends HTMLElement = HTMLElement>(selector: string) => section.querySelector<T>(selector)!
   const stage = get('.cs-sticky')
+  get<HTMLAnchorElement>('.cs-skip').addEventListener('click', event => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    navigateTo('munkaim')
+  })
   const art = get('.cs-art')
   const hardware = get('.cs-hardware')
   hardware.append(sculpture())
