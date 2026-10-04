@@ -1,7 +1,7 @@
 import { useEffect, useState, type MouseEvent } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { SECTION_IDS } from '@/lib/constants'
-import { scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
+import { useActiveSection } from '@/hooks/useActiveSection'
 import { goToPageTop, navigateTo } from '@/lib/anchors'
 import { LangToggle } from '@/components/ui/LangToggle'
 import { OrderLink } from '@/components/ui/OrderLink'
@@ -69,7 +69,7 @@ export function Navbar() {
 
     const id = pendingScrollId
     const frame = window.requestAnimationFrame(() => {
-      scrollToSection(id)
+      navigateTo(id)
       setPendingScrollId(null)
     })
     return () => window.cancelAnimationFrame(frame)
@@ -79,7 +79,6 @@ export function Navbar() {
     if (menuOpen) {
       document.body.style.overflow = ''
       setMenuOpen(false)
-      history.replaceState(null, '', `#${id}`)
       setPendingScrollId(id)
       return
     }

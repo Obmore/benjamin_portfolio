@@ -106,6 +106,12 @@ for (const width of [390, 1440]) test(`${width}: clean URL on ordinary browsing,
   await page.locator('.work-index-link').last().click()
   await expect.poll(() => page.locator('.work-card').last().evaluate(e => Math.abs(e.getBoundingClientRect().top - 64))).toBeLessThanOrEqual(2)
   expect(new URL(page.url()).hash).toBe('')
+  if (width === 390) {
+    await page.locator('header button[aria-expanded]').click()
+    await page.locator('.mobile-nav').getByRole('button', { name: 'Tapasztalat', exact: true }).click()
+  } else await page.getByRole('button', { name: 'Tapasztalat', exact: true }).click()
+  await expect.poll(() => page.locator('#tapasztalat').evaluate(e => Math.abs(e.getBoundingClientRect().top - 64))).toBeLessThanOrEqual(2)
+  expect(new URL(page.url()).hash).toBe('')
   const href = (await page.locator('.work-index-link').last().getAttribute('href'))!
   await page.goto(href, { waitUntil: 'networkidle' })
   await expect.poll(() => page.locator('.work-card').last().evaluate(e => Math.abs(e.getBoundingClientRect().top - 64))).toBeLessThanOrEqual(2)
