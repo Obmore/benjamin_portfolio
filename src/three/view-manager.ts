@@ -70,7 +70,6 @@ let swapTimer = 0
 let disposing = false
 let qaSync: (() => void) | null = null
 let qaDetach: (() => void) | null = null
-let lidHi = false
 
 function aborted(my: number) {
   return my !== gen
@@ -131,15 +130,13 @@ function paint() {
   renderer.info.reset()
   hero.applyK1Progress(k1, progress, pulseU)
   renderer.render(scene, k1.camera)
-  const hi = progress > 0.5
-  if (hi && !lidHi) {
-    lidHi = true
+  if (progress >= 0.99) {
+    // SwiftShader keeps copper from the transparent ink pass unless the lid
+    // material is mutated after a real exploded frame and drawn again.
     k1.mats.lid.opacity = 0.998
     k1.mats.lid.opacity = 0.999
     k1.mats.lid.needsUpdate = true
     renderer.render(scene, k1.camera)
-  } else if (!hi) {
-    lidHi = false
   }
   qaSync?.()
 }
@@ -624,6 +621,7 @@ async function bootScene() {
       canvas: el,
       alpha: true,
       antialias: true,
+      preserveDrawingBuffer: qa,
       powerPreference: 'low-power',
       failIfMajorPerformanceCaveat: !qa,
     })
@@ -718,7 +716,6 @@ async function bootScene() {
   progress = 0
   pulseU = 0
   pulseMax = 0
-  lidHi = false
   frameMs.length = 0
   over50 = 0
   probeLeft = PROBE_FRAMES
