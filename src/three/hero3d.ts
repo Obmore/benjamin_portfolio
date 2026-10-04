@@ -20,8 +20,6 @@ const LOST_MS = 2000
 const DPR_CAP = 1.5
 const PAINT_EPS = 1e-4
 const FRUSTUM = 1.48
-const TOP_Y = 0.039
-const BOT_Y = -0.039
 const BW = 2.4
 const EXPLODE = 0.18
 const CHIP_LIFT = 0.08
@@ -51,7 +49,8 @@ function setPhase(box: HTMLElement, phase: HeroPhase) {
 
 function readAccent(el: HTMLElement) {
   const css = getComputedStyle(el).getPropertyValue('--color-accent').trim()
-  return css ? new Color(css) : new Color(ACCENT)
+  if (css.startsWith('#') || css.startsWith('rgb')) return new Color(css)
+  return new Color(ACCENT)
 }
 
 function poseYs(p: number) {
@@ -83,20 +82,12 @@ function isAccentNode(obj: Object3D) {
 export function applyHeroPose(root: Object3D, p: number) {
   const ys = poseYs(p)
   const showAccent = p >= 0.5
-  const span = ys.top + TOP_Y - (ys.bot + BOT_Y)
   root.traverse((obj) => {
     if (obj.name === 'layer-bot') obj.position.setY(ys.bot)
     else if (obj.name === 'layer-sub') obj.position.setY(ys.sub)
     else if (obj.name === 'layer-top') obj.position.setY(ys.top)
     else if (obj.name === 'layer-chip') obj.position.setY(ys.chip)
-    else if (obj.name === 'track-accent') {
-      obj.position.setY((ys.bot + ys.top) / 2)
-      obj.visible = showAccent
-    } else if (obj.name.startsWith('via-')) {
-      const sx = obj.scale.x || 0.039
-      obj.scale.set(sx, showAccent ? span / 2 : sx, obj.scale.z || sx)
-      obj.visible = showAccent
-    }
+    else if (obj.name === 'track-accent') obj.visible = showAccent
   })
 }
 
@@ -124,7 +115,10 @@ export function bindHeroMaterials(root: Object3D, accent: Color) {
   })
   root.traverse((obj) => {
     if (isMesh(obj)) obj.material = fill
-    if (isLine(obj)) obj.material = isAccentNode(obj) ? accentMat : ink
+    if (isLine(obj)) {
+      obj.frustumCulled = false
+      obj.material = isAccentNode(obj) ? accentMat : ink
+    }
   })
   applyHeroPose(root, 0)
   return { fill, ink, accent: accentMat }

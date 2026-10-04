@@ -147,12 +147,35 @@ export function buildK1Scene(THREE, layout) {
     addBox(THREE, layerChip, pin.id, pin.w, 0.02, pin.d, pin.x, layout.CHIP_Y - 0.04, pin.z, fill, ink)
   }
 
+  // Bake vias and the highlight path at the exploded pose (p >= 0.5). Runtime
+  // only toggles `track-accent` visibility — mutating a quantized node's scale
+  // would replace KHR_mesh_quantization's decode transform.
+  const gap = layout.BW * layout.EXPLODE
+  const viaTop = gap + layout.TOP_Y
+  const viaBot = -gap + layout.BOT_Y
   for (const [name, pair] of layout.viaEntries) {
-    const geo = lineGeometry(THREE, [pair[0], layout.BOT_Y, pair[1], pair[0], layout.TOP_Y, pair[1]])
+    const geo = lineGeometry(THREE, [pair[0], viaBot, pair[1], pair[0], viaTop, pair[1]])
     const line = new THREE.LineSegments(geo, accent)
     line.name = `via-${name}`
+    line.frustumCulled = false
     trackAccent.add(line)
   }
+
+  const yOf = {
+    top: viaTop,
+    bot: viaBot,
+    chip: gap + layout.CHIP_Y,
+  }
+  const loopPos = []
+  for (let i = 0; i < layout.loop.length - 1; i += 1) {
+    const a = layout.loop[i]
+    const b = layout.loop[i + 1]
+    loopPos.push(a.x, yOf[a.layer], a.z, b.x, yOf[b.layer], b.z)
+  }
+  const accentPath = new THREE.LineSegments(lineGeometry(THREE, loopPos), accent)
+  accentPath.name = 'track-accent-path'
+  accentPath.frustumCulled = false
+  trackAccent.add(accentPath)
 
   const aspect = POSTER_ASPECT
   const cam = new THREE.OrthographicCamera(
@@ -177,6 +200,7 @@ export function packLayout(L) {
     BT: L.BT,
     CHIP: L.CHIP,
     PIN: L.PIN,
+    EXPLODE: L.EXPLODE,
     CAM_ELEV: L.CAM_ELEV,
     CAM_AZIM: L.CAM_AZIM,
     CAM_DIST: L.CAM_DIST,
@@ -193,5 +217,6 @@ export function packLayout(L) {
     topPads: L.allTopPads(),
     botPads: L.allBotPads(),
     viaEntries: Object.entries(L.V),
+    loop: L.loop,
   }
 }
