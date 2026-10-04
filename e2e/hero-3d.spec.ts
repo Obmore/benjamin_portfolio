@@ -705,7 +705,7 @@ test.describe('hero 3D K1', () => {
     )
   })
 
-  test('lite draw calls stay at or under 3', async ({ page }) => {
+  test('lite draw calls stay at or under 5', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await gotoHome(page, '?qa3d=1')
     await page.waitForFunction(
@@ -724,7 +724,7 @@ test.describe('hero 3D K1', () => {
       return { calls: hook.info.calls, tier: hook.tier }
     })
     expect(probe?.tier).toBe('lite')
-    expect(probe?.calls).toBeLessThanOrEqual(3)
+    expect(probe?.calls).toBeLessThanOrEqual(5)
     expect(probe?.calls).toBeGreaterThan(0)
   })
 

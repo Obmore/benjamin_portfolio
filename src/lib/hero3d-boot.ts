@@ -35,7 +35,7 @@ function qaCpuThrottled(): boolean {
   const t0 = performance.now()
   let n = 0
   for (let i = 0; i < 3e6; i++) n = (n + i) | 0
-  return performance.now() - t0 > 50 && n !== -1
+  return performance.now() - t0 > 90 && n !== -1
 }
 
 function timerDelay(ms: number, capMs: number): Promise<number> {
