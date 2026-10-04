@@ -70,6 +70,7 @@ let swapTimer = 0
 let disposing = false
 let qaSync: (() => void) | null = null
 let qaDetach: (() => void) | null = null
+let lidHi = false
 
 function aborted(my: number) {
   return my !== gen
@@ -129,6 +130,11 @@ function paint() {
   if (!renderer || !scene || !k1 || !hero) return
   renderer.info.reset()
   hero.applyK1Progress(k1, progress, pulseU)
+  const hi = progress > 0.5
+  if (hi !== lidHi) {
+    k1.mats.lid.needsUpdate = true
+    lidHi = hi
+  }
   renderer.render(scene, k1.camera)
   qaSync?.()
 }
@@ -707,6 +713,7 @@ async function bootScene() {
   progress = 0
   pulseU = 0
   pulseMax = 0
+  lidHi = false
   frameMs.length = 0
   over50 = 0
   probeLeft = PROBE_FRAMES
