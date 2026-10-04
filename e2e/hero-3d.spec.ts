@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, chromium, type Page } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { parseCssColor, twoWayFillCoverage, chipSeeThroughFromPath, decodePngRgba } from '../scripts/k1-coverage-lib.mjs'
@@ -1011,9 +1011,9 @@ test.describe('hero 3D K1', () => {
     })
   }
 
-  test('T3-swiftshader keeps the poster and never creates a canvas', async ({ browserType }) => {
+  test('T3-swiftshader keeps the poster and never creates a canvas', async () => {
     test.setTimeout(60000)
-    const browser = await browserType.launch({
+    const browser = await chromium.launch({
       headless: true,
       ignoreDefaultArgs: ['--enable-automation'],
       args: [

@@ -167,12 +167,12 @@ function tickEntryPulse() {
   return true
 }
 
-function watchdog(dt: number, work: number) {
+function watchdog(_dt: number, work: number) {
   frameMs.push(work)
-  const workLimit = k1?.lite ? 80 : 50
-  const dtLimit = k1?.lite ? 120 : 80
-  if (work > workLimit || dt > dtLimit) over50 += 1
-  if (over50 >= 3) return true
+  const workLimit = k1?.lite ? 180 : 70
+  if (work > workLimit) over50 += 1
+  else over50 = 0
+  if (over50 >= 4) return true
   if (!k1?.lite && frameMs.length >= 12) {
     const sorted = [...frameMs].sort((a, b) => a - b)
     const mid = sorted[Math.floor((sorted.length - 1) / 2)]
@@ -224,7 +224,11 @@ function requestRender(force = false) {
 
 function onTicker() {
   renderRequested = false
-  if (!renderer || !visible || disposing) {
+  if (!renderer || disposing) {
+    stopTicker()
+    return
+  }
+  if (!visible && entryPhase !== 'pulse') {
     stopTicker()
     return
   }
@@ -262,7 +266,7 @@ function onTicker() {
 }
 
 function onProgress(p: number) {
-  if (Math.abs(p - progress) <= PAINT_EPS && entryPhase === 'done') return
+  if (Math.abs(p - progress) <= PAINT_EPS) return
   cancelEntryPulse()
   progress = p
   pulseU = p
@@ -328,7 +332,6 @@ function showPosterImmediate() {
 
 function haltLoop() {
   probeLeft = 0
-  cancelEntryPulse()
   stopTicker()
   stopScroll()
   stopScroll = () => {}

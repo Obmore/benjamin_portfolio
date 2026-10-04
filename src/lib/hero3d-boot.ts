@@ -58,9 +58,9 @@ export function bootHero3d(): () => void {
     stopped = true
     stopView()
   }
-  const deadline = window.setTimeout(fireDeadline, 9000)
+  const deadline = window.setTimeout(fireDeadline, 20000)
   try {
-    const blob = new Blob([`setTimeout(() => postMessage(1), 12000)`], { type: 'text/javascript' })
+    const blob = new Blob([`setTimeout(() => postMessage(1), 25000)`], { type: 'text/javascript' })
     const url = URL.createObjectURL(blob)
     deadlineWorker = new Worker(url)
     URL.revokeObjectURL(url)
