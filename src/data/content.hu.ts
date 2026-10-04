@@ -259,7 +259,6 @@ export const contentHu: SiteContent = {
     menuToggle: 'Menü megnyitása',
     langToEn: ', váltás angolra',
     langToHu: ', váltás magyarra',
-    themeDark: 'Sötét mód',
     orderLink: 'Megrendelés',
     navMain: 'Fő navigáció',
     navMobile: 'Mobil navigáció',

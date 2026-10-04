@@ -25,7 +25,7 @@ export function Icon({ name, className = '', ...props }: IconProps) {
       className={className}
       {...props}
     >
-      <path
+      <path vectorEffect="non-scaling-stroke"
         d={paths[name]}
         stroke="currentColor"
         strokeWidth="1.5"

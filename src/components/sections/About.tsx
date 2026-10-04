@@ -6,16 +6,16 @@ import { SECTION_IDS, SECTION_SHEETS } from '@/lib/constants'
 
 const icons = [
   <svg key="1" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M4 18V6l8-3 8 3v12l-8 3-8-3Z" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M12 3v18M4 6l8 3 8-3" stroke="currentColor" strokeWidth="1.5" />
+    <path vectorEffect="non-scaling-stroke" d="M4 18V6l8-3 8 3v12l-8 3-8-3Z" stroke="currentColor" strokeWidth="1.5" />
+    <path vectorEffect="non-scaling-stroke" d="M12 3v18M4 6l8 3 8-3" stroke="currentColor" strokeWidth="1.5" />
   </svg>,
   <svg key="2" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <path vectorEffect="non-scaling-stroke" d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>,
   <svg key="3" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
-    <circle cx="16" cy="16" r="3" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M11 8h2a4 4 0 0 1 4 4v2" stroke="currentColor" strokeWidth="1.5" />
+    <circle vectorEffect="non-scaling-stroke" cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
+    <circle vectorEffect="non-scaling-stroke" cx="16" cy="16" r="3" stroke="currentColor" strokeWidth="1.5" />
+    <path vectorEffect="non-scaling-stroke" d="M11 8h2a4 4 0 0 1 4 4v2" stroke="currentColor" strokeWidth="1.5" />
   </svg>,
 ]
 

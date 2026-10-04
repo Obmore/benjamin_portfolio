@@ -4,7 +4,6 @@ import { SECTION_IDS } from '@/lib/constants'
 import { scrollToSection, useActiveSection } from '@/hooks/useActiveSection'
 import { goToPageTop, navigateTo } from '@/lib/anchors'
 import { LangToggle } from '@/components/ui/LangToggle'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { OrderLink } from '@/components/ui/OrderLink'
 
 const navItems = [
@@ -138,7 +137,6 @@ export function Navbar() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
-          <ThemeToggle />
           <LangToggle />
           <button
             type="button"
@@ -148,7 +146,7 @@ export function Navbar() {
             onClick={() => setMenuOpen((open) => !open)}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
+              <path vectorEffect="non-scaling-stroke"
                 d="M4 7h16M4 12h16M4 17h16"
                 stroke="currentColor"
                 strokeWidth="1.5"
