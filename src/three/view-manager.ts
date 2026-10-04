@@ -688,6 +688,7 @@ async function bootScene() {
   }
   hero.applyK1Progress(k1, 1, 0)
   await compileQuiet(r, sc, k1.camera)
+  k1.mats.lid.needsUpdate = true
   if (aborted(my) || bootTooSlow()) {
     if (!aborted(my) && bootTooSlow()) {
       mark3dWatchdog()

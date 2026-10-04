@@ -139,6 +139,7 @@ declare module 'three' {
     defines?: Record<string, string | number>
     onBeforeCompile: (shader: Shader) => void
     customProgramCacheKey: () => string
+    needsUpdate: boolean
     dispose(): void
   }
 
