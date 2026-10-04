@@ -23,6 +23,7 @@ const FRUSTUM = 1.48
 const BW = 2.4
 const EXPLODE = 0.18
 const CHIP_LIFT = 0.08
+const ACCENT_HIDE_Y = 1000
 const FILL = 0xffffff
 const INK = 0x7b7f8a
 const ACCENT = 0x1e3a5f
@@ -87,7 +88,7 @@ export function applyHeroPose(root: Object3D, p: number) {
     else if (obj.name === 'layer-sub') obj.position.setY(ys.sub)
     else if (obj.name === 'layer-top') obj.position.setY(ys.top)
     else if (obj.name === 'layer-chip') obj.position.setY(ys.chip)
-    else if (obj.name === 'track-accent') obj.visible = showAccent
+    else if (obj.name === 'track-accent') obj.position.setY(showAccent ? 0 : ACCENT_HIDE_Y)
   })
 }
 
@@ -120,7 +121,6 @@ export function bindHeroMaterials(root: Object3D, accent: Color) {
       obj.material = isAccentNode(obj) ? accentMat : ink
     }
   })
-  applyHeroPose(root, 0)
   return { fill, ink, accent: accentMat }
 }
 
