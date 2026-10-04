@@ -157,7 +157,8 @@ function makeFillMat(
     polygonOffset: true,
     polygonOffsetFactor: 1,
     polygonOffsetUnits: 1,
-    blending: opacity >= 0.999 ? NoBlending : NormalBlending,
+    // Transparent + NoBlending + white skips the destination on SwiftShader.
+    blending: transparent ? NormalBlending : NoBlending,
   })
   Object.defineProperty(mat, 'color', {
     configurable: true,
@@ -352,9 +353,6 @@ export async function createK1Scene(
   const fill = makeFillMat(colors.surface, uLayerY, false, 1)
   const subMat = makeFillMat(colors.surface, uLayerY, true, 0.92)
   const lidMat = makeFillMat(colors.surface, uLayerY, true, 1)
-  // NoBlending + opaque white on SwiftShader leaves the destination traces;
-  // NormalBlending with alpha 1 overwrites after the transparent ink pass.
-  lidMat.blending = NormalBlending
   const ink = new LineBasicMaterial({
     color: colors.ink,
     transparent: true,
@@ -421,6 +419,7 @@ export async function createK1Scene(
   lidMat.depthTest = false
   lidMat.depthWrite = false
   lidMat.polygonOffset = false
+  lidMat.opacity = 1
 
   await pause()
 
