@@ -1,11 +1,14 @@
 import type { CSSProperties } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { SECTION_SHEETS } from '@/lib/constants'
+import { HeroK1Poster } from './HeroK1Poster'
 
 const DRAWING_SUBJECT = {
   hu: 'Villamosmérnök és szoftverfejlesztő',
   en: 'Electrical engineer and software developer',
 } as const
+
+const HERO_POSTER_PATH = document.documentElement.classList.contains('is-hero-poster')
 
 export function HeroVisual() {
   const { locale } = useI18n()
@@ -21,6 +24,7 @@ export function HeroVisual() {
   return (
     <figure className="hero-figure" data-hero-figure aria-hidden="true">
       <div className="hero-figure-inner" data-hero-figure-inner>
+        {HERO_POSTER_PATH ? <HeroK1Poster /> : (
         <svg className="hero-circuit" viewBox="0 0 240 240" focusable="false">
           <g
             fill="none"
@@ -52,6 +56,7 @@ export function HeroVisual() {
             />
           </g>
         </svg>
+        )}
         <dl className="hero-titleblock">
           {cells.map((cell, index) => (
             <div
