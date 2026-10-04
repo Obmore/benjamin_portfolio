@@ -285,12 +285,19 @@ if (srcHero.includes('hero-circuit') || srcHero.includes('hero-signal') || srcHe
 }
 
 const qaNeedles = ['qaEndWorld', 'qaShiftEnd']
+const qaQuoted = ['pulseU', 'pulseMax']
 for (const file of walk(path.join(dist, 'assets'), (f) => f.endsWith('.js'))) {
   const base = path.basename(file)
   if (/^hero-qa(-|$)/.test(base)) continue
   const text = fs.readFileSync(file, 'utf8')
   for (const needle of qaNeedles) {
     if (text.includes(needle)) {
+      console.error(`\nQA hook ${needle} leaked into ${path.relative(dist, file)}`)
+      failed = true
+    }
+  }
+  for (const needle of qaQuoted) {
+    if (new RegExp(`['"\`]${needle}['"\`]`).test(text)) {
       console.error(`\nQA hook ${needle} leaked into ${path.relative(dist, file)}`)
       failed = true
     }

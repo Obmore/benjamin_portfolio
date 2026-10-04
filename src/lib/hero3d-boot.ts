@@ -31,35 +31,11 @@ function tripWatchdog() {
   mark3dWatchdog()
 }
 
-function qaCpuThrottled(): boolean {
-  const t0 = performance.now()
-  let n = 0
-  for (let i = 0; i < 3e6; i++) n = (n + i) | 0
-  return performance.now() - t0 > 90 && n !== -1
-}
-
-function timerDelay(ms: number, capMs: number): Promise<number> {
+// Main-thread timer: CDP CPU throttle stretches it (Worker timers stay wall-clock).
+function timerDelay(ms: number): Promise<number> {
   const t0 = performance.now()
   return new Promise((resolve) => {
-    let done = false
-    const finish = () => {
-      if (done) return
-      done = true
-      resolve(performance.now() - t0)
-    }
-    try {
-      const blob = new Blob([`setTimeout(() => postMessage(1), ${ms})`], { type: 'text/javascript' })
-      const url = URL.createObjectURL(blob)
-      const worker = new Worker(url)
-      URL.revokeObjectURL(url)
-      worker.onmessage = () => {
-        worker.terminate()
-        finish()
-      }
-    } catch {
-      finish()
-    }
-    window.setTimeout(finish, capMs)
+    window.setTimeout(() => resolve(performance.now() - t0), ms)
   })
 }
 
@@ -148,9 +124,9 @@ export function bootHero3d(): () => void {
     await nextFrame()
     if (stopped) return
     if (qa) {
-      const waited = await timerDelay(250, 4000)
+      const waited = await timerDelay(250)
       if (stopped) return
-      if (waited > 2000 || qaCpuThrottled()) {
+      if (waited > 2000) {
         fireDeadline()
         return
       }
