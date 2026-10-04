@@ -14,7 +14,6 @@
   }
 
   html.js .draw-path,
-  html.js .hero-signal,
   html.js .munkaim-dimension-line {
     stroke-dashoffset: 0 !important;
   }
@@ -423,11 +422,12 @@ html.js [data-reveal][data-revealed="instant"] {
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
 }
 
-.hero-circuit {
-  display: none;
+.hero-3d {
+  position: relative;
   width: 100%;
-  height: 100%;
+  aspect-ratio: 4 / 3;
   min-height: 0;
+  overflow: clip;
 }
 
 .hero-3d-poster-host {
@@ -440,10 +440,33 @@ html.js [data-reveal][data-revealed="instant"] {
   overflow: clip;
 }
 
-.hero-3d-poster {
+.hero-3d-poster,
+.hero-3d canvas {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.hero-3d .hero-3d-poster,
+.hero-3d canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-3d canvas {
+  opacity: 0;
+}
+
+.hero-3d.is-live canvas {
+  opacity: 1;
+  transition-property: opacity;
+  transition-duration: 200ms;
+  transition-timing-function: linear;
+}
+
+.hero-3d.is-live .hero-3d-poster.is-done {
+  visibility: hidden;
 }
 
 html.is-hero-poster .hero-figure {
@@ -483,13 +506,11 @@ html.is-hero-poster .hero-figure {
   min-width: 0;
 }
 
-html.js .hero-signal,
 html.js .munkaim-dimension-line {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
 }
 
-html.js.is-static-motion .hero-signal,
 html.js.is-static-motion .munkaim-dimension-line {
   stroke-dashoffset: 0;
 }
@@ -810,10 +831,6 @@ html.js.is-static-motion .munkaim-dimension-line {
     align-items: stretch;
   }
 
-  .hero-circuit {
-    display: block;
-  }
-
   .hero-3d-poster-host {
     max-height: none;
     aspect-ratio: auto;
@@ -880,7 +897,12 @@ html.js.is-static-motion .munkaim-dimension-line {
 
   .hero-figure-inner {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .hero-3d {
+    max-height: none;
+    align-self: start;
   }
 
   .munkaim-section {
@@ -1021,10 +1043,6 @@ html.js.is-static-motion .munkaim-dimension-line {
   html.js:not(.is-static-motion) .hero-chips {
     animation: fade-up-16 var(--hero-t-entry) var(--motion-ink) both;
     animation-delay: calc(var(--hero-d-first) + var(--hero-stagger) * (1 + var(--hero-btn-count, 3)));
-  }
-
-  html.js:not(.is-static-motion) .hero-signal {
-    animation: draw-line var(--hero-t-line) var(--motion-page) var(--hero-d-line) both;
   }
 
   html.js:not(.is-static-motion) .hero-titleblock-cell {

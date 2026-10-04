@@ -1,0 +1,90 @@
+<!doctype html>
+<meta charset="utf-8" />
+<style>
+  html, body { margin: 0; background: transparent; }
+  canvas { display: block; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "/node_modules/three/build/three.module.js",
+    "three/addons/": "/node_modules/three/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+  import * as THREE from 'three'
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+
+  const FILL = 0xffffff
+  const INK = 0x7b7f8a
+  const ACCENT = 0x1e3a5f
+
+  function bindMaterials(root) {
+    const fill = new THREE.MeshBasicMaterial({
+      color: FILL,
+      transparent: false,
+      depthTest: true,
+      depthWrite: true,
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1,
+    })
+    const ink = new THREE.LineBasicMaterial({
+      color: INK,
+      transparent: false,
+      depthTest: true,
+      depthWrite: true,
+    })
+    const accent = new THREE.LineBasicMaterial({
+      color: ACCENT,
+      transparent: false,
+      depthTest: true,
+      depthWrite: true,
+    })
+    root.traverse((obj) => {
+      if (obj.isMesh) obj.material = fill
+      if (obj.isLineSegments) {
+        const accented = obj.name.startsWith('via-') || obj.name === 'track-accent'
+          || (obj.parent && obj.parent.name === 'track-accent')
+        obj.material = accented ? accent : ink
+      }
+    })
+    const group = root.getObjectByName('track-accent')
+    if (group) group.visible = false
+  }
+
+  function fitCam(cam, aspect, frustum) {
+    cam.left = -frustum * aspect
+    cam.right = frustum * aspect
+    cam.top = frustum
+    cam.bottom = -frustum
+    cam.updateProjectionMatrix()
+  }
+
+  window.renderPoster = async (url, width, height) => {
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      preserveDrawingBuffer: true,
+      powerPreference: 'high-performance',
+    })
+    renderer.setClearColor(0x000000, 0)
+    renderer.setPixelRatio(1)
+    renderer.setSize(width, height, false)
+    document.body.appendChild(renderer.domElement)
+
+    const gltf = await new GLTFLoader().loadAsync(url)
+    const scene = gltf.scene
+    const cam = gltf.cameras[0]
+    bindMaterials(scene)
+    fitCam(cam, width / height, 1.48)
+    cam.updateMatrixWorld()
+    renderer.render(scene, cam)
+    const blob = await new Promise((resolve) => renderer.domElement.toBlob(resolve, 'image/webp', 0.9))
+    const buf = new Uint8Array(await blob.arrayBuffer())
+    renderer.dispose()
+    renderer.domElement.remove()
+    return Array.from(buf)
+  }
+</script>

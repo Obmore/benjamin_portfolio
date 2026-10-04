@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { useEffect } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { SECTION_SHEETS } from '@/lib/constants'
 import { HeroK1Poster } from './HeroK1Poster'
@@ -9,6 +10,9 @@ const DRAWING_SUBJECT = {
 } as const
 
 const HERO_POSTER_PATH = document.documentElement.classList.contains('is-hero-poster')
+
+const POSTER_W = 400
+const POSTER_H = 300
 
 export function HeroVisual() {
   const { locale } = useI18n()
@@ -21,41 +25,39 @@ export function HeroVisual() {
     { label: 'LAP', value: SECTION_SHEETS.hero },
   ]
 
+  useEffect(() => {
+    if (HERO_POSTER_PATH) return
+    let stop = () => {}
+    let cancelled = false
+    void import('@/lib/hero3d-boot').then((mod) => {
+      if (!cancelled) stop = mod.bootHero3d()
+    })
+    return () => {
+      cancelled = true
+      stop()
+    }
+  }, [])
+
   return (
     <figure className="hero-figure" data-hero-figure aria-hidden="true">
       <div className="hero-figure-inner" data-hero-figure-inner>
-        {HERO_POSTER_PATH ? <HeroK1Poster /> : (
-        <svg className="hero-circuit" viewBox="0 0 240 240" focusable="false">
-          <g
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="28" cy="48" r="7" vectorEffect="non-scaling-stroke" />
-            <circle cx="28" cy="48" r="2.5" fill="currentColor" stroke="none" />
-            <path d="M35 48 H78" vectorEffect="non-scaling-stroke" />
-            <path
-              d="M78 48 l10 -12 l14 24 l14 -24 l14 24 l14 -24 l10 12"
-              vectorEffect="non-scaling-stroke"
+        {HERO_POSTER_PATH ? (
+          <HeroK1Poster />
+        ) : (
+          <div className="hero-3d" data-hero3d="poster">
+            <img
+              className="hero-3d-poster"
+              src="/hero/k1-p0@1x.webp"
+              srcSet="/hero/k1-p0@1x.webp 1x, /hero/k1-p0@2x.webp 2x"
+              width={POSTER_W}
+              height={POSTER_H}
+              alt=""
+              fetchPriority="high"
+              decoding="async"
+              draggable={false}
+              aria-hidden="true"
             />
-            <path
-              className="hero-signal"
-              pathLength="1"
-              d="M154 48 H196 V112 H88 V168"
-              vectorEffect="non-scaling-stroke"
-            />
-            <path
-              d="M72 168 C60 168 60 192 72 192 C60 192 60 216 72 216"
-              vectorEffect="non-scaling-stroke"
-            />
-            <path
-              d="M104 168 C116 168 116 192 104 192 C116 192 116 216 104 216"
-              vectorEffect="non-scaling-stroke"
-            />
-          </g>
-        </svg>
+          </div>
         )}
         <dl className="hero-titleblock">
           {cells.map((cell, index) => (

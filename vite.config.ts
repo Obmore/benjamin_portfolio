@@ -99,10 +99,34 @@ export default defineConfig({
     },
   },
   build: {
+    modulePreload: {
+      resolveDependencies(_filename, deps) {
+        return deps.filter((dep) => {
+          const base = dep.split(/[?#]/)[0].split(/[\\/]/).pop() ?? dep
+          return !/^(after-lcp|lcp|three|gsap|hero3d|hero-scroll|detect-gpu)/.test(base)
+        })
+      },
+    },
     rollupOptions: {
       input: {
         main: path.resolve(root, 'index.html'),
         megrendeles: path.resolve(root, 'megrendeles/index.html'),
+      },
+      output: {
+        manualChunks(id) {
+          const n = id.replaceAll('\\', '/')
+          if (n.includes('node_modules/three')) return 'three'
+          if (n.includes('node_modules/gsap') || n.includes('/src/three/hero-scroll')) return 'gsap'
+          if (
+            n.includes('node_modules/detect-gpu') ||
+            n.includes('/src/lib/hero3d-boot') ||
+            n.includes('/src/three/hero3d') ||
+            n.includes('/src/three/k1-layout')
+          ) {
+            return 'hero3d'
+          }
+          return undefined
+        },
       },
     },
   },
