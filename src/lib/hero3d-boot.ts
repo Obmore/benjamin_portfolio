@@ -15,6 +15,7 @@ function loadBenchmarks(file: string) {
     .then(async (res) => {
       if (!res.ok) throw new Error('bench')
       const data = (await res.json()) as unknown[]
+      if (!Array.isArray(data) || data.length < 2) throw new Error('bench')
       const header = data.shift()
       if (Number.parseInt(String(header).split('.')[0] ?? '0', 10) < 4) throw new Error('bench')
       return data as ModelEntry[]

@@ -99,7 +99,7 @@ export default defineConfig({
     },
   },
   build: {
-    modulePreload: {
+            modulePreload: {
       resolveDependencies(_filename, deps) {
         return deps.filter((dep) => {
           const base = dep.split(/[?#]/)[0].split(/[\\/]/).pop() ?? dep
@@ -115,16 +115,11 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           const n = id.replaceAll('\\', '/')
+          // Do not force-chunk hero3d-boot / after-lcp / detect-gpu. Rolldown then
+          // parks shared React and the Vite preload helper in that file, and the
+          // entry statically imports it — mobile fetches three/gsap before LCP.
           if (n.includes('node_modules/three')) return 'three'
           if (n.includes('node_modules/gsap') || n.includes('/src/three/hero-scroll')) return 'gsap'
-          if (
-            n.includes('node_modules/detect-gpu') ||
-            n.includes('/src/lib/hero3d-boot') ||
-            n.includes('/src/three/hero3d') ||
-            n.includes('/src/three/k1-layout')
-          ) {
-            return 'hero3d'
-          }
           return undefined
         },
       },

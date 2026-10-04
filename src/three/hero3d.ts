@@ -9,8 +9,8 @@ import {
   type WebGLRendererParameters,
 } from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import gsap from 'gsap'
 import { attachHeroScroll } from '@/three/hero-scroll'
-import { BOT_Y, FRUSTUM, poseYs, TOP_Y } from '@/three/k1-layout'
 
 export type HeroPhase = 'poster' | 'boot' | 'live' | 'lost'
 
@@ -19,8 +19,13 @@ const PULSE_MS = 1200
 const LOST_MS = 2000
 const DPR_CAP = 1.5
 const PAINT_EPS = 1e-4
+const FRUSTUM = 1.48
+const TOP_Y = 0.039
+const BOT_Y = -0.039
 const VIA_LEN = TOP_Y - BOT_Y
-
+const BW = 2.4
+const EXPLODE = 0.18
+const CHIP_LIFT = 0.08
 const FILL = 0xffffff
 const INK = 0x7b7f8a
 const ACCENT = 0x1e3a5f
@@ -50,18 +55,38 @@ function readAccent(el: HTMLElement) {
   return css ? new Color(css) : new Color(ACCENT)
 }
 
+function poseYs(p: number) {
+  const explode = Math.min(1, p / 0.5)
+  const rest = Math.max(0, (p - 0.5) / 0.5)
+  const gap = BW * EXPLODE * explode
+  const chipLift = BW * CHIP_LIFT * rest
+  return { top: gap, chip: gap + chipLift, sub: 0, bot: -gap }
+}
+
+function isMesh(obj: Object3D): obj is Object3D & { isMesh: true; material: unknown } {
+  return 'isMesh' in obj && Boolean((obj as { isMesh?: boolean }).isMesh)
+}
+
+function isLine(obj: Object3D): obj is Object3D & { isLine: true; material: unknown } {
+  const rec = obj as { isLine?: boolean; isLineSegments?: boolean }
+  return Boolean(rec.isLine || rec.isLineSegments)
+}
+
 export function applyHeroPose(root: Object3D, p: number) {
   const ys = poseYs(p)
-  root.getObjectByName('layer-bot')?.position.setY(ys.bot)
-  root.getObjectByName('layer-sub')?.position.setY(ys.sub)
-  root.getObjectByName('layer-top')?.position.setY(ys.top)
-  root.getObjectByName('layer-chip')?.position.setY(ys.chip)
-  const accent = root.getObjectByName('track-accent')
-  if (!accent) return
+  const showAccent = p >= 0.5
   const span = ys.top + TOP_Y - (ys.bot + BOT_Y)
-  accent.scale.setY(VIA_LEN > 0 ? span / VIA_LEN : 1)
-  accent.position.setY((ys.bot + ys.top) / 2)
-  accent.visible = p >= 0.5
+  root.traverse((obj) => {
+    if (obj.name === 'layer-bot') obj.position.setY(ys.bot)
+    else if (obj.name === 'layer-sub') obj.position.setY(ys.sub)
+    else if (obj.name === 'layer-top') obj.position.setY(ys.top)
+    else if (obj.name === 'layer-chip') obj.position.setY(ys.chip)
+    else if (obj.name === 'track-accent') {
+      obj.scale.setY(VIA_LEN > 0 ? span / VIA_LEN : 1)
+      obj.position.setY((ys.bot + ys.top) / 2)
+      obj.visible = showAccent
+    } else if (obj.name.startsWith('via-')) obj.visible = showAccent
+  })
 }
 
 export function bindHeroMaterials(root: Object3D, accent: Color) {
@@ -87,14 +112,14 @@ export function bindHeroMaterials(root: Object3D, accent: Color) {
     depthWrite: true,
   })
   root.traverse((obj) => {
-    const mesh = obj as Object3D & { isMesh?: boolean; isLineSegments?: boolean; material?: unknown; name: string }
-    if (mesh.isMesh) mesh.material = fill
-    if (mesh.isLineSegments) {
-      const named = mesh.name.startsWith('via-') || mesh.name === 'track-accent'
-      const parent = mesh.parent?.name === 'track-accent'
-      mesh.material = named || parent ? accentMat : ink
+    if (isMesh(obj)) obj.material = fill
+    if (isLine(obj)) {
+      const named = obj.name.startsWith('via-') || obj.name === 'track-accent'
+      const parent = obj.parent?.name === 'track-accent'
+      obj.material = named || parent ? accentMat : ink
     }
   })
+  applyHeroPose(root, 0)
   return { fill, ink, accent: accentMat }
 }
 
@@ -134,7 +159,6 @@ export async function startHero3d(box: HTMLElement): Promise<() => void> {
   const accent0 = readAccent(box)
   const mats = bindHeroMaterials(root, accent0)
   const pulseTo = accent0.clone().lerp(new Color(0xffffff), 0.35)
-  applyHeroPose(root, 0)
 
   const canvas = document.createElement('canvas')
   canvas.setAttribute('aria-hidden', 'true')
@@ -158,6 +182,7 @@ export async function startHero3d(box: HTMLElement): Promise<() => void> {
   }
   renderer.setClearColor(0x000000, 0)
   renderer.autoClear = true
+  renderer.setAnimationLoop(null)
   await yieldTask()
 
   let progress = 0
@@ -271,7 +296,6 @@ export async function startHero3d(box: HTMLElement): Promise<() => void> {
     lastPainted = progress
     requestAnimationFrame(() => {
       if (disposed) return
-      showPoster('live')
       box.classList.add('is-live')
       setPhase(box, 'live')
     })
@@ -343,7 +367,6 @@ export async function startHero3d(box: HTMLElement): Promise<() => void> {
     if (!disposed) reveal()
   })
 
-  const { default: gsap } = await import('gsap')
   ticker = gsap.ticker
   stopScroll = attachHeroScroll((p) => {
     if (Math.abs(p - progress) <= PAINT_EPS) return

@@ -114,7 +114,7 @@ function printRows(title, rows, unit = 'gzip') {
 
 function isLazyDesktopJs(file) {
   const base = path.basename(file)
-  return /^(three|gsap|hero3d|hero-scroll|detect-gpu)(-|$)/.test(base)
+  return /^(three|gsap|hero3d|hero-scroll|detect-gpu|after-lcp|lcp)(-|$)/.test(base)
 }
 
 if (!fs.existsSync(mainHtmlPath)) {
@@ -273,6 +273,10 @@ for (const file of main.entryJs) {
   }
   if (text.includes('getGPUTier') || text.includes('detect-gpu')) {
     console.error(`\nEntry chunk contains detect-gpu: ${path.relative(dist, file)}`)
+    failed = true
+  }
+  if (/from\s*["'][^"']*(?:hero3d|\/three-|\/gsap-|detect-gpu)/.test(text)) {
+    console.error(`\nEntry chunk statically imports a desktop 3D chunk: ${path.relative(dist, file)}`)
     failed = true
   }
 }

@@ -269,6 +269,11 @@ async function waitPhase(page: Page, phase: string, timeout = 20_000) {
   )
 }
 
+async function waitLive(page: Page) {
+  await waitPhase(page, 'live')
+  await page.waitForTimeout(400)
+}
+
 async function seekProgress(page: Page, progress: number) {
   await page.evaluate((p) => {
     const hero = document.getElementById('hero')
@@ -277,7 +282,30 @@ async function seekProgress(page: Page, progress: number) {
     const span = Math.max(1, hero.offsetHeight - window.innerHeight * 0.35)
     window.scrollTo({ top: top + p * span, behavior: 'instant' })
   }, progress)
-  await page.waitForTimeout(900)
+  await page.waitForTimeout(1200)
+}
+
+async function pngFromLocator(page: Page, selector: string) {
+  return page.locator(selector).screenshot({ omitBackground: true })
+}
+
+async function pngFromPosterImg(page: Page, width: number, height: number) {
+  const dataUrl = await page.evaluate(
+    async ({ width, height }) => {
+      const img = document.querySelector('.hero-3d-poster') as HTMLImageElement | null
+      if (!img) throw new Error('poster')
+      await img.decode()
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      if (!ctx) throw new Error('ctx')
+      ctx.drawImage(img, 0, 0, width, height)
+      return canvas.toDataURL('image/png')
+    },
+    { width, height },
+  )
+  return Buffer.from(dataUrl.split(',')[1] ?? '', 'base64')
 }
 
 test.describe('hero B desktop 3d', () => {
@@ -315,7 +343,7 @@ test.describe('hero B desktop 3d', () => {
     await gotoDesktop(page)
     const box = page.locator('.hero-3d')
     await expect(box).toHaveAttribute('data-hero3d', /poster|boot|live/)
-    await waitPhase(page, 'live')
+    await waitLive(page)
     const canvas = page.locator('.hero-3d canvas')
     await expect(canvas).toHaveAttribute('aria-hidden', 'true')
     await expect(canvas).not.toHaveAttribute('role', 'img')
@@ -330,10 +358,9 @@ test.describe('hero B desktop 3d', () => {
     await prepareDesktop3d(page, browser)
     await gotoDesktop(page)
     await waitPhase(page, 'live')
-    const canvas = page.locator('.hero-3d canvas')
-    const poster = page.locator('.hero-3d-poster')
-    const canvasPng = await canvas.screenshot({ omitBackground: true })
-    const posterPng = await poster.screenshot({ omitBackground: true })
+    const canvasPng = await pngFromLocator(page, '.hero-3d canvas')
+    const canvasImg = decodePngRgba(canvasPng)
+    const posterPng = await pngFromPosterImg(page, canvasImg.width, canvasImg.height)
     fs.mkdirSync(ARTIFACTS, { recursive: true })
     fs.writeFileSync(path.join(ARTIFACTS, 'b1-canvas.png'), canvasPng)
     fs.writeFileSync(path.join(ARTIFACTS, 'b1-poster.png'), posterPng)
@@ -346,15 +373,15 @@ test.describe('hero B desktop 3d', () => {
   test('B3: accent vias 0 px at p40, visible at p60 and p100', async ({ page, browser }) => {
     await prepareDesktop3d(page, browser)
     await gotoDesktop(page)
-    await waitPhase(page, 'live')
+    await waitLive(page)
     const accent: Rgb = [30, 58, 95]
     const countAccent = async () => {
-      const png = await page.locator('.hero-3d canvas').screenshot({ omitBackground: true })
+      const png = await pngFromLocator(page, '.hero-3d canvas')
       const img = decodePngRgba(png)
       let n = 0
       for (let p = 0; p < img.pixels.length; p += 4) {
         if (img.pixels[p + 3] < 40) continue
-        if (maxDelta(img.pixels, p, accent) <= 40) n += 1
+        if (maxDelta(img.pixels, p, accent) <= 28) n += 1
       }
       return n
     }
@@ -369,7 +396,7 @@ test.describe('hero B desktop 3d', () => {
   test('B2: chip contour is continuous and at least 10 pins read', async ({ page, browser }) => {
     await prepareDesktop3d(page, browser)
     await gotoDesktop(page)
-    await waitPhase(page, 'live')
+    await waitLive(page)
     await seekProgress(page, 1)
     const png = await page.locator('.hero-3d canvas').screenshot({ omitBackground: true })
     const img = decodePngRgba(png)
@@ -465,7 +492,7 @@ test.describe('hero B desktop 3d', () => {
       )
       await page.setViewportSize({ width: 1440, height: 900 })
       await page.goto('/', { waitUntil: 'networkidle' })
-      await waitPhase(page, 'live')
+      await waitLive(page)
       const tasks = await page.evaluate(() => (window as unknown as { __lt: { d: number; n: string }[] }).__lt)
       const over = tasks.filter((t) => t.d > 120)
       expect(over, JSON.stringify(over)).toEqual([])
@@ -480,7 +507,7 @@ test.describe('hero B desktop 3d', () => {
     await prepareDesktop3d(page, browser)
     const errors = collectConsoleErrors(page)
     await gotoDesktop(page)
-    await waitPhase(page, 'live')
+    await waitLive(page)
     const before = await page.locator('.hero-3d canvas').screenshot({ omitBackground: true })
     await page.evaluate(() => {
       const canvas = document.querySelector('.hero-3d canvas') as HTMLCanvasElement
@@ -556,8 +583,8 @@ test.describe('hero B desktop 3d', () => {
     expect(names).toContain('track-ink')
     expect(names).toContain('track-accent')
     expect(names).toContain('hero-cam')
-    const pins = names.filter((n) => n.startsWith('pin-'))
-    const vias = names.filter((n) => n.startsWith('via-'))
+    const pins = names.filter((n) => n.startsWith('pin-') && !n.endsWith('-edges'))
+    const vias = names.filter((n) => n.startsWith('via-') && !n.endsWith('-edges'))
     expect(pins.length).toBe(20)
     expect(vias.length).toBe(6)
     expect(pins.length + vias.length).toBeGreaterThanOrEqual(26)
