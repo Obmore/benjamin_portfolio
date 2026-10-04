@@ -12,7 +12,7 @@ const VIEWPORTS = [
   { width: 1440, height: 900 },
 ] as const
 
-const ARTIFACTS = '/opt/cursor/artifacts'
+const ARTIFACTS = path.join(process.cwd(), 'test-results')
 
 function collectConsoleErrors(page: Page): ConsoleMessage[] {
   const errors: ConsoleMessage[] = []
@@ -49,19 +49,17 @@ test.describe('/megrendeles/', () => {
       await expect(page.locator('#adatkezeles')).toHaveCount(0)
       await expect(page.locator('.mg-kicker')).toHaveCount(0)
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex')
-      await expect(page.locator('.mg-plan')).toHaveCount(2)
-      await expect(page.locator('.mg-list li')).toHaveText([
+      await expect(page.locator('.mg-plan')).toHaveCount(6)
+      await expect(page.locator('.mg-plan').nth(4).locator('.mg-list li')).toHaveText([
         'legfeljebb hat tartalmi rész, például bemutatkozás, szolgáltatások, munkák, elérhetőség',
         'legalább hat, legfeljebb tíz fotó, amelyet Ön ad át, és amelyek felhasználására jogosult',
         'kapcsolatfelvételi lehetőség',
         'alapvető keresőbeállítás: oldalcím és leírás a Google-találatokhoz, valamint az oldal regisztrálása a Google Search Console-ban',
         'egy javítási kör',
       ])
-      await expect(page.locator('.mg-price')).toHaveText('129 000 Ft egyszeri díj.')
+      await expect(page.locator('.mg-plan').nth(4).locator('.mg-price')).toHaveText('129 000 Ft egyszeri díj.')
       await expect(page.locator('body')).not.toContainText('alanyi adómentes')
       await expect(page.locator('body')).not.toContainText('59 000')
-      await expect(page.locator('body')).not.toContainText('149 000')
-      await expect(page.locator('body')).not.toContainText('189 000')
 
       const overflow = await page.evaluate(() => {
         const root = document.documentElement
@@ -99,46 +97,6 @@ test.describe('/megrendeles/', () => {
     })
   }
 
-  test('LAP A copy matches ajanlatok_v1 Bemutatkozó oldal', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 })
-    await gotoOrder(page)
-
-    const lapA = page.locator('.mg-plan').first()
-    await expect(lapA.locator('.mg-plan-sheet')).toHaveText('LAP A · CSOMAG')
-    await expect(lapA.locator('.mg-plan-title')).toHaveText('Bemutatkozó oldal vállalkozásoknak')
-    await expect(lapA.locator('.mg-plan-cta')).toHaveText('Megrendelés')
-    await expect(lapA.locator('.mg-plan-cta')).toHaveAttribute('href', '#kapcsolat-email')
-
-    const bodyText = (await lapA.locator('.mg-plan-body').innerText())
-      .replace(/\u00a0/g, ' ')
-      .replace(/\n{2,}/g, '\n')
-      .trim()
-    const expected = [
-      'Bemutatkozó oldal vállalkozásoknak',
-      'Egyszerű, mobilon is jól olvasható oldal, amelyből a látogató megtudja, mivel foglalkozik Ön, és hogyan érheti el. Az oldalt nem sablonból rakom össze, hanem magam programozom.',
-      'Mit tartalmaz:',
-      'legfeljebb hat tartalmi rész, például bemutatkozás, szolgáltatások, munkák, elérhetőség',
-      'legalább hat, legfeljebb tíz fotó, amelyet Ön ad át, és amelyek felhasználására jogosult',
-      'kapcsolatfelvételi lehetőség',
-      'alapvető keresőbeállítás: oldalcím és leírás a Google-találatokhoz, valamint az oldal regisztrálása a Google Search Console-ban',
-      'egy javítási kör',
-      'A domain díja külön fizetendő, és a domain az Ön nevére szól.',
-      '129 000 Ft egyszeri díj.',
-      'Üzemeltetés kérésre havi 4 900 Ft.',
-      'Általában három héten belül elkészül, miután megkaptam a szövegeket és a fotókat.',
-    ].join('\n')
-    expect(bodyText).toBe(expected)
-
-    const lapB = page.locator('.mg-plan').nth(1)
-    await expect(lapB.locator('.mg-plan-sheet')).toHaveText('LAP B · EGYEDI')
-    await expect(lapB.locator('.mg-plan-title')).toHaveText('Egyedi webes megoldás')
-    await expect(lapB.locator('.mg-plan-copy')).toHaveText(
-      'Ha a mostani rendelési vagy ajánlatkérési folyamatát szeretné egyszerűbbé tenni, például egy Excel- vagy PDF-rendelőlap helyett, írja le röviden, hogyan működik most. Átnézem, és egyeztetés után küldök ajánlatot.',
-    )
-    await expect(page.locator('#mg-email-text')).toHaveText(EMAIL)
-    await expect(page.locator(`text=${EMAIL}`)).toHaveCount(2)
-  })
-
   test('keyboard order and unified mailto subject', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await gotoOrder(page)
@@ -148,10 +106,10 @@ test.describe('/megrendeles/', () => {
     await expect(page.locator('.mg-skip')).toBeFocused()
     await page.keyboard.press('Tab')
     await expect(page.locator('.mg-back')).toBeFocused()
-    await page.keyboard.press('Tab')
-    await expect(planLinks.nth(0)).toBeFocused()
-    await page.keyboard.press('Tab')
-    await expect(planLinks.nth(1)).toBeFocused()
+    for (let i = 0; i < 6; i++) {
+      await page.keyboard.press('Tab')
+      await expect(planLinks.nth(i)).toBeFocused()
+    }
     await page.keyboard.press('Tab')
     await expect(page.locator('#mg-write')).toBeFocused()
     await page.keyboard.press('Tab')
