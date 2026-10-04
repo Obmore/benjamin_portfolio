@@ -227,6 +227,7 @@ declare module 'three' {
       canvas?: HTMLCanvasElement
       alpha?: boolean
       antialias?: boolean
+      preserveDrawingBuffer?: boolean
       powerPreference?: string
       failIfMajorPerformanceCaveat?: boolean
     })
