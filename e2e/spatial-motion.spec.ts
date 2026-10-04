@@ -19,8 +19,8 @@ for (const width of [1024, 1440]) test(`desktop ${width}: depth, pointer, scroll
     }).observe({ type: 'layout-shift', buffered: true })
   })
   await ready(page)
-  await expect(page.locator('.pm-scene')).toBeVisible()
-  expect(await page.locator('.pm-object').evaluate(e => getComputedStyle(e).transformStyle)).toBe('preserve-3d')
+  await expect(page.locator('#hero .pm-scene')).toBeVisible()
+  expect(await page.locator('#hero .pm-object').evaluate(e => getComputedStyle(e).transformStyle)).toBe('preserve-3d')
   const anchorTop = () => page.locator('#munkaim').evaluate(e => e.getBoundingClientRect().top + scrollY)
   const anchor = await anchorTop()
   const illustrationFits = () => page.locator('.hero-3d-poster-host').evaluate(host => {
@@ -30,7 +30,7 @@ for (const width of [1024, 1440]) test(`desktop ${width}: depth, pointer, scroll
       return box.left >= frame.left - 1 && box.right <= frame.right + 1 && box.top >= frame.top - 1 && box.bottom <= frame.bottom + 1
     })
   })
-  const object = page.locator('.pm-object'), board = page.locator('.pm-board')
+  const object = page.locator('#hero .pm-object'), board = page.locator('#hero .pm-board')
   const start = await object.getAttribute('style')
   await page.mouse.move(width - 120, 320)
   await expect.poll(() => object.getAttribute('style')).not.toBe(start)
@@ -64,17 +64,18 @@ test('project screenshots tilt while their text and link layout remain still', a
   await page.screenshot({ path: 'test-results/motion-project.png' })
 })
 
-for (const mode of ['mobile', 'reduce', 'coarse', 'save-data'] as const) test(`${mode}: no optional download, original static illustration`, async ({ browser }) => {
-  const context = await browser.newContext({ viewport: { width: mode === 'mobile' ? 390 : 1440, height: 900 },
-    reducedMotion: mode === 'reduce' ? 'reduce' : 'no-preference', hasTouch: mode === 'coarse' })
+for (const mode of ['reduce', 'low-memory', 'save-data'] as const) test(`${mode}: no optional download, original static illustration`, async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 900 },
+    reducedMotion: mode === 'reduce' ? 'reduce' : 'no-preference', hasTouch: true })
   const page = await context.newPage(), requests: string[] = []
+  if (mode === 'low-memory') await page.addInitScript(() => Object.defineProperty(navigator, 'deviceMemory', { value: 2 }))
   if (mode === 'save-data') await page.addInitScript(() => Object.defineProperty(navigator, 'connection', { value: { saveData: true } }))
   page.on('request', request => requests.push(request.url()))
   await page.goto('/', { waitUntil: 'networkidle' }); await page.waitForTimeout(2000)
-  await expect(page.locator('.pm-scene')).toHaveCount(0)
+  await expect(page.locator('#hero .pm-scene')).toHaveCount(0)
   await expect(page.locator('.hero-3d-poster-host > svg')).toBeVisible()
   expect(requests.filter(url => /\/portfolio-.*\.(js|css)/.test(url))).toEqual([])
-  if (mode === 'mobile') await page.screenshot({ path: 'test-results/motion-mobile-390.png' })
+  if (mode === 'reduce') await page.screenshot({ path: 'test-results/motion-static-390.png' })
   await context.close()
 })
 
@@ -82,11 +83,11 @@ test('live reduced-motion change restores poster and can resume without duplicat
   await page.setViewportSize({ width: 1440, height: 900 }); await ready(page)
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await expect(page.locator('html')).toHaveAttribute('data-spatial-motion', 'paused')
-  await expect(page.locator('.pm-scene')).toBeHidden()
+  await expect(page.locator('#hero .pm-scene')).toBeHidden()
   await expect(page.locator('.hero-3d-poster-host > svg')).toBeVisible()
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await expect(page.locator('html')).toHaveAttribute('data-spatial-motion', 'ready')
-  await expect(page.locator('.pm-scene')).toHaveCount(1)
+  await expect(page.locator('#hero .pm-scene')).toHaveCount(1)
 })
 
 test('no animation-frame loop at rest or after pagehide; pageshow resumes', async ({ page }) => {
@@ -115,10 +116,10 @@ test('language switch preserves one animated illustration and original order con
   await page.setViewportSize({ width: 1440, height: 900 }); await ready(page)
   await page.getByRole('button', { name: /EN.*váltás angolra/ }).click()
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
-  await expect(page.locator('.pm-scene')).toHaveCount(1)
+  await expect(page.locator('#hero .pm-scene')).toHaveCount(1)
   await page.getByRole('link', { name: 'Order', exact: true }).first().click()
   await expect(page.locator('.mg-plan')).toHaveCount(6)
-  await expect(page.locator('.pm-scene')).toHaveCount(0)
+  await expect(page.locator('#hero .pm-scene')).toHaveCount(0)
 })
 
 test('4x CPU: optional startup tasks <=120ms and scroll tasks <=50ms, three fresh pages', async ({ browser }) => {

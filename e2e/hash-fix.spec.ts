@@ -617,8 +617,9 @@ test.describe('hash-fix PR7', () => {
     await page.reload({ waitUntil: 'networkidle' })
     await page.evaluate(() => document.fonts.ready)
     await page.waitForTimeout(700)
-    expect(Math.abs(await sectionDelta(page, 'kapcsolat'))).toBeLessThanOrEqual(2)
-    expect(await page.evaluate(() => location.hash)).toBe('#kapcsolat')
+    // Owner follow-up: reload always returns to hero, even from a section hash.
+    expect(await page.evaluate(() => scrollY)).toBe(0)
+    expect(await page.evaluate(() => location.hash)).toBe('')
 
     expect(errors, errors.join('\n')).toEqual([])
   })

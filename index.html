@@ -1,8 +1,14 @@
 <!doctype html>
 <html lang="hu">
   <head>
+    <meta charset="UTF-8" />
     <script>
       document.documentElement.classList.add('js', 'is-hero-poster')
+      if (performance.getEntriesByType('navigation')[0]?.type === 'reload') {
+        history.scrollRestoration = 'manual'
+        history.replaceState(history.state, '', location.pathname + location.search)
+        window.scrollTo(0, 0)
+      }
       if (location.hash) document.documentElement.style.scrollBehavior = 'auto'
       try {
         var n = navigator
@@ -10,11 +16,12 @@
         var mem = n.deviceMemory
         if ((connection && connection.saveData) || (mem && mem <= 2)) {
           document.documentElement.classList.add('is-static-motion')
+        } else if (!matchMedia('(prefers-reduced-motion: reduce)').matches && CSS.supports('transform-style', 'preserve-3d')) {
+          document.documentElement.dataset.spatialCapable = ''
         }
 
       } catch (e) {}
     </script>
-    <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light" />

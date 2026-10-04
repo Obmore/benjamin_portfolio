@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+.motion-story { display: none; }
+html[data-spatial-capable] .motion-story { display: block; height: 340svh; }
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

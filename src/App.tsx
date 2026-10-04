@@ -41,6 +41,7 @@ function AppShell() {
       <Navbar />
       <main id="main" tabIndex={-1} className="outline-none">
         <Hero />
+        <section className="motion-story" data-motion-story />
         <Projects />
         <About />
         <Experience />
