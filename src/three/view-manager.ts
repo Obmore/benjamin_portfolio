@@ -49,7 +49,6 @@ let entryPhase: 'idle' | 'wait' | 'pulse' | 'done' = 'idle'
 let rafCount = 0
 let gsapTicker: GsapTicker | null = null
 let tickerBound = false
-let renderRequested = false
 let lastPainted = Number.NaN
 let forcePaint = false
 const PAINT_EPS = 1e-4
@@ -199,7 +198,6 @@ function stopTicker() {
   if (!tickerBound || !gsapTicker) return
   gsapTicker.remove(onTicker)
   tickerBound = false
-  renderRequested = false
 }
 
 async function ensureTicker() {
@@ -215,15 +213,15 @@ async function ensureTicker() {
 // Changes: GSAP ticker instead of own rAF; paint at most once per tick and only if |p-lastP|>eps
 function requestRender(force = false) {
   if (force) forcePaint = true
-  if (renderRequested) return
-  renderRequested = true
-  if (tickerBound || !gsapTicker) return
+  if (!gsapTicker) {
+    return
+  }
+  if (tickerBound) return
   tickerBound = true
   gsapTicker.add(onTicker)
 }
 
 function onTicker() {
-  renderRequested = false
   if (!renderer || disposing) {
     stopTicker()
     return

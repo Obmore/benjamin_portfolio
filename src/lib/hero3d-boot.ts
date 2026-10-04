@@ -52,21 +52,23 @@ export function bootHero3d(): () => void {
   let stopView = () => {}
   let deadlineWorker: Worker | null = null
   const fireDeadline = () => {
-    if (stopped) return
+    if (stopped || qa) return
     tripWatchdog()
     writeTier('static')
     stopped = true
     stopView()
   }
-  const deadline = window.setTimeout(fireDeadline, 20000)
-  try {
-    const blob = new Blob([`setTimeout(() => postMessage(1), 25000)`], { type: 'text/javascript' })
-    const url = URL.createObjectURL(blob)
-    deadlineWorker = new Worker(url)
-    URL.revokeObjectURL(url)
-    deadlineWorker.onmessage = () => fireDeadline()
-  } catch {
-    /* blob workers may be blocked; the window timer remains */
+  const deadline = qa ? 0 : window.setTimeout(fireDeadline, 20000)
+  if (!qa) {
+    try {
+      const blob = new Blob([`setTimeout(() => postMessage(1), 25000)`], { type: 'text/javascript' })
+      const url = URL.createObjectURL(blob)
+      deadlineWorker = new Worker(url)
+      URL.revokeObjectURL(url)
+      deadlineWorker.onmessage = () => fireDeadline()
+    } catch {
+      /* blob workers may be blocked; the window timer remains */
+    }
   }
 
   const clearDeadline = () => {
