@@ -53,12 +53,19 @@ if (order) {
   )
   mustInclude('megrendeles', order, '<title>Megrendelés és ajánlatkérés</title>')
   mustInclude('megrendeles', order, 'mailto:bendzsiott1998@gmail.com?subject=Megrendel%C3%A9s')
-  mustInclude('megrendeles', order, '59&nbsp;000 Ft')
-  mustInclude('megrendeles', order, '4&nbsp;900 Ft/hó')
+  mustInclude('megrendeles', order, '129&nbsp;000 Ft egyszeri díj.')
+  mustInclude('megrendeles', order, 'Üzemeltetés kérésre havi 4&nbsp;900 Ft.')
   mustInclude('megrendeles', order, 'Egyedi webes megoldás')
   mustNotInclude('megrendeles', order, 'megrendeles@ottbenjamin.hu')
   mustNotInclude('megrendeles', order, '149 000')
   mustNotInclude('megrendeles', order, '149&nbsp;000')
+  mustNotInclude('megrendeles', order, '189 000')
+  mustNotInclude('megrendeles', order, '189&nbsp;000')
+  mustNotInclude('megrendeles', order, '59 000')
+  mustNotInclude('megrendeles', order, '59&nbsp;000')
+  mustNotInclude('megrendeles', order, 'alanyi adómentes')
+  mustNotInclude('megrendeles', order, 'Opció: üzemeltetés')
+  mustNotInclude('megrendeles', order, '4&nbsp;900 Ft/hó')
   mustNotInclude('megrendeles', order, 'Két munkanapon')
   mustNotInclude('megrendeles', order, 'adatkezeles')
   mustNotInclude('megrendeles', order, '<form')
@@ -68,10 +75,30 @@ if (order) {
   mustNotInclude('megrendeles', order, 'data-subject')
   mustNotInclude('megrendeles', order, 'Aj%C3%A1nlatk%C3%A9r%C3%A9s')
   mustInclude('megrendeles', order, 'Kimásolva')
-  mustInclude('megrendeles', order, 'a domain külön költség, és az Ön nevére szól')
+  mustInclude(
+    'megrendeles',
+    order,
+    'A domain díja külön fizetendő, és a domain az Ön nevére szól.',
+  )
+  mustInclude(
+    'megrendeles',
+    order,
+    'alapvető keresőbeállítás: oldalcím és leírás a Google-találatokhoz, valamint az',
+  )
+  mustInclude(
+    'megrendeles',
+    order,
+    'Általában három héten belül elkészül, miután megkaptam a szövegeket és a fotókat.',
+  )
   mustInclude('megrendeles', order, 'Írjon nekem e-mailt, és hamarosan válaszolok.')
   mustNotInclude('megrendeles', order, 'mg-kicker')
-  mustNotInclude('megrendeles', order, 'A domain külön költség')
+  mustNotInclude('megrendeles', order, 'a domain külön költség, és az Ön nevére szól')
+  if (count(order, /bendzsiott1998@gmail\.com/g) !== 3) {
+    errors.push('megrendeles: gmail address must appear exactly 3 times')
+  }
+  if (count(order, /129(?:&nbsp;|\u00a0| )000 Ft egyszeri díj\./g) !== 1) {
+    errors.push('megrendeles: „129 000 Ft egyszeri díj.” must appear exactly once')
+  }
   if (!/id="mg-copy"[^>]*\bhidden\b/.test(order) && !/<button[^>]*\bhidden\b[^>]*id="mg-copy"/.test(order)) {
     errors.push('megrendeles: Másolás button must be hidden in the HTML')
   }
@@ -116,6 +143,37 @@ if (fs.existsSync(assetsDir)) {
   mustInclude('megrendeles js', orderJs, 'E-mail-cím a vágólapra másolva')
   mustNotInclude('megrendeles js', orderJs, 'Az e-mail-cím a vágólapra került.')
   mustNotInclude('megrendeles js', orderJs, 'Aj%C3%A1nlatk%C3%A9r%C3%A9s')
+}
+
+function walkFiles(dir) {
+  const out = []
+  if (!fs.existsSync(dir)) return out
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name)
+    if (entry.isDirectory()) out.push(...walkFiles(full))
+    else out.push(full)
+  }
+  return out
+}
+
+function textContent(filePath) {
+  const buf = fs.readFileSync(filePath)
+  if (buf.includes(0)) return ''
+  return buf.toString('utf8')
+}
+
+const distText = walkFiles(dist)
+  .map((filePath) => textContent(filePath))
+  .join('\n')
+const distNormalized = distText.replaceAll('\u00a0', ' ').replaceAll('&nbsp;', ' ')
+if ((distNormalized.match(/59 000/g) ?? []).length !== 0) {
+  errors.push('dist: must not contain „59 000”')
+}
+if ((distText.match(/alanyi adómentes/g) ?? []).length !== 0) {
+  errors.push('dist: must not contain „alanyi adómentes”')
+}
+if ((order.replaceAll('\u00a0', ' ').replaceAll('&nbsp;', ' ').match(/129 000 Ft egyszeri díj\./g) ?? []).length !== 1) {
+  errors.push('megrendeles: normalized „129 000 Ft egyszeri díj.” must appear exactly once')
 }
 
 if (errors.length > 0) {
