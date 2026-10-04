@@ -31,12 +31,23 @@ function tripWatchdog() {
   mark3dWatchdog()
 }
 
-// Main-thread timer: CDP CPU throttle stretches it (Worker timers stay wall-clock).
-function timerDelay(ms: number): Promise<number> {
-  const t0 = performance.now()
+function yieldTick(): Promise<void> {
   return new Promise((resolve) => {
-    window.setTimeout(() => resolve(performance.now() - t0), ms)
+    window.setTimeout(resolve, 0)
   })
+}
+
+// CDP CPU throttle slows JS work, not setTimeout. Six short loops stay
+// under a long-task at 4× (~80–100 ms total) and trip past 150 ms at 20×.
+async function qaCpuSlow(): Promise<boolean> {
+  const t0 = performance.now()
+  let n = 0
+  for (let round = 0; round < 6; round++) {
+    for (let i = 0; i < 5e5; i++) n = (n + i) | 0
+    if (performance.now() - t0 > 150) return n !== -1
+    await yieldTick()
+  }
+  return performance.now() - t0 > 150 && n !== -1
 }
 
 export function bootHero3d(): () => void {
@@ -86,6 +97,10 @@ export function bootHero3d(): () => void {
   }
 
   void (async () => {
+    if (qa && (await qaCpuSlow())) {
+      fireDeadline()
+      return
+    }
     await afterLcp()
     await nextFrame()
     if (stopped) return
@@ -123,14 +138,6 @@ export function bootHero3d(): () => void {
     }
     await nextFrame()
     if (stopped) return
-    if (qa) {
-      const waited = await timerDelay(250)
-      if (stopped) return
-      if (waited > 2000) {
-        fireDeadline()
-        return
-      }
-    }
     const mod = await import('@/three/view-manager')
     stopView = () => mod.stopView()
     await nextFrame()
