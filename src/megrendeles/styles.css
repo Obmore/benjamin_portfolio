@@ -200,7 +200,6 @@ a:focus:not(:focus-visible) {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: 100%;
   padding: 24px;
   background: var(--mg-sheet);
   border-radius: 6px;
@@ -279,7 +278,6 @@ a:focus:not(:focus-visible) {
 }
 
 .mg-plan-body {
-  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -558,14 +556,16 @@ html.js .mg-btn-copy {
   }
 
   .mg-plans {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
+    display: block;
+    columns: 2;
     column-gap: 24px;
-    row-gap: 24px;
   }
 
   .mg-plan {
-    grid-column: span 6;
+    display: inline-flex;
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 24px;
     padding: 32px;
   }
 
@@ -663,9 +663,6 @@ html.js .mg-btn-copy {
     animation: mg-draw 900ms var(--mg-ease) both;
   }
 
-  @media (min-width: 1024px) {
-    .mg-plans .mg-plan:nth-child(even) .mg-plan-stroke { animation-delay: 120ms; }
-  }
 }
 
 @keyframes mg-draw {
@@ -683,16 +680,10 @@ html.js .mg-btn-copy {
 .mg-subplan { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--mg-line); }
 .mg-subplan .mg-plan-title { font-size: 18px; }
 .mg-plan:last-child .mg-price { font-size: 20px; }
-@media (min-width: 1024px) {
-  .mg-plan { display: grid; grid-template-rows: subgrid; grid-row: span 4; row-gap: 0; }
-  .mg-plan-body { display: contents; }
-  .mg-plan-cta { align-self: end; justify-self: start; }
-}
-
 /* Inquiry guide: the approved catalog remains intact below this introduction. */
 .mg-intro { padding-top: 48px; padding-bottom: 48px; }
 .mg-intro .mg-wrap { display: block; }
-.mg-intro-inner { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: 64px; max-width: none; }
+.mg-intro-inner { display: grid; grid-template-columns: 1.1fr 1fr; align-items: start; gap: 64px; max-width: none; }
 .mg-eyebrow { color: var(--mg-blueprint-deep); font-family: var(--mg-mono); font-size: 10px; letter-spacing: .1em; margin: 0 0 20px; }
 .mg-intro-note { margin: 22px 0 14px; font-size: 16px; color: var(--mg-muted); }
 .mg-text-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; color: var(--mg-blueprint-deep); text-underline-offset: 5px; }
@@ -716,12 +707,14 @@ html.js .mg-btn-copy {
 .js .mg-flow-morph { display: block; }
 .mg-flow-morph i { position: absolute; width: 25px; height: 5px; border-radius: 2px; background: #287b81; transition: transform 650ms var(--mg-ease); }
 .mg-flow[data-follow="true"] :is(.mg-flow-sheet,.mg-flow-morph i) { transition: none; }
-.mg-flow-footer { height: 44px; display: flex; align-items: center; gap: 15px; }
-.mg-flow-progress { flex: 1; height: 2px; background: #b6cdd0; overflow: hidden; }
+.mg-flow-progress { height: 2px; margin-top: 16px; background: #b6cdd0; overflow: hidden; }
 .mg-flow-progress span { display: block; height: 100%; background: #235d68; transform-origin: left; transform: scaleX(0); }
-.mg-flow-follow { visibility: hidden; min-height: 44px; border: 0; background: transparent; color: #385868; font: 400 11px var(--mg-sans); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
-.js .mg-flow-follow { visibility: visible; }.mg-flow-follow[aria-pressed="true"] { color: #183d45; font-weight: 600; }
-.mg-flow-follow:disabled { opacity: .6; cursor: default; text-decoration: none; }
+.mg-flow-track { min-width: 0; }
+@media (min-height: 640px) and (prefers-reduced-motion: no-preference) {
+  .js .mg-flow-track::after { content: ""; display: block; height: clamp(140px,20vh,220px); }
+  .js .mg-flow { position: sticky; top: 88px; }
+  @media (min-width: 768px) { .js .mg-intro-copy { position: sticky; top: 88px; } }
+}
 .mg-flow[data-step="1"] .mg-flow-file { transform: translate3d(-55px,-24px,-65px) rotateZ(-10deg); opacity: .55; }
 .mg-flow[data-step="1"] .mg-flow-form { transform: translate3d(0,0,65px); }
 .mg-flow[data-step="1"] .mg-flow-result { transform: translate3d(50px,25px,-70px) rotateZ(9deg); opacity: .6; }

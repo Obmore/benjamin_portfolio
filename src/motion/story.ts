@@ -24,7 +24,7 @@ export function createStory(section: HTMLElement) {
         </div></div>
       </div>
     </div>
-    <div class="cs-footer"><span class="cs-hint"></span><div class="cs-progress"><span></span></div><span class="cs-end">03</span></div>
+    <div class="cs-footer"><div class="cs-progress"><span></span></div><span class="cs-end">03</span></div>
   </div>`
   const get = <T extends HTMLElement = HTMLElement>(selector: string) => section.querySelector<T>(selector)!
   const stage = get('.cs-sticky')
@@ -68,7 +68,6 @@ export function createStory(section: HTMLElement) {
     section.setAttribute('aria-label', english ? 'Engineering, software, connection' : 'Mérnöki szemlélet, szoftverfejlesztés és együttműködés')
     get('.cs-eyebrow-label').textContent = english ? 'BEHIND THE SURFACE' : 'A FELSZÍN MÖGÖTT'
     get('.cs-skip').textContent = english ? 'Explore my work ↗' : 'Tovább a munkáimhoz ↗'
-    get('.cs-hint').textContent = english ? 'Scroll to explore' : 'A történet görgetéssel folytatódik'
   }
   const render = (y: number) => {
     const p = clamp((y - top) / travel)

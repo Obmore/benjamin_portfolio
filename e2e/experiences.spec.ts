@@ -23,11 +23,14 @@ for (const width of [360, 1024, 1440]) test(`${width}: the scooter stays inside 
   for (const angle of ['-42', '-8']) {
     await page.getByRole('slider', { name: 'Nézőpont' }).fill(angle)
     for (let step = 0; step < 3; step++) {
-      const bounds = await page.locator('.rd-scene').evaluate(e => {
-        const scene = e.getBoundingClientRect(), vehicle = e.querySelector('.rd-vehicle')!.getBoundingClientRect()
-        return [vehicle.left - scene.left, scene.right - vehicle.right, vehicle.top - scene.top, scene.bottom - vehicle.bottom]
+      const clipped = await page.locator('.rd-render').evaluate((svg: SVGSVGElement) => {
+        const v = svg.viewBox.baseVal
+        return [...svg.querySelectorAll<SVGGraphicsElement>('path')].filter(path => {
+          const b = path.getBBox(), pad = Number(path.getAttribute('stroke-width') ?? 0) / 2
+          return b.x - pad < v.x || b.y - pad < v.y || b.x + b.width + pad > v.x + v.width || b.y + b.height + pad > v.y + v.height
+        }).map(p => p.outerHTML)
       })
-      for (const [i, margin] of bounds.entries()) expect(margin, `angle ${angle}, stage ${step}, edge ${i}`).toBeGreaterThanOrEqual(0)
+      expect(clipped, `angle ${angle}, stage ${step}`).toEqual([])
       await page.locator('.rd-action').click()
     }
   }
@@ -48,9 +51,9 @@ for (const width of [390, 1440]) test(`${width}: Rollin unlock, return, charge, 
   await page.getByRole('button', { name: 'Nyitás', exact: true }).click()
   await expect(shell).toHaveAttribute('data-stage', 'ride')
   await expect(page.locator('.rd-status')).toContainText('bérlés folyamatban')
-  const pose = await page.locator('.rd-world').getAttribute('style')
+  const pose = await page.locator('.rd-render').innerHTML()
   await page.getByRole('slider', { name: 'Nézőpont' }).fill('-35')
-  expect(await page.locator('.rd-world').getAttribute('style')).not.toBe(pose)
+  expect(await page.locator('.rd-render').innerHTML()).not.toBe(pose)
   await page.getByRole('button', { name: /EN.*váltás angolra/ }).click()
   await expect(shell).toHaveAttribute('data-stage', 'ride')
   await expect(page.getByRole('button', { name: 'Return vehicle', exact: true })).toBeVisible()
@@ -79,7 +82,7 @@ test('Rollin keyboard controls and reduced motion settle immediately, including 
   await expect(button).toBeFocused()
   await page.keyboard.press('Enter')
   await expect(shell).toHaveAttribute('data-stage', 'charge')
-  expect(await page.locator('.rd-vehicle').evaluate(e => parseFloat(getComputedStyle(e).transitionDuration))).toBeLessThan(.001)
+  await expect(page.locator('.rd-render')).toHaveAttribute('data-motion', 'idle')
   await page.keyboard.press('Enter'); await expect(shell).toHaveAttribute('data-stage', 'docked')
 })
 
@@ -123,7 +126,7 @@ for (const width of [390, 1440]) test(`${width}: order animation follows scroll 
   const flow = page.locator('.mg-flow'), sheet = page.locator('.mg-flow-result')
   await expect(flow).toHaveAttribute('data-follow', 'true')
   const start = await sheet.getAttribute('style')
-  await flow.evaluate(e => { const top = e.getBoundingClientRect().top + scrollY; scrollTo({ top: Math.max(0, top - innerHeight * .45) + 170, behavior: 'instant' }) })
+  await page.locator('.mg-flow-track').evaluate(e => { const top = e.getBoundingClientRect().top + scrollY; scrollTo({ top: top - 88 + 100, behavior: 'instant' }) })
   await expect.poll(() => sheet.getAttribute('style')).not.toBe(start)
   await page.locator('[data-flow-step="1"]').click()
   await expect(flow).toHaveAttribute('data-follow', 'false')
@@ -131,11 +134,9 @@ for (const width of [390, 1440]) test(`${width}: order animation follows scroll 
   await page.mouse.wheel(0, 90); await page.waitForTimeout(200)
   expect(await sheet.getAttribute('style')).toBe(selected)
   await expect(flow).toHaveAttribute('data-step', '1')
-  await page.locator('.mg-flow-follow').click()
-  await expect(flow).toHaveAttribute('data-follow', 'true')
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await expect(flow).toHaveAttribute('data-follow', 'false')
-  await expect(page.locator('.mg-flow-follow')).toBeDisabled()
+  await expect(page.locator('.mg-flow-follow')).toHaveCount(0)
   await page.locator('[data-flow-step="2"]').click()
   await expect(flow).toHaveAttribute('data-step', '2')
 })

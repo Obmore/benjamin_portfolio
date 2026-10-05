@@ -1,7 +1,7 @@
 export function mountFlow() {
   const flow = document.querySelector<HTMLElement>('.mg-flow')!
   const caption = document.querySelector<HTMLElement>('#mg-flow-caption')!
-  const follow = document.querySelector<HTMLButtonElement>('.mg-flow-follow')!
+  const track = document.querySelector<HTMLElement>('.mg-flow-track')!
   const progress = document.querySelector<HTMLElement>('.mg-flow-progress span')!
   const steps = [...flow.querySelectorAll<HTMLButtonElement>('[data-flow-step]')]
   const sheets = [...flow.querySelectorAll<HTMLElement>('.mg-flow-sheet')]
@@ -44,24 +44,23 @@ export function mountFlow() {
   }
   function sync() {
     flow.dataset.follow = String(auto)
-    follow.setAttribute('aria-pressed', String(auto))
-    follow.disabled = media.matches
     caption.setAttribute('aria-live', auto ? 'off' : 'polite')
   }
   function update() {
     frame = 0
     if (!auto || !visible || suspended || document.hidden || media.matches) return
-    const top = flow.getBoundingClientRect().top + scrollY
-    const start = Math.max(0, top - innerHeight * .45)
-    render(clamp((scrollY - start) / Math.max(200, Math.min(flow.offsetHeight * .75, innerHeight * .55))))
+    // Scrub only while native sticky positioning keeps the whole scene visible.
+    const distance = track.offsetHeight - flow.offsetHeight
+    if (distance < 1) return
+    const start = track.getBoundingClientRect().top + scrollY - 88
+    render(clamp((scrollY - start) / distance))
   }
   function request() { if (!frame && auto && visible && !suspended && !document.hidden) frame = requestAnimationFrame(update) }
   function pause() { cancelAnimationFrame(frame); frame = 0 }
   steps.forEach((button, i) => button.addEventListener('click', () => {
     auto = false; pause(); sync(); render(i / 2)
   }))
-  follow.addEventListener('click', () => { auto = !auto; sync(); if (auto) request(); else pause() })
-  const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; if (visible) request(); else pause() })
+  const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; if (visible) request(); else { pause(); auto = !media.matches; sync() } })
   observer.observe(flow)
   window.addEventListener('scroll', request, { passive: true })
   window.addEventListener('resize', request, { passive: true })
