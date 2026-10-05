@@ -1,6 +1,6 @@
-# Ott Benjámin — Portfolio
+# Ott Benjámin - Portfolio
 
-Premium minimal portfolio website for Ott Benjámin — Electrical Engineer & Software Developer.
+Premium minimal portfolio website for Ott Benjámin - Electrical Engineer & Software Developer.
 
 ## Stack
 
