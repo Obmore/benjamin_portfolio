@@ -16,6 +16,8 @@ for (const width of [360,390,1024,1440]) test(`light-only, full domain labels, f
   for (const padding of labelPadding) expect(padding).toBeGreaterThanOrEqual(6)
   expect(await page.locator('.work-shot').evaluateAll(es=>[...new Set(es.map(e=>getComputedStyle(e).marginBottom))])).toEqual(['24px'])
   const missing=await page.locator('svg path,svg line,svg rect,svg circle,svg polyline,svg polygon').evaluateAll(es=>es.filter(e=>{
+    // Zdog strokes are model geometry and must scale with the artwork.
+    if (e.closest('.rd-render')) return false
     const cs=getComputedStyle(e)
     return cs.stroke!=='none'&&cs.vectorEffect!=='non-scaling-stroke'
   }).map(e=>e.outerHTML))

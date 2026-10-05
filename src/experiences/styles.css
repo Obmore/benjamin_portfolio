@@ -3,27 +3,9 @@
 .rd-eyebrow { margin: 0 0 12px; font: 500 9px var(--font-mono); letter-spacing: .12em; color: #486c76; }
 .rd-heading h4 { font-size: clamp(23px,3vw,34px); line-height: 1.12; font-weight: 600; letter-spacing: -.04em; margin: 0; }
 .rd-intro { font-size: 13px; line-height: 1.5; margin: 10px 0 0; max-width: 370px; color: #456570; }
-.rd-scene { position: relative; flex: 1; min-height: 215px; perspective: 900px; overflow: clip; }
+.rd-scene { position: relative; flex: 1; min-height: 215px; overflow: clip; }
 .rd-halo { position: absolute; inset: 10% 7%; background: radial-gradient(ellipse,#c7e8df,transparent 68%); }
-.rd-world { --rd-angle: -24deg; --rd-scale: .7; position: absolute; left: 50%; top: 64%; width: 500px; height: 270px; transform: translate(-50%,-50%) scale(var(--rd-scale)) rotateX(57deg) rotateZ(var(--rd-angle)); transform-style: preserve-3d; }
-.rd-ground { position: absolute; inset: -28px -15px; border: 1px solid #b5d1cc; border-radius: 30px; background: repeating-linear-gradient(0deg,transparent 0 29px,#accfc130 29px 30px),repeating-linear-gradient(90deg,transparent 0 29px,#accfc130 29px 30px); }
-.rd-base { position: absolute; left: 35px; top: 127px; width: 360px; height: 95px; transform-style: preserve-3d; }
-.rd-top { position: absolute; inset: 0; border: 1px solid #a7c0c9; border-radius: 9px; background: linear-gradient(120deg,#fbfdfc,#dae6e7); transform: translateZ(16px); box-shadow: 0 16px 25px #284f4e23; }
-.rd-top span { position: absolute; bottom: 10px; left: 18px; font: 600 13px var(--font-mono); letter-spacing: .2em; color: #49737a; }
-.rd-front { position: absolute; left: 0; top: 100%; width: 360px; height: 16px; background: #9bb6c0; transform-origin: top; transform: rotateX(90deg); border-radius: 0 0 5px 5px; }
-.rd-side { position: absolute; left: 100%; top: 0; width: 16px; height: 95px; background: #b5cbd0; transform-origin: left; transform: rotateY(-90deg); }
-.rd-dock { position: absolute; left: calc(58px + var(--slot) * 84px); top: 138px; width: 45px; height: 49px; transform: translateZ(16px); transform-style: preserve-3d; }
-.rd-dock-top { position: absolute; inset: 0; background: #173d4a; border: 1px solid #567985; border-radius: 6px; transform: translateZ(33px); }
-.rd-dock-top i { position: absolute; inset: 10px 16px; background: #081f2c; border: 1px solid #517881; border-radius: 6px; }
-.rd-dock-front { position: absolute; top: 100%; width: 45px; height: 33px; transform-origin: top; transform: rotateX(90deg); background: #254c59; border-top: 3px solid #8bbbc1; }
-.rd-dock-front span { position: absolute; inset: 4px; text-align: center; color: white; font: 500 12px var(--font-mono); transform: rotateX(180deg); }
-.rd-dock-side { position: absolute; left: 100%; width: 33px; height: 49px; transform-origin: left; transform: rotateY(-90deg); background: #426777; }
-.rd-lock { position: absolute; width: 33px; height: 8px; top: 18px; left: 6px; border-radius: 4px; background: #a4c5ce; transform: translateZ(42px); transform-origin: 3px 50%; transition: transform 420ms ease; }
-.rd-vehicle { position: absolute; width: 220px; height: 180px; left: 169px; top: -29px; transform-origin: 0 100%; transform: translateZ(18px) rotateX(-90deg); transition: transform 900ms cubic-bezier(.22,.7,.2,1); }
-.rd-vehicle svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.rd-route { position: absolute; top: 83px; left: 15px; width: 314px; height: 60px; border-top: 2px dashed #618e89; border-right: 2px dashed #618e89; border-radius: 0 14px 0 0; }
-.rd-route i { display: block; position: absolute; width: 9px; height: 9px; top: -5px; left: 0; background: #147661; border-radius: 50%; opacity: 0; }
-.rd-charge { position: absolute; left: 319px; top: 160px; width: 25px; height: 25px; display: grid; place-items: center; border-radius: 50%; font: 500 20px var(--font-mono); color: white; background: #197862; transform: translateZ(115px) rotateX(-90deg); opacity: 0; transition: opacity 200ms ease; }
+.rd-render { display: block; position: absolute; inset: 0; width: 100%; height: 100%; }
 .rd-scene-label { position: absolute; left: 24px; bottom: 4px; display: flex; align-items: center; gap: 8px; font: 500 9px var(--font-mono); color: #183c4a; background: #f0f5f4; border-radius: 4px; padding-right: 6px; }
 .rd-scene-label span { padding: 5px; border: 1px solid #abc9c8; border-radius: 4px; }
 .rd-scene-label i { width: 22px; height: 1px; background: #96b8bd; }.rd-scene-label b { font-weight: 500; letter-spacing: .15em; }
@@ -41,12 +23,6 @@
 .rd-view { display: grid; flex: 1; gap: 2px; font-size: 10px; color: #466973; }.rd-view input { min-width: 0; width: 100%; height: 32px; accent-color: #287b6e; cursor: pointer; }
 .rd-action:focus-visible,.rd-view input:focus-visible { outline: 2px solid #126555; outline-offset: 4px; }
 .rd-note { margin: 12px 0 0; font-size: 10px; color: #4e6d75; line-height: 1.5; }
-.rd-shell[data-stage="signal"] .rd-route i { animation: rd-signal 500ms linear both; }
-.rd-shell:is([data-stage="open"],[data-stage="ride"],[data-stage="return"]) .rd-active .rd-lock { transform: translateZ(42px) rotateZ(-80deg); }
-.rd-shell[data-stage="ride"] .rd-vehicle { transform: translate3d(110px,40px,18px) rotateX(-90deg); }
-.rd-shell[data-stage="charge"] .rd-charge { opacity: 1; }
-.rd-shell[data-stage="charge"] .rd-active .rd-dock-front { border-top-color: #41d6a4; }
-@keyframes rd-signal { 0% { opacity: 1; transform: translate(0,0); } 80% { opacity: 1; transform: translate(306px,0); } 100% { opacity: 1; transform: translate(306px,55px); } }
 @media (max-width: 767px) {
   .rd-heading { padding: 20px 16px 0; }.rd-controls { padding: 12px 16px 16px; }
   .rd-heading h4 { font-size: 24px; }.rd-intro { font-size: 12px; }.rd-scene { min-height: 198px; }

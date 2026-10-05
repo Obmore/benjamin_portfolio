@@ -7,6 +7,8 @@ Premium minimal portfolio website for Ott Benjámin - Electrical Engineer & Soft
 - React 19 + TypeScript
 - Vite
 - Tailwind CSS v4
+- Zdog (lazy-loaded SVG scene)
+- Playwright visual regression tests + Axe accessibility checks
 
 ## Development
 
@@ -56,11 +58,24 @@ Place PDFs in `public/cv/`:
 - Light theme
 - Smooth anchor navigation
 - Scroll animations
-- Interactive Rollin station scene with unlock, return and charging states
+- Interactive Rollin station scene with solid geometry, unlock, return and charging states
 - On-demand mobile screenshots for the website references
-- Scroll-controlled spreadsheet-to-form illustration on the order page
+- Content-sized service cards and a sticky spreadsheet-to-form illustration on the order page
 - Reduced-motion support and keyboard controls for the interactive scenes
 - SEO meta tags and JSON-LD
 - Contact section with mailto and copy-to-clipboard
 
 Visual sources and implementation notes: [interactive experience](docs/interactive-experience.md).
+
+## Verification
+
+```bash
+npm ci
+npx playwright install chromium
+npm run check
+npm run test:e2e
+```
+
+Visual baselines are reviewed Windows/Chromium screenshots. See the
+[renderer and verification notes](docs/interactive-experience.md#renderer-and-review-tools)
+for baseline updates and browser limitations.

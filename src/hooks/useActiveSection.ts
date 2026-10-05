@@ -149,6 +149,9 @@ export function cancelPendingSnap() {
 export function scrollToSection(id: string, behavior?: ScrollBehavior) {
   const element = document.getElementById(id)
   if (!element) return
+  // A reveal transform changes getBoundingClientRect without changing layout.
+  // Explicit navigation must measure the final, stationary target.
+  if (element.hasAttribute('data-reveal')) element.setAttribute('data-revealed', 'instant')
 
   const prevBehavior = pendingSnap?.prevBehavior ?? document.documentElement.style.scrollBehavior
   clearPendingSnap()

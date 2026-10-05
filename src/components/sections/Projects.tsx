@@ -151,7 +151,7 @@ function WorkCard({
       <CornerMarks />
       <div className="work-card-inner">
         <div className="work-card-kicker">
-          <span>MUNKA {padSheet(index)}</span>
+          <span>{locale === 'hu' ? 'MUNKA' : 'WORK'} {padSheet(index)}</span>
           {badge ? <span className="work-card-tag">{badge}</span> : null}
         </div>
 

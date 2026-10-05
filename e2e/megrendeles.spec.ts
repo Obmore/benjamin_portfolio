@@ -105,7 +105,7 @@ test.describe('/megrendeles/', () => {
     await expect(page.locator('.mg-skip')).toBeFocused()
     await page.keyboard.press('Tab')
     await expect(page.locator('.mg-back')).toBeFocused()
-    const controls = [page.locator('.mg-text-link'), ...await page.locator('[data-flow-step]').all(), page.locator('.mg-flow-follow'), ...await page.locator('.mg-choose a').all(), ...await planLinks.all(), ...await page.locator('.mg-faq summary').all(), page.locator('#mg-service'), page.locator('#mg-description')]
+    const controls = [page.locator('.mg-text-link'), ...await page.locator('[data-flow-step]').all(), ...await page.locator('.mg-choose a').all(), ...await planLinks.all(), ...await page.locator('.mg-faq summary').all(), page.locator('#mg-service'), page.locator('#mg-description')]
     for (const control of controls) {
       await page.keyboard.press('Tab')
       await expect(control).toBeFocused()
