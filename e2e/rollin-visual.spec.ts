@@ -22,14 +22,19 @@ for (const width of [390, 1440]) for (const angle of ['-42', '-24', '-8']) {
 
 test('unlock stays busy until the vehicle stops; idle artwork does not keep repainting', async ({ page }) => {
   await page.goto('/#munka-hotel-rental', { waitUntil: 'networkidle' })
+  await page.clock.install({ time: new Date('2026-10-05T10:00:00Z') })
+  await page.clock.pauseAt(new Date('2026-10-05T10:00:01Z'))
   const action = page.locator('.rd-action'), shell = page.locator('.rd-shell')
   await action.click()
+  await page.clock.runFor(900)
   await expect(shell).toHaveAttribute('data-stage', 'leaving')
   await expect(action).toHaveAttribute('aria-disabled', 'true')
   await action.dispatchEvent('click')
   await expect(shell).toHaveAttribute('data-stage', 'leaving')
+  await page.clock.runFor(900)
   await expect(shell).toHaveAttribute('data-stage', 'ride')
   await expect(page.locator('.rd-render')).toHaveAttribute('data-motion', 'idle')
+  await page.clock.resume()
   const mutations = await page.locator('.rd-render').evaluate(svg => new Promise<number>(resolve => {
     let changes = 0
     const observer = new MutationObserver(records => { changes += records.length })
