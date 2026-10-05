@@ -712,6 +712,16 @@ html.js .mg-btn-copy {
 .mg-flow-check { display: grid; place-items: center; position: absolute; top: 14px; right: 15px; width: 24px; height: 24px; border-radius: 50%; background: #235d68; color: #fff; font-size: 14px; }
 .mg-flow-result .mg-flow-table { margin-top: 24px; }
 .mg-file-fold { position: absolute; top: -1px; right: -1px; width: 28px; height: 28px; background: linear-gradient(45deg,#c7dce4 49%,#f1f5f7 50%); border-radius: 0 8px 0 4px; }
+.mg-flow-morph { display: none; position: absolute; inset: 0; transform-style: preserve-3d; pointer-events: none; }
+.js .mg-flow-morph { display: block; }
+.mg-flow-morph i { position: absolute; width: 25px; height: 5px; border-radius: 2px; background: #287b81; transition: transform 650ms var(--mg-ease); }
+.mg-flow[data-follow="true"] :is(.mg-flow-sheet,.mg-flow-morph i) { transition: none; }
+.mg-flow-footer { height: 44px; display: flex; align-items: center; gap: 15px; }
+.mg-flow-progress { flex: 1; height: 2px; background: #b6cdd0; overflow: hidden; }
+.mg-flow-progress span { display: block; height: 100%; background: #235d68; transform-origin: left; transform: scaleX(0); }
+.mg-flow-follow { visibility: hidden; min-height: 44px; border: 0; background: transparent; color: #385868; font: 400 11px var(--mg-sans); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.js .mg-flow-follow { visibility: visible; }.mg-flow-follow[aria-pressed="true"] { color: #183d45; font-weight: 600; }
+.mg-flow-follow:disabled { opacity: .6; cursor: default; text-decoration: none; }
 .mg-flow[data-step="1"] .mg-flow-file { transform: translate3d(-55px,-24px,-65px) rotateZ(-10deg); opacity: .55; }
 .mg-flow[data-step="1"] .mg-flow-form { transform: translate3d(0,0,65px); }
 .mg-flow[data-step="1"] .mg-flow-result { transform: translate3d(50px,25px,-70px) rotateZ(9deg); opacity: .6; }

@@ -123,6 +123,7 @@ function WorkCard({
   index: number
   sampleBadge: string
 }) {
+  const { content, locale } = useI18n()
   const ref = useRevealOnce<HTMLElement>()
   const badge = project.sample ? sampleBadge : project.tag
   const src = project.image ? `${import.meta.env.BASE_URL}${project.image}` : ''
@@ -166,6 +167,9 @@ function WorkCard({
 
         <h3 className="work-card-title">{project.title}</h3>
         {project.subtitle ? <p className="work-card-sub">{project.subtitle}</p> : null}
+        {project.id === 'hotel-rental' ? <div className="rollin-demo" data-rollin-demo>
+          <p>{locale === 'hu' ? 'A kattintástól a mozdulatig. A rendszer működéséről az alábbi projektleírásban olvashat.' : 'From a click to motion. Read how the system works in the project description below.'}</p>
+        </div> : null}
         {project.site ? (
           <p className="work-card-link">
             <a
@@ -179,8 +183,9 @@ function WorkCard({
             </a>
           </p>
         ) : null}
-        {project.paragraphs.map((paragraph) => (
+        {project.paragraphs.map((paragraph, i) => (
           <p key={paragraph.slice(0, 48)} className="work-card-body">
+            <strong className="work-detail-label">{content.projects.detailLabels[i]}</strong>
             {paragraph}
           </p>
         ))}

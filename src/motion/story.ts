@@ -52,10 +52,18 @@ export function createStory(section: HTMLElement) {
   }
   const syncCopy = () => {
     const english = document.documentElement.lang === 'en'
-    const cards = document.querySelectorAll('#rolam .card-elev')
+    const story = english ? [
+      ['A signal becomes action.', 'An interface is only the beginning. A request reaches a device, a lock opens and a physical system responds.'],
+      ['The pieces work together.', 'The web interface, server and station software each have a part to play. My work connects these layers.'],
+      ['Try a real-world example.', 'Explore an illustrative demo of the Rollin hotel rental system, a team project I contributed to.'],
+    ] : [
+      ['A jelből mozdulat lesz.', 'A felület az első lépés. Egy kérés eljut az eszközhöz, kinyílik egy zár, és a fizikai rendszer reagál.'],
+      ['Összeáll a rendszer.', 'A webes felületnek, a szervernek és az állomás szoftverének is megvan a feladata. Ezek összekapcsolásán dolgozom.'],
+      ['Próbálja ki a gyakorlatban.', 'A Rollin szállodai bérlőrendszerének szemléltető bemutatójában végigkövetheti a működést. A projektben csapatban dolgoztam.'],
+    ]
     captions.forEach((caption, i) => {
-      caption.querySelector('h2')!.textContent = cards[i]?.querySelector('h3')?.textContent ?? ''
-      caption.querySelector('p')!.textContent = cards[i]?.querySelector('p')?.textContent ?? ''
+      caption.querySelector('h2')!.textContent = story[i][0]
+      caption.querySelector('p')!.textContent = story[i][1]
     })
     section.setAttribute('aria-label', english ? 'Engineering, software, connection' : 'Mérnöki szemlélet, szoftverfejlesztés és együttműködés')
     get('.cs-eyebrow-label').textContent = english ? 'BEHIND THE SURFACE' : 'A FELSZÍN MÖGÖTT'

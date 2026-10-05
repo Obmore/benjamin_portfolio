@@ -10,6 +10,18 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
+// Interaction is also available with reduced motion; only its animation is optional.
+const experiences = () => {
+  void import('./experiences').then(m => m.mountExperiences()).catch(() => {
+    const host = document.querySelector('[data-rollin-demo] p')
+    if (host) host.textContent = document.documentElement.lang === 'en'
+      ? 'The interactive demo could not load. The project description is available below.'
+      : 'A bemutató nem töltődött be. A projekt leírása alább olvasható.'
+  })
+}
+if (document.readyState === 'complete') experiences()
+else window.addEventListener('load', experiences, { once: true })
+
 if (document.documentElement.hasAttribute('data-spatial-capable')) {
   const enhance = () => requestAnimationFrame(() => requestAnimationFrame(() => {
     void import('./motion/portfolio').then(m => m.mountMotion()).catch(() => {

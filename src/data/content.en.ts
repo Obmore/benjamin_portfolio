@@ -15,13 +15,13 @@ export const contentEn: SiteContent = {
     contact: 'Contact',
   },
   hero: {
-    headline:
-      'Electrical engineer and software developer connecting engineering systems with modern software solutions.',
-    subheadline:
-      'Python, full-stack development, industrial communication, energy systems, telecommunications R&D and technical project management in one profile.',
+    headline: "Software that sets systems in motion.",
+    subheadline: "As an electrical engineer and software developer, I build web interfaces, automation and software that connects to physical devices.",
     ctaContact: 'Get in touch',
     ctaCv: 'Download resume',
     ctaLinkedIn: 'LinkedIn profile',
+    demoLabel: "See it in action",
+    inquiryLabel: "Discuss your project",
     chips: [
       'Python',
       'React',
@@ -174,6 +174,7 @@ export const contentEn: SiteContent = {
     title: 'My work',
     indexLabel: 'My work',
     sampleBadge: 'Sample',
+    detailLabels: ["The task","My contribution","In use"],
     items: [
       {
         id: 'anettesvendi',
@@ -181,7 +182,9 @@ export const contentEn: SiteContent = {
         subtitle: 'Wedding invitation and RSVP site',
         site: { label: 'anettesvendi.hu', href: 'https://anettesvendi.hu' },
         paragraphs: [
-          'A Hungarian and English site made for a couple’s guests. The guest signs in with the code on their invitation. They can RSVP, give the headcount, meal and accommodation needs, and request a song. Incoming replies collect on an organiser view, where the guest list, seating plan and budget can also be managed. The data can be downloaded as a spreadsheet, so meal needs can go to the caterer and song requests to the DJ.',
+          "Bring wedding invitations, guest replies and planning together in one place.",
+          "I designed and built the Hungarian and English website, invitation-code sign-in and organiser interface.",
+          "Guests submit attendance, meal and accommodation needs, and song requests. Organisers manage the guest list, seating and budget, and can export replies as a spreadsheet.",
         ],
         tech: 'Technology: Vite, TypeScript, custom API, Cloudflare. Design and development: Ott Benjámin.',
         image: 'work/anettesvendi.webp',
@@ -195,7 +198,9 @@ export const contentEn: SiteContent = {
         subtitle: 'Introduction site',
         site: { label: 'lelkiter.hu', href: 'https://lelkiter.hu' },
         paragraphs: [
-          'An introduction site for a Budapest helper who works with family constellation, drawing analysis, dream interpretation, massage and homeopathy. It can be read in Hungarian and English, and it presents the practitioner, the services and the blog posts on separate pages. It works well on a phone, and the visitor can get in touch directly by email or phone.',
+          "Make a Budapest practitioner’s background and services easy to explore.",
+          "I designed and built the bilingual website, with dedicated pages for the practitioner, services and blog.",
+          "Visitors can browse on their phone and get in touch directly by email or telephone.",
         ],
         tech: 'Technology: React, Vite, Cloudflare. Design and development: Ott Benjámin.',
         image: 'work/lelkiter.webp',
@@ -205,11 +210,14 @@ export const contentEn: SiteContent = {
       },
       {
         id: 'hotel-rental',
-        title: 'Hotel vehicle rental system',
+        title: 'Rollin Technologies',
         subtitle: 'Automated rental of electric scooters and bikes for hotels',
         tag: 'Team project',
+        site: { label: 'rollindocking.com/hotel', href: 'https://rollindocking.com/hotel' },
         paragraphs: [
-          'I worked on the hotel rental web interface, the server-side system, remote control of the e-bikes and the charging station software.',
+          "Connect hotel e-scooter and e-bike rentals with docking and charging stations.",
+          "As part of the team, I worked on the web interface, server-side system, remote e-bike control and station software.",
+          "Reception staff can open the station through the software. Returning the vehicle automatically locks it, ends the rental and starts charging.",
         ],
         tech: 'Technology: React, TypeScript, .NET, Azure, Raspberry Pi, Python.',
       },
@@ -223,7 +231,9 @@ export const contentEn: SiteContent = {
           href: 'https://obmore.github.io/lelek-es-nyelv-portfolio',
         },
         paragraphs: [
-          'A sample site for a mental-health helper and English teacher, with the services, how the work together goes, and frequent questions. It was made as a demonstration, not client work.',
+          "Show how a mental-health practitioner and English teacher could present their services online.",
+          "I built a sample website covering services, the process of working together and common questions. This is a demonstration, not a client project.",
+          "Visitors can explore both service areas and find out how to get in touch.",
         ],
         tech: 'Technology: Next.js, React, Tailwind CSS.',
         image: 'work/lelek-es-nyelv.webp',

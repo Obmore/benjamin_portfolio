@@ -62,18 +62,4 @@ export function mountInquiry(copyText: (text: string) => Promise<boolean>) {
   })
   update()
 
-  const flow = document.querySelector<HTMLElement>('.mg-flow')!
-  const caption = document.querySelector<HTMLElement>('#mg-flow-caption')!
-  const captions = [
-    'A mostani Excel- vagy PDF-lapból indulunk ki.',
-    'Az adatokat a vevő egy webes űrlapon adhatja meg.',
-    'A beérkező adatokat a választott csomagtól függően e-mailben vagy a saját táblázatában kapja meg.',
-  ]
-  const steps = [...document.querySelectorAll<HTMLButtonElement>('[data-flow-step]')]
-  for (const button of steps) button.addEventListener('click', () => {
-    const step = Number(button.dataset.flowStep)
-    flow.dataset.step = String(step)
-    steps.forEach(item => item.setAttribute('aria-pressed', String(item === button)))
-    caption.textContent = captions[step]
-  })
 }

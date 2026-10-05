@@ -2,6 +2,9 @@
 
 .motion-story { display: none; }
 html[data-spatial-capable] .motion-story { display: block; height: 340svh; }
+.rollin-demo { height: clamp(620px,50vw,700px); margin: 24px 0; }
+.work-detail-label { display: block; font-size: 12px; color: var(--color-accent); margin-bottom: 5px; }
+.hero-demo { display: inline-flex; gap: 12px; align-items: center; min-height: 48px; margin: 20px 0 4px; font-size: 15px; font-weight: 500; color: var(--color-accent); text-decoration: underline; text-underline-offset: 6px; }
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1118,20 +1121,6 @@ html.is-static-motion .work-index {
 
 .card-elev {
   box-shadow: var(--shadow-card);
-}
-
-.munkaim-section,
-#rolam,
-#tapasztalat,
-#kompetenciak,
-#oneletrajz,
-#kapcsolat {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 720px;
-}
-
-.munkaim-section {
-  contain-intrinsic-size: auto 2400px;
 }
 
 .work-card-link {

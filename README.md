@@ -56,5 +56,11 @@ Place PDFs in `public/cv/`:
 - Light theme
 - Smooth anchor navigation
 - Scroll animations
+- Interactive Rollin station scene with unlock, return and charging states
+- On-demand mobile screenshots for the website references
+- Scroll-controlled spreadsheet-to-form illustration on the order page
+- Reduced-motion support and keyboard controls for the interactive scenes
 - SEO meta tags and JSON-LD
 - Contact section with mailto and copy-to-clipboard
+
+Visual sources and implementation notes: [interactive experience](docs/interactive-experience.md).

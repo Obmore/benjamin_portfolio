@@ -131,7 +131,7 @@ test.describe('homepage /megrendeles/ entry points', () => {
 
     await assertOrderLink(headerNav, 'desktop nav')
     await assertOrderLink(mobileNav, 'mobile nav')
-    await assertOrderLink(hero, 'hero')
+    await assertOrderLink(hero, 'hero', 'Beszéljük meg a feladatát')
     await assertOrderLink(contact, 'contact')
     await assertOrderLink(footer, 'footer')
 
@@ -141,7 +141,7 @@ test.describe('homepage /megrendeles/ entry points', () => {
 
     await assertHeroActionOrder(
       page,
-      { work: 'Munkáim', cv: 'Önéletrajz letöltése', order: 'Megrendelés' },
+      { work: 'Munkáim', cv: 'Önéletrajz letöltése', order: 'Beszéljük meg a feladatát' },
       'Ott_Benjamin_CV_HU.pdf',
     )
     await expect(page.locator('body')).not.toContainText(/ajánlat/i)
@@ -223,13 +223,13 @@ test.describe('homepage /megrendeles/ entry points', () => {
 
     await assertOrderLink(headerNav, 'desktop nav EN', 'Order')
     await assertOrderLink(mobileNav, 'mobile nav EN', 'Order')
-    await assertOrderLink(hero, 'hero EN', 'Order')
+    await assertOrderLink(hero, 'hero EN', 'Discuss your project')
     await assertOrderLink(contact, 'contact EN', 'Order')
     await assertOrderLink(footer, 'footer EN', 'Order')
 
     await assertHeroActionOrder(
       page,
-      { work: 'My work', cv: 'Download resume', order: 'Order' },
+      { work: 'My work', cv: 'Download resume', order: 'Discuss your project' },
       'Ott_Benjamin_CV_EN.pdf',
     )
   })
@@ -320,7 +320,7 @@ test.describe('homepage /megrendeles/ entry points', () => {
 
     await page.getByRole('button', { name: /váltás angolra/i }).click()
     await expect(page.locator('html')).toHaveAttribute('lang', 'en')
-    await expect(page.locator('.hero-actions').locator(`a[href="${ORDER_HREF}"]`)).toHaveText('Order')
+    await expect(page.locator('.hero-actions').locator(`a[href="${ORDER_HREF}"]`)).toHaveText('Discuss your project')
     await page.screenshot({
       path: path.join(ARTIFACTS, 'go_hero_en_1440.png'),
       animations: 'disabled',

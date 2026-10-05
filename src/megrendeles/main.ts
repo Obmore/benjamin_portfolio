@@ -1,5 +1,6 @@
 import './styles.css'
 import { mountInquiry } from './inquiry'
+import { mountFlow } from './flow'
 
 const EMAIL = 'bendzsiott1998@gmail.com'
 const COPIED_ANNOUNCEMENT = 'E-mail-cím a vágólapra másolva'
@@ -71,6 +72,7 @@ function showCopied(): void {
 }
 
 mountInquiry(copyText)
+mountFlow()
 
 copyBtn?.addEventListener('click', () => {
   void (async () => {

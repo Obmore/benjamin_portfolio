@@ -59,6 +59,8 @@ export interface SiteContent {
     ctaContact: string
     ctaCv: string
     ctaLinkedIn: string
+    demoLabel: string
+    inquiryLabel: string
     chips: string[]
   }
   about: {
@@ -78,6 +80,7 @@ export interface SiteContent {
     title: string
     indexLabel: string
     sampleBadge: string
+    detailLabels: string[]
     items: WorkProject[]
   }
   cv: {
