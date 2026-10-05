@@ -30,10 +30,11 @@ export function mountFlow() {
     })
     cells.forEach((cell, i) => {
       const grid = [18 + i % 4 * 43, 60 + Math.floor(i / 4) * 23]
-      const form = [20 + i % 2 * 90, 47 + Math.floor(i / 2) * 19]
-      const a = phase === 0 ? grid : form, b = phase === 0 ? form : grid
-      const rise = Math.sin(p * Math.PI) * 35
-      cell.style.transform = `translate3d(${lerp(a[0],b[0],blend)}px,${lerp(a[1],b[1],blend)}px,${85 + rise}px) scaleX(${1 + Math.sin(p * Math.PI) * .7})`
+      const form = [24 + i % 2 * 68, 45 + Math.floor(i / 2) * 24, 66]
+      const a = phase === 0 ? [grid[0] - 18, grid[1] - 12, 45] : form
+      const b = phase === 0 ? form : [...grid, 76]
+      const rise = Math.sin(blend * Math.PI) * 28
+      cell.style.transform = `translate3d(${lerp(a[0],b[0],blend)}px,${lerp(a[1],b[1],blend)}px,${lerp(a[2],b[2],blend) + rise}px) scaleX(${1 + Math.sin(p * Math.PI) * .7})`
     })
     const step = Math.min(2, Math.floor(p * 3))
     flow.dataset.step = String(step)

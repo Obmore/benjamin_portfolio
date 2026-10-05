@@ -38,6 +38,8 @@ No continuous animation loop runs when idle or off screen.
 Section heights are laid out normally rather than approximated through
 `content-visibility`. This prevents incorrect scroll restoration on language
 changes as the longer project descriptions enter the viewport.
+The fixed-height Rollin host has its own layout and paint containment, so its
+off-screen setup does not force layout of the animated chapter above it.
 
 ## Verification
 

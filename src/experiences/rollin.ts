@@ -99,8 +99,10 @@ export function mountRollin(host: HTMLElement) {
     } else set('docked')
   }
   action.addEventListener('click', click)
-  const measure = () => world.style.setProperty('--rd-scale', String(Math.min(.94, scene.clientWidth / 600, scene.clientHeight / 400)))
-  const resize = new ResizeObserver(measure)
+  const resize = new ResizeObserver(([entry]) => {
+    const { width, height } = entry.contentRect
+    world.style.setProperty('--rd-scale', String(Math.min(.94, width / 600, height / 400)))
+  })
   resize.observe(scene)
   view.addEventListener('input', () => world.style.setProperty('--rd-angle', `${view.value}deg`))
   const visibility = () => { if (document.hidden) settle() }
@@ -110,7 +112,7 @@ export function mountRollin(host: HTMLElement) {
   media.addEventListener('change', preference)
   const language = new MutationObserver(sync)
   language.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] })
-  sync(); measure()
+  sync()
   return () => {
     alive = false; clearTimeout(timer); resize.disconnect(); language.disconnect()
     document.removeEventListener('visibilitychange', visibility); window.removeEventListener('pagehide', settle)
