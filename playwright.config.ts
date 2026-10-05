@@ -4,15 +4,16 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
   retries: 0,
-  reporter: [['list']],
+  reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: 'http://127.0.0.1:4173',
-    trace: 'off',
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npm run preview -- --host 127.0.0.1 --port 4173',
+    command: 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',
     url: 'http://127.0.0.1:4173/megrendeles/',
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
   projects: [

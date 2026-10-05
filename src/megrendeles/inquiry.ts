@@ -8,11 +8,13 @@ export function mountInquiry(copyText: (text: string) => Promise<boolean>) {
   const status = document.querySelector<HTMLElement>('#mg-status')!
   const directEmail = write.href
   let copiedTimer = 0
+  let revision = 0
   const draft = () => {
     const topic = service.value ? `Ez a szolgáltatás érdekel: ${service.selectedOptions[0].text}.` : 'Segítséget szeretnék kérni a megfelelő megoldás kiválasztásához.'
     return `Kedves Benjámin!\n\n${topic}\n\n${description.value.trim() || 'Jelenleg így dolgozom:\n\nEzt szeretném egyszerűbbé tenni:\n\nA kívánt eredmény:'}\n`
   }
   const update = () => {
+    revision++
     clearTimeout(copiedTimer)
     copy.textContent = 'Levélszöveg másolása'
     write.href = `${directEmail}&body=${encodeURIComponent(draft())}`
@@ -27,8 +29,11 @@ export function mountInquiry(copyText: (text: string) => Promise<boolean>) {
     clearTimeout(copiedTimer)
     copy.textContent = 'Levélszöveg másolása'
     void (async () => {
+      const copiedRevision = ++revision
       const text = draft()
-      if (await copyText(text)) {
+      const copied = await copyText(text)
+      if (copiedRevision !== revision) return
+      if (copied) {
         copy.textContent = 'Levélszöveg kimásolva'
         clearTimeout(copiedTimer)
         copiedTimer = window.setTimeout(() => { copy.textContent = 'Levélszöveg másolása' }, 2500)

@@ -1,5 +1,5 @@
 import { FORBIDDEN_HASH_IDS, replaceLocationHash, resolveAnchor } from '@/lib/hash'
-import { scrollToSection } from '@/hooks/useActiveSection'
+import { cancelPendingSnap, scrollToSection } from '@/hooks/useActiveSection'
 import { prefersReducedMotion } from '@/lib/motion'
 import type { MouseEvent } from 'react'
 
@@ -17,6 +17,7 @@ export function navigateTo(id: string) {
 }
 
 export function goToPageTop() {
+  cancelPendingSnap()
   replaceLocationHash(null)
   window.scrollTo({
     top: 0,

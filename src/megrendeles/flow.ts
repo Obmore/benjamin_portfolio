@@ -17,7 +17,7 @@ export function mountFlow() {
     [[-16,-14,-90,0,.5],[8,8,-35,0,.65],[0,0,75,0,1]],
   ]
   const media = matchMedia('(prefers-reduced-motion: reduce)')
-  let auto = !media.matches, visible = false, suspended = false, frame = 0, value = 0
+  let auto = !media.matches, manual = false, visible = false, suspended = false, frame = 0, value = 0
   const clamp = (v: number) => Math.max(0, Math.min(1, v))
   const lerp = (a: number, b: number, t: number) => a + (b - a) * t
   function render(p: number) {
@@ -58,15 +58,19 @@ export function mountFlow() {
   function request() { if (!frame && auto && visible && !suspended && !document.hidden) frame = requestAnimationFrame(update) }
   function pause() { cancelAnimationFrame(frame); frame = 0 }
   steps.forEach((button, i) => button.addEventListener('click', () => {
-    auto = false; pause(); sync(); render(i / 2)
+    manual = true; auto = false; pause(); sync(); render(i / 2)
   }))
-  const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; if (visible) request(); else { pause(); auto = !media.matches; sync() } })
+  const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; if (visible) request(); else { pause(); manual = false; auto = !media.matches; sync() } })
   observer.observe(flow)
   window.addEventListener('scroll', request, { passive: true })
   window.addEventListener('resize', request, { passive: true })
   window.addEventListener('pagehide', () => { suspended = true; pause() })
   window.addEventListener('pageshow', () => { suspended = false; request() })
   document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); else request() })
-  media.addEventListener('change', () => { if (media.matches) { auto = false; pause(); render(Math.round(value * 2) / 2) }; sync() })
+  media.addEventListener('change', () => {
+    auto = !media.matches && !manual
+    if (media.matches) { pause(); render(Math.round(value * 2) / 2) }
+    sync(); request()
+  })
   sync(); render(0)
 }

@@ -113,6 +113,9 @@ for (const width of [390, 1440]) test(`${width}: delayed motion failure preserve
 })
 
 test('4x CPU: full cinema scrub has no long tasks over 50ms in three fresh pages', async ({ browser }) => {
+  // Three throttled browser contexts plus trace teardown can exceed the default
+  // 30s on shared CI runners. The measured 50ms task budget remains unchanged.
+  test.setTimeout(60_000)
   for (let run = 0; run < 3; run++) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
     const page = await context.newPage(), cdp = await context.newCDPSession(page)

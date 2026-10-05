@@ -29,7 +29,8 @@ when the work section approaches the viewport. Their space is reserved before lo
 The Rollin controls use native buttons and a native range input. Its finite
 state sequence keeps keyboard focus, prevents overlapping actions, settles when
 the page is hidden, and switches immediately when reduced motion is requested.
-Language changes preserve the scene state.
+Language changes preserve the scene state. Returning the vehicle includes a
+separate lock-closing phase before charging becomes available.
 
 The order illustration follows a short native sticky track, so all three phases
 remain visible below the header. Selecting a phase manually pauses scroll
@@ -65,14 +66,21 @@ the main visitor paths on the live domain.
 - [Zdog](https://zzz.dog/): small, dependency-free, MIT-licensed pseudo-3D SVG
   renderer. It avoids CSS plane flattening and GPU context requirements for
   this deliberately simple artwork. The scene loads only near the work section.
-  It uses painter ordering, not a depth buffer; ground and solid objects are
-  separate render groups, and the supported camera angles have visual baselines.
+  It uses painter ordering, not a depth buffer. Following the official
+  [z-fighting guidance](https://zzz.dog/extras#z-fighting), the station and vehicle
+  are coherent render groups. Within the supported front-facing camera arc,
+  the station draws behind the vehicle; its averaged depth cannot cut through
+  the tall steering column during movement. This ordering is specific to this
+  scene and camera range, not a general-purpose depth solution.
 - [model-viewer](https://modelviewer.dev/): suitable for a later accurate GLB
   product model. It was evaluated but is not installed. A manufacturer-approved
   asset would be needed before representing an actual station shape.
 - [Playwright visual comparisons](https://playwright.dev/docs/test-snapshots):
   18 reviewed reference images cover mobile and desktop, three camera angles,
-  and docked/ride/charging states. Bounds tests include actual SVG path stroke
+  and docked/ride/charging states. Twelve additional desktop images cover
+  opening, departure, return and lock closing at all three camera angles.
+  [Playwright Clock](https://playwright.dev/docs/clock) makes those intermediate
+  frames reproducible. Bounds tests include actual SVG path stroke
   widths. Functional tests also cover failed initialization, rapid clicks,
   idle rendering, off-screen settling, keyboard access and reduced motion.
 - Axe checks accessibility; Lighthouse measures loading performance and CLS.
@@ -83,5 +91,9 @@ The committed image baselines use Windows and the Chromium pinned by
 `npm run check`, then `npm run test:e2e`. Review the image diffs before any
 intentional `--update-snapshots`. Other operating systems or browser engines
 need separately reviewed baselines, as described in the Playwright documentation.
+PR CI runs the complete Chromium suite on Windows and a functional Firefox and
+WebKit suite on Ubuntu. Failed runs retain traces and screenshots for seven days.
+Run the latter locally with `npx playwright test --config=playwright.compat.config.ts`
+after installing the corresponding browser engines and their system dependencies.
 
 Zdog attribution is shipped in `public/third-party-notices.txt`.

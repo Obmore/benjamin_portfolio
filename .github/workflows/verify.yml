@@ -1,0 +1,54 @@
+name: Verify portfolio
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npm run check
+      - run: npm run test:e2e -- --workers=4
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failure-evidence
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps firefox webkit
+      - run: npm run build
+      - run: npx playwright test --config=playwright.compat.config.ts --workers=2
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: compatibility-failure-evidence
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

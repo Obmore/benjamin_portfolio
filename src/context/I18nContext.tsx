@@ -29,7 +29,7 @@ interface I18nContextValue {
   locale: Locale
   content: SiteContent
   localeLoading: boolean
-  setLocale: (locale: Locale) => void
+  localeError: boolean
   toggleLocale: () => void
 }
 
@@ -79,6 +79,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(getInitialLocale)
   const [enContent, setEnContent] = useState<SiteContent | null>(null)
   const [localeLoading, setLocaleLoading] = useState(() => getInitialLocale() === 'en')
+  const [localeError, setLocaleError] = useState(false)
   const busyRef = useRef(false)
   const localeRef = useRef(locale)
   const enContentRef = useRef(enContent)
@@ -94,17 +95,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const setLocale = useCallback(
-    (next: Locale) => {
-      setLocaleState(next)
-      persistLocale(next)
-    },
-    [persistLocale],
-  )
-
   const toggleLocale = useCallback(() => {
     if (busyRef.current) return
+    // Browsers can cache a failed dynamic import for this document. Retry only
+    // on an explicit click, with a fresh document rather than a reload loop.
+    if (localeError) { persistLocale('en'); window.location.reload(); return }
     busyRef.current = true
+    setLocaleError(false)
 
     void (async () => {
       const next: Locale = localeRef.current === 'hu' ? 'en' : 'hu'
@@ -138,14 +135,17 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         } else {
           await runLangCssFallback(swap)
         }
-        restoreViewportAnchor(anchor)
+        // The layout effect aligns the new content before paint. Realigning
+        // again after the animation would undo scrolling during the transition.
+      } catch {
+        setLocaleError(true)
       } finally {
         if (busyTimer !== undefined) window.clearTimeout(busyTimer)
         setLocaleLoading(false)
         busyRef.current = false
       }
     })()
-  }, [persistLocale])
+  }, [persistLocale, localeError])
 
   useLayoutEffect(() => {
     document.documentElement.lang = locale
@@ -176,13 +176,18 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch(() => {
-        if (!cancelled) setLocaleLoading(false)
+        if (!cancelled) {
+          setLocaleLoading(false)
+          setLocaleState('hu')
+          persistLocale('hu')
+          setLocaleError(true)
+        }
       })
 
     return () => {
       cancelled = true
     }
-  }, [locale, enContent])
+  }, [locale, enContent, persistLocale])
 
   const content = locale === 'en' && enContent ? enContent : contentHu
 
@@ -191,10 +196,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       locale,
       content,
       localeLoading,
-      setLocale,
+      localeError,
       toggleLocale,
     }),
-    [locale, content, localeLoading, setLocale, toggleLocale],
+    [locale, content, localeLoading, localeError, toggleLocale],
   )
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>

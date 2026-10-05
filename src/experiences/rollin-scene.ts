@@ -1,6 +1,6 @@
 import { Anchor, Box, Cylinder, Ellipse, Group, Illustration, Shape } from 'zdog'
 
-export type RollinStage = 'docked' | 'signal' | 'open' | 'leaving' | 'ride' | 'return' | 'charge'
+export type RollinStage = 'docked' | 'signal' | 'open' | 'leaving' | 'ride' | 'return' | 'locking' | 'charge'
 
 // One coordinate system and complete solids keep the scooter aligned with a
 // single dock. This is an original illustration, not a manufacturer CAD model.
@@ -13,14 +13,18 @@ export function createRollinScene(svg: SVGSVGElement) {
   for (let x = -150; x <= 150; x += 40) new Shape({ addTo: floor, path: [{ x, z: -55 }, { x, z: 135 }], stroke: .6, color: '#d4e3df' })
   for (let z = -55; z <= 135; z += 40) new Shape({ addTo: floor, path: [{ x: -150, z }, { x: 150, z }], stroke: .6, color: '#d4e3df' })
   new Ellipse({ addTo: floor, width: 282, height: 92, rotate: { x: Math.PI / 2 }, translate: { z: -10, y: -.2 }, stroke: 12, fill: true, color: '#dae5e1' })
-  const model = new Group({ addTo: world, updateSort: true })
-  new Box({ addTo: model, width: 268, height: 10, depth: 40, translate: { y: 34, z: -10 }, stroke: 1, color: '#a2babe', topFace: '#fcfefd', frontFace: '#b9cdce', rightFace: '#88a7af' })
+  // Within this front-facing camera arc the station stays behind the vehicle.
+  // Sort station solids internally, never interleave their averaged depths
+  // with the much taller steering column while it moves past the next dock.
+  const model = new Group({ addTo: world })
+  const station = new Group({ addTo: model, updateSort: true })
+  new Box({ addTo: station, width: 268, height: 10, depth: 40, translate: { y: 34, z: -10 }, stroke: 1, color: '#a2babe', topFace: '#fcfefd', frontFace: '#b9cdce', rightFace: '#88a7af' })
   const lights: Shape[] = []
   let gate!: Anchor
   for (let i = 0; i < 4; i++) {
     // Surface indicators are drawn after their solid housing. The restricted
     // camera always sees this face, avoiding painter-order loss of small decals.
-    const dock = new Group({ addTo: model, translate: { x: -99 + i * 66, y: 6, z: 0 } })
+    const dock = new Group({ addTo: station, translate: { x: -99 + i * 66, y: 6, z: 0 } })
     const housing = new Group({ addTo: dock, updateSort: true })
     new Box({ addTo: housing, width: 28, height: 45, depth: 27, stroke: 1, color: '#294e59', topFace: '#5b7d85', leftFace: '#3c6470', rightFace: '#153946', frontFace: '#244b58' })
     new Box({ addTo: housing, width: 19, height: 6, depth: 9, translate: { y: -12, z: 17 }, color: '#72939b', stroke: 1, topFace: '#bbd0d2' })
@@ -29,10 +33,13 @@ export function createRollinScene(svg: SVGSVGElement) {
     if (i === 2) gate = latch
     lights.push(new Shape({ addTo: dock, path: [{ x: -7 }, { x: 7 }], translate: { y: 8, z: 14.2 }, stroke: 3, color: i === 2 ? teal : '#89aeb0' }))
   }
-  const scooter = new Anchor({ addTo: model, translate: { x: 33 } })
+  // Zdog sorts by each shape's average depth, not by pixel depth. Keep the
+  // vehicle together so a dock cannot cut through its long steering column.
+  // https://zzz.dog/extras#z-fighting
+  const scooter = new Group({ addTo: model, translate: { x: 33 }, updateSort: true })
   const shadow = new Ellipse({ addTo: floor, width: 26, height: 130, rotate: { x: Math.PI / 2 }, translate: { x: 33, y: -.1, z: 77 }, stroke: 8, fill: true, color: '#c8d9d3' })
   for (const z of [27, 137]) {
-    const wheel = new Anchor({ addTo: scooter, translate: { y: 25, z }, rotate: { y: Math.PI / 2 } })
+    const wheel = new Group({ addTo: scooter, translate: { y: 25, z }, rotate: { y: Math.PI / 2 }, updateSort: true })
     new Cylinder({ addTo: wheel, diameter: 31, length: 9, stroke: false, color: '#163340', frontFace: '#274b58', backface: '#274b58' })
     for (const side of [-1, 1]) {
       new Ellipse({ addTo: wheel, diameter: 16, translate: { z: side * 5 }, stroke: 3, fill: true, color: '#87a7af' })
@@ -67,7 +74,7 @@ export function createRollinScene(svg: SVGSVGElement) {
     signal.visible = stage === 'signal'
     charging.visible = stage === 'charge'
     lights[2].color = stage === 'charge' ? '#10a478' : teal
-    const duration = !animate ? 0 : stage === 'signal' ? 450 : stage === 'open' ? 350 : 850
+    const duration = !animate ? 0 : stage === 'signal' ? 450 : stage === 'open' || stage === 'locking' ? 350 : 850
     if (!duration) { pose = target; draw(); complete?.(); return }
     const from = { ...pose }, start = performance.now()
     svg.dataset.motion = 'active'

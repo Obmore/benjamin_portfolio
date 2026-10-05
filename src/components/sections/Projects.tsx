@@ -18,15 +18,17 @@ export function Projects() {
   const indexRef = useRef<HTMLOListElement>(null)
 
   useEffect(() => {
+    let alive = true
+    let cleanup: (() => void) | undefined
     // Observe after React commits the section. Reduced motion keeps the controls.
     const observer = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) return
       observer.disconnect()
       // The project description is the fallback when the optional bundle fails.
-      void import('../../experiences').then(m => m.mountExperiences()).catch(() => {})
+      void import('../../experiences').then(m => { if (alive) cleanup = m.mountExperiences() }).catch(() => {})
     }, { rootMargin: '600px' })
     observer.observe(document.getElementById(SECTION_IDS.projects)!)
-    return () => observer.disconnect()
+    return () => { alive = false; observer.disconnect(); cleanup?.() }
   }, [])
 
   useLayoutEffect(() => {

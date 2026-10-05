@@ -103,6 +103,7 @@ export default defineConfig({
       input: {
         main: path.resolve(root, 'index.html'),
         megrendeles: path.resolve(root, 'megrendeles/index.html'),
+        adatkezeles: path.resolve(root, 'adatkezeles/index.html'),
       },
     },
   },

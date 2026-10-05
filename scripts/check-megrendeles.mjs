@@ -63,7 +63,7 @@ if (order) {
   mustNotInclude('megrendeles', order, 'Opció: üzemeltetés')
   mustNotInclude('megrendeles', order, '4&nbsp;900 Ft/hó')
   mustNotInclude('megrendeles', order, 'Két munkanapon')
-  mustNotInclude('megrendeles', order, 'adatkezeles')
+  mustInclude('megrendeles', order, 'href="/adatkezeles/"')
   mustNotInclude('megrendeles', order, '<form')
   // Local inquiry composer approved in the October follow-up. It has no submit endpoint.
   mustInclude('megrendeles', order, 'id="mg-service"')

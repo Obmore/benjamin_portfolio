@@ -7,7 +7,11 @@
       if (performance.getEntriesByType('navigation')[0]?.type === 'reload') {
         history.scrollRestoration = 'manual'
         history.replaceState(history.state, '', location.pathname + location.search)
-        window.scrollTo(0, 0)
+        const resetScroll = () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+        resetScroll()
+        // Firefox may restore its previous offset after this head script.
+        // Run once after pageshow; never keep pulling a visitor back on scroll.
+        window.addEventListener('pageshow', () => requestAnimationFrame(resetScroll), { once: true })
       }
       if (location.hash) document.documentElement.style.scrollBehavior = 'auto'
       try {
