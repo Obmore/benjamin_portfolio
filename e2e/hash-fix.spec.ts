@@ -387,10 +387,10 @@ test.describe('hash-fix PR7', () => {
     await gotoHome(page)
     await page.waitForFunction(() => document.documentElement.lang === 'en')
     await expect(
-      page.getByRole('link', { name: 'OB. – Ott Benjámin, back to top' }),
+      page.getByRole('link', { name: 'OB. - Ott Benjámin, back to top' }),
     ).toBeVisible()
     await expect(
-      page.getByRole('link', { name: 'OB. – Ott Benjámin, back to top' }),
+      page.getByRole('link', { name: 'OB. - Ott Benjámin, back to top' }),
     ).toHaveText('OB.')
     await expect(page.getByRole('link', { name: 'Skip to content' })).toHaveCount(1)
   })
@@ -542,7 +542,7 @@ test.describe('hash-fix PR7', () => {
     await page.goto('about:blank')
     await gotoHome(page)
 
-    const logo = page.getByRole('link', { name: 'OB. – Ott Benjámin, ugrás az oldal tetejére' })
+    const logo = page.getByRole('link', { name: 'OB. - Ott Benjámin, ugrás az oldal tetejére' })
     await expect(logo).toHaveAttribute('href', '/')
     await expect(logo).toHaveText('OB.')
     await expect(logo.locator('.text-accent')).toHaveText('.')
@@ -636,7 +636,7 @@ test.describe('hash-fix PR7', () => {
       await expect(page.locator('html')).toHaveClass(/\bjs\b/)
       await expect(page.locator('html')).toHaveAttribute('lang', 'hu')
 
-      const logo = page.getByRole('link', { name: 'OB. – Ott Benjámin, ugrás az oldal tetejére' })
+      const logo = page.getByRole('link', { name: 'OB. - Ott Benjámin, ugrás az oldal tetejére' })
       await expect(logo).toHaveText('OB.')
       const box = await logo.boundingBox()
       expect(box?.height ?? 0, `logo height ${viewport.width}`).toBeGreaterThanOrEqual(44)
@@ -671,7 +671,7 @@ test.describe('hash-fix PR7', () => {
       await gotoHome(page)
       const headerBox = await page.locator('header.site-header').boundingBox()
       expect(headerBox?.height ?? 0, `header height ${width}`).toBe(64)
-      const logo = page.getByRole('link', { name: 'OB. – Ott Benjámin, ugrás az oldal tetejére' })
+      const logo = page.getByRole('link', { name: 'OB. - Ott Benjámin, ugrás az oldal tetejére' })
       await expect(logo).toHaveText('OB.')
       const logoBox = await logo.boundingBox()
       expect(logoBox?.height ?? 0, `logo height ${width}`).toBeGreaterThanOrEqual(44)
