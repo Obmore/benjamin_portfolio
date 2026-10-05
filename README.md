@@ -64,6 +64,7 @@ Place PDFs in `public/cv/`:
 - Reduced-motion support and keyboard controls for the interactive scenes
 - SEO meta tags and JSON-LD
 - Contact section with mailto and copy-to-clipboard
+- Static Hungarian privacy notice at `/adatkezeles/`, linked from both footers
 
 Visual sources and implementation notes: [interactive experience](docs/interactive-experience.md).
 
@@ -79,3 +80,13 @@ npm run test:e2e
 Visual baselines are reviewed Windows/Chromium screenshots. See the
 [renderer and verification notes](docs/interactive-experience.md#renderer-and-review-tools)
 for baseline updates and browser limitations.
+
+Pull requests run the same build, budget and browser checks on a Windows runner.
+Failed browser tests retain screenshots and Playwright traces as CI artifacts.
+The Rollin suite covers both resting poses and timed intermediate frames.
+
+The privacy notice has one source: `adatkezeles/index.html`. Its reviewed article
+is fingerprinted in `docs/privacy-content.sha256` and compared with the built page
+by `npm run check:privacy`. Update that fingerprint only after reviewing a wording
+change. The notice reflects local email drafting and GitHub Pages hosting; it
+does not introduce server submission, tracking or automatic mailbox deletion.

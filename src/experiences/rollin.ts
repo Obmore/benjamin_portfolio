@@ -7,7 +7,7 @@ const copy = {
     steps: ['Dokkolva', 'Nyitás', 'Úton', 'Töltés'],
     labels: ['Nyitás', 'Visszahelyezés', 'Újrapróbálom'],
     status: ['A jármű dokkolva, a zár zárva. Indítsa el a nyitást.', 'A kérés eljut az állomáshoz, a zár kinyílik.', 'A jármű kivehető. A bérlés folyamatban van.', 'Visszahelyezés után a zár bezárul, a bérlés lezárul, és elindul a töltés.'],
-    returning: 'A jármű visszakerül a dokkolóba.', busy: 'Folyamatban…',
+    returning: 'A jármű visszakerül a dokkolóba.', locking: 'A jármű a helyén, a zár bezárul.', busy: 'Folyamatban…',
     software: 'Webes felület', control: 'Távoli vezérlés', station: 'Állomás',
     note: 'Szemléltető jelenet a Rollin bérlőrendszeréről.', view: 'Nézőpont',
   },
@@ -17,7 +17,7 @@ const copy = {
     steps: ['Docked', 'Unlocking', 'On a ride', 'Charging'],
     labels: ['Unlock', 'Return vehicle', 'Try again'],
     status: ['The vehicle is docked and locked. Start by unlocking it.', 'The request reaches the station and the lock opens.', 'The vehicle is released. The rental is in progress.', 'Returning the vehicle locks it, ends the rental and starts charging.'],
-    returning: 'The vehicle returns to the dock.', busy: 'In progress…',
+    returning: 'The vehicle returns to the dock.', locking: 'The vehicle is in place and the lock is closing.', busy: 'In progress…',
     software: 'Web interface', control: 'Remote control', station: 'Station',
     note: 'An illustrative scene of the Rollin rental system.', view: 'Viewpoint',
   },
@@ -54,7 +54,7 @@ export function mountRollin(host: HTMLElement) {
   const words = () => copy[document.documentElement.lang === 'en' ? 'en' : 'hu']
   const index = () => stage === 'docked' ? 0 : stage === 'signal' || stage === 'open' ? 1 : stage === 'ride' || stage === 'leaving' || stage === 'return' ? 2 : 3
   const sync = () => {
-    const t = words(), n = index(), busy = ['signal', 'open', 'leaving', 'return'].includes(stage)
+    const t = words(), n = index(), busy = ['signal', 'open', 'leaving', 'return', 'locking'].includes(stage)
     get('.rd-eyebrow').textContent = t.eyebrow
     get('h4').textContent = t.title
     get('.rd-intro').textContent = t.intro
@@ -62,7 +62,7 @@ export function mountRollin(host: HTMLElement) {
     get('.rd-view span').textContent = t.view
     for (const key of ['software', 'control', 'station'] as const) get(`[data-label="${key}"]`).textContent = t[key]
     steps.forEach((step, i) => { step.querySelector('b')!.textContent = t.steps[i]; step.dataset.active = String(i === n) })
-    status.textContent = stage === 'return' ? t.returning : t.status[n]
+    status.textContent = stage === 'return' ? t.returning : stage === 'locking' ? t.locking : t.status[n]
     action.textContent = busy ? t.busy : t.labels[stage === 'ride' ? 1 : stage === 'charge' ? 2 : 0]
     // aria-disabled retains keyboard focus while preventing overlapping actions.
     action.setAttribute('aria-disabled', String(busy))
@@ -74,7 +74,7 @@ export function mountRollin(host: HTMLElement) {
   }
   const settle = () => {
     if (stage === 'signal' || stage === 'open' || stage === 'leaving') set('ride')
-    else if (stage === 'return') set('charge')
+    else if (stage === 'return' || stage === 'locking') set('charge')
   }
   const click = () => {
     if (action.getAttribute('aria-disabled') === 'true') return
@@ -83,7 +83,7 @@ export function mountRollin(host: HTMLElement) {
       else set('signal', true, () => set('open', true, () => set('leaving', true, () => set('ride'))))
     } else if (stage === 'ride') {
       if (media.matches) set('charge')
-      else set('return', true, () => set('charge'))
+      else set('return', true, () => set('locking', true, () => set('charge')))
     } else set('docked')
   }
   action.addEventListener('click', click)

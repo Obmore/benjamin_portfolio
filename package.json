@@ -15,8 +15,9 @@
     "check:cv": "node scripts/check-cv-size.mjs",
     "check:megrendeles": "node scripts/check-megrendeles.mjs",
     "check:static": "node scripts/check-static-pages.mjs",
+    "check:privacy": "node scripts/check-privacy.mjs",
     "test:e2e": "playwright test",
-    "check": "npm run lint && npm run build && npm run check:size && npm run check:motion && npm run check:cv && npm run check:megrendeles && npm run check:static"
+    "check": "npm run lint && npm run build && npm run check:size && npm run check:motion && npm run check:cv && npm run check:megrendeles && npm run check:static && npm run check:privacy"
   },
   "dependencies": {
     "react": "^19.2.7",

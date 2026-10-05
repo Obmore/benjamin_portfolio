@@ -1,0 +1,24 @@
+@font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/dm-sans-400.woff2') format('woff2'); }
+@font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/dm-sans-600.woff2') format('woff2'); }
+:root { color-scheme: light; font-family: 'DM Sans', Arial, sans-serif; color: #183c4a; background: #f5f8fa; }
+* { box-sizing: border-box; }
+body { margin: 0; font-size: 17px; line-height: 1.75; }
+a { color: #12636c; text-underline-offset: .22em; overflow-wrap: anywhere; }
+a:hover { color: #183c4a; }
+a:focus-visible { outline: 3px solid #12636c; outline-offset: 5px; border-radius: 2px; }
+header { border-bottom: 1px solid #c8d6dc; background: #fff; }
+nav, footer { max-width: 1120px; margin: auto; padding: 16px 24px; display: flex; gap: 24px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+nav a, footer a { display: inline-flex; min-height: 44px; align-items: center; }
+.brand { font-size: 26px; font-weight: 600; color: #183c4a; text-decoration: none; }
+main { max-width: 820px; margin: 40px auto 64px; padding: 40px; background: #fff; border: 1px solid #d1dde2; border-radius: 16px; }
+h1 { font-size: clamp(28px, 5vw, 42px); line-height: 1.2; letter-spacing: -.03em; margin: 0 0 12px; overflow-wrap: anywhere; }
+h2 { font-size: 23px; line-height: 1.35; margin: 36px 0 12px; }
+p { margin: 0 0 16px; }
+.updated { color: #526570; font-size: 14px; }
+code { font-size: .9em; overflow-wrap: anywhere; }
+footer { border-top: 1px solid #c8d6dc; font-size: 14px; }
+.skip { position: absolute; top: 8px; left: 16px; padding: 10px; background: #fff; transform: translateY(-160%); }
+.skip:focus { transform: none; }
+@media (max-width: 860px) { main { margin: 24px 16px 40px; padding: 28px 24px; } }
+@media (max-width: 480px) { body { font-size: 16px; } main { padding: 24px 20px; } h2 { font-size: 21px; } }
+@media print { header, footer, .skip { display: none; } main { margin: 0; padding: 0; border: 0; max-width: none; } h2 { break-after: avoid; } p { orphans: 3; widows: 3; } }

@@ -41,8 +41,10 @@ export function mountExperiences() {
   const language = new MutationObserver(labels)
   language.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] })
   // React owns the project content. Each enhancement has its own unmanaged host.
-  import.meta.hot?.dispose(() => {
+  const destroy = () => {
     cleanup?.(); language.disconnect()
     devices.forEach(({ shot, button, phone }) => { button.remove(); phone.remove(); delete shot.dataset.device })
-  })
+  }
+  import.meta.hot?.dispose(destroy)
+  return destroy
 }
