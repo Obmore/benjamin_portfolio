@@ -7,7 +7,7 @@ test('failed optional experience bundle keeps the project, language switch and n
   await page.route('**/assets/experiences-*.js', route => route.abort())
   await page.goto('/', { waitUntil: 'networkidle' })
   await page.getByRole('link', { name: 'Nézze meg működés közben', exact: true }).click()
-  await expect(page.locator('[data-rollin-demo] p')).toContainText('nem töltődött be')
+  await expect(page.locator('[data-rollin-demo] p')).toContainText('projektleírásban olvashat')
   await expect(page.locator('#munka-hotel-rental')).toContainText('A munkám')
   await page.getByRole('button', { name: /EN.*váltás angolra/ }).click()
   await expect(page.locator('#munka-hotel-rental')).toContainText('My contribution')
@@ -101,6 +101,7 @@ for (const width of [390, 1440]) test(`${width}: real mobile previews load only 
   expect(images).toEqual([])
   for (const id of ['anettesvendi', 'lelkiter', 'lelek-es-nyelv']) {
     const card = page.locator(`#munka-${id}`), toggle = card.locator('.work-device-toggle')
+    await card.scrollIntoViewIfNeeded()
     await toggle.scrollIntoViewIfNeeded(); await page.waitForTimeout(250)
     const geometry = () => card.evaluate(e => {
       const card = e.getBoundingClientRect(), title = e.querySelector('h3')!.getBoundingClientRect()

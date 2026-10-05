@@ -23,8 +23,8 @@ interaction, not embedded live sites:
 
 ## Interaction and accessibility
 
-The homepage loads the scene and device-preview enhancements after the page
-load event in a separate bundle. Their space is reserved before loading.
+The homepage loads the scene and device-preview enhancements in a separate bundle
+when the work section approaches the viewport. Their space is reserved before loading.
 The Rollin controls use native buttons and a native range input. Its finite
 state sequence keeps keyboard focus, prevents overlapping actions, settles when
 the page is hidden, and switches immediately when reduced motion is requested.

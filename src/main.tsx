@@ -10,14 +10,17 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Interaction is also available with reduced motion; only its animation is optional.
+// Load interactive references near their section, including with reduced motion.
 const experiences = () => {
-  void import('./experiences').then(m => m.mountExperiences()).catch(() => {
-    const host = document.querySelector('[data-rollin-demo] p')
-    if (host) host.textContent = document.documentElement.lang === 'en'
-      ? 'The interactive demo could not load. The project description is available below.'
-      : 'A bemutató nem töltődött be. A projekt leírása alább olvasható.'
-  })
+  const section = document.querySelector('.munkaim-section')
+  if (!section) return
+  const observer = new IntersectionObserver(([entry]) => {
+    if (!entry.isIntersecting) return
+    observer.disconnect()
+    // The React-owned project description remains usable if enhancement fails.
+    void import('./experiences').then(m => m.mountExperiences()).catch(() => {})
+  }, { rootMargin: '600px' })
+  observer.observe(section)
 }
 if (document.readyState === 'complete') experiences()
 else window.addEventListener('load', experiences, { once: true })
