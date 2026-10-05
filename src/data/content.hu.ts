@@ -15,13 +15,13 @@ export const contentHu: SiteContent = {
     contact: 'Kapcsolat',
   },
   hero: {
-    headline:
-      'Villamosmérnökként és szoftverfejlesztőként mérnöki rendszerekhez készítek szoftveres megoldásokat.',
-    subheadline:
-      'Webalkalmazások fejlesztése, Python-alapú automatizálás, ipari kommunikáció, energetikai rendszerek, távközlési kutatás-fejlesztés és műszaki projektvezetés.',
+    headline: "Szoftver, ami mozgásba hozza a rendszereket.",
+    subheadline: "Villamosmérnökként és szoftverfejlesztőként webes felületeket, automatizálást és fizikai eszközökhöz kapcsolódó szoftvereket készítek.",
     ctaContact: 'Kapcsolatfelvétel',
     ctaCv: 'Önéletrajz letöltése',
     ctaLinkedIn: 'LinkedIn-profil',
+    demoLabel: "Nézze meg működés közben",
+    inquiryLabel: "Beszéljük meg a feladatát",
     chips: [
       'Python',
       'React',
@@ -172,6 +172,7 @@ export const contentHu: SiteContent = {
     title: 'Munkáim',
     indexLabel: 'Munkáim áttekintése',
     sampleBadge: 'Minta',
+    detailLabels: ["A feladat","A munkám","Használat közben"],
     items: [
       {
         id: 'anettesvendi',
@@ -179,7 +180,9 @@ export const contentHu: SiteContent = {
         subtitle: 'Esküvői meghívó és visszajelző oldal',
         site: { label: 'anettesvendi.hu', href: 'https://anettesvendi.hu' },
         paragraphs: [
-          'Egy pár vendégeinek készült, magyar és angol nyelvű weboldal. A vendég a meghívóján lévő kóddal lép be. Visszajelezhet a részvételről, megadhatja a létszámot, az étkezési és a szállásigényét, és zenét is kérhet. A beérkező válaszok egy szervezői felületen gyűlnek, ahol a vendéglista, az ültetési rend és a költségvetés is kezelhető. Az adatok táblázatként letölthetők, így például az étkezési igények mehetnek a vendéglátónak, a zenekérések pedig a DJ-nek.',
+          "Az esküvői meghívást, a vendégek visszajelzéseit és a szervezést egy helyen kezelni.",
+          "Megterveztem és elkészítettem a magyar és angol nyelvű oldalt, a meghívókódos belépést és a szervezői felületet.",
+          "A vendég megadja a létszámot, az étkezési és szállásigényét, és zenét is kérhet. A szervezők kezelhetik a vendéglistát, az ültetést és a költségvetést; a válaszok táblázatként letölthetők.",
         ],
         tech: 'Technológia: Vite, TypeScript, saját API, Cloudflare. Tervezés és fejlesztés: Ott Benjámin.',
         image: 'work/anettesvendi.webp',
@@ -193,7 +196,9 @@ export const contentHu: SiteContent = {
         subtitle: 'Bemutatkozó oldal',
         site: { label: 'lelkiter.hu', href: 'https://lelkiter.hu' },
         paragraphs: [
-          'Bemutatkozó oldal egy budapesti segítő szakembernek, aki családállítással, rajzvizsgálattal, álomfejtéssel, masszázzsal és homeopátiával foglalkozik. Magyarul és angolul olvasható, és külön oldalokon mutatja be a szakembert, a szolgáltatásokat és a blogbejegyzéseket. Mobilon is jól kezelhető, a látogató pedig e-mailben vagy telefonon közvetlenül felveheti a kapcsolatot.',
+          "Egy budapesti segítő szakember bemutatkozását és szolgáltatásait átláthatóan elérhetővé tenni.",
+          "Megterveztem és elkészítettem a kétnyelvű oldalt, a bemutatkozás, a szolgáltatások és a blog külön felületeivel.",
+          "A látogató mobilon is tájékozódhat, majd e-mailben vagy telefonon közvetlenül felveheti a kapcsolatot.",
         ],
         tech: 'Technológia: React, Vite, Cloudflare. Tervezés és fejlesztés: Ott Benjámin.',
         image: 'work/lelkiter.webp',
@@ -203,11 +208,14 @@ export const contentHu: SiteContent = {
       },
       {
         id: 'hotel-rental',
-        title: 'Szállodai járműbérlő rendszer',
+        title: 'Rollin Technologies',
         subtitle: 'Elektromos rollerek és kerékpárok automatizált bérlése szállodáknak',
         tag: 'Csapatmunka',
+        site: { label: 'rollindocking.com/hotel', href: 'https://rollindocking.com/hotel' },
         paragraphs: [
-          'A szállodai bérlés webes felületén, a szerveroldali rendszeren, az elektromos kerékpárok távoli vezérlésén és a töltőállomások szoftverén dolgoztam.',
+          "Elektromos rollerek és kerékpárok szállodai bérlését összekapcsolni a dokkoló- és töltőállomásokkal.",
+          "A csapatban a webes felületen, a szerveroldali rendszeren, az elektromos kerékpárok távoli vezérlésén és az állomásszoftveren dolgoztam.",
+          "A recepció a szoftverből indíthatja a nyitást. A visszahelyezett jármű lezárása, a bérlés befejezése és a töltés automatikus.",
         ],
         tech: 'Technológia: React, TypeScript, .NET, Azure, Raspberry Pi, Python.',
       },
@@ -221,7 +229,9 @@ export const contentHu: SiteContent = {
           href: 'https://obmore.github.io/lelek-es-nyelv-portfolio',
         },
         paragraphs: [
-          'Mintaoldal egy mentálhigiénés segítő és angoltanár számára, a szolgáltatásokkal, a közös munka menetével és a gyakori kérdésekkel. Bemutató céllal készült, nem ügyfélmunka.',
+          "Bemutatni, hogyan épülhet fel egy mentálhigiénés segítő és angoltanár honlapja.",
+          "Bemutató céllal készítettem el az oldalt a szolgáltatásokkal, a közös munka menetével és a gyakori kérdésekkel. Nem ügyfélmunka.",
+          "A látogató megismerheti a két szolgáltatási területet és a kapcsolatfelvétel lehetőségeit.",
         ],
         tech: 'Technológia: Next.js, React, Tailwind CSS.',
         image: 'work/lelek-es-nyelv.webp',

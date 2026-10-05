@@ -61,7 +61,7 @@ test('language updates scene captions and live reduced motion freezes without la
   await ready(page)
   await page.getByRole('button', { name: /EN.*váltás angolra/ }).click()
   await expect(page.locator('.cs-eyebrow-label')).toHaveText('BEHIND THE SURFACE')
-  expect(await page.locator('.cs-caption h2').allTextContents()).toEqual(await page.locator('#rolam .card-elev h3').allTextContents())
+  expect(await page.locator('.cs-caption h2').allTextContents()).toEqual(['A signal becomes action.', 'The pieces work together.', 'Try a real-world example.'])
   await pose(page, .5)
   const geometry = await page.locator('[data-motion-story]').boundingBox()
   const transform = await page.locator('.cs-cube').getAttribute('style')

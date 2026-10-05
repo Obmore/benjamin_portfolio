@@ -4,12 +4,12 @@ import { ORDER_HREF } from '@/lib/flags'
 
 type OrderLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'lang'>
 
-export function OrderLink({ className = 'text-accent', ...props }: OrderLinkProps) {
+export function OrderLink({ className = 'text-accent', children, ...props }: OrderLinkProps) {
   const { content } = useI18n()
 
   return (
     <a {...props} href={ORDER_HREF} className={className}>
-      {content.common.orderLink}
+      {children ?? content.common.orderLink}
     </a>
   )
 }
