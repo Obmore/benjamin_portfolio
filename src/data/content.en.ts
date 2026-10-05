@@ -265,6 +265,6 @@ export const contentEn: SiteContent = {
     navMain: 'Main navigation',
     navMobile: 'Mobile navigation',
     skipToContent: 'Skip to content',
-    backToTop: 'OB. – Ott Benjámin, back to top',
+    backToTop: 'OB. - Ott Benjámin, back to top',
   },
 }
