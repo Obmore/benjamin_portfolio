@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type MouseEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, type MouseEvent } from 'react'
 import { useI18n } from '@/context/I18nContext'
 import { Icon } from '@/components/ui/Icon'
 import { SECTION_IDS, SECTION_SHEETS } from '@/lib/constants'
@@ -16,6 +16,18 @@ export function Projects() {
   const items = content.projects.items
   const activeId = useWorkIndex(items.map((item) => item.id))
   const indexRef = useRef<HTMLOListElement>(null)
+
+  useEffect(() => {
+    // Observe after React commits the section. Reduced motion keeps the controls.
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      observer.disconnect()
+      // The project description is the fallback when the optional bundle fails.
+      void import('../../experiences').then(m => m.mountExperiences()).catch(() => {})
+    }, { rootMargin: '600px' })
+    observer.observe(document.getElementById(SECTION_IDS.projects)!)
+    return () => observer.disconnect()
+  }, [])
 
   useLayoutEffect(() => {
     const list = indexRef.current

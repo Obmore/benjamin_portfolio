@@ -10,21 +10,6 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Load interactive references near their section, including with reduced motion.
-const experiences = () => {
-  const section = document.querySelector('.munkaim-section')
-  if (!section) return
-  const observer = new IntersectionObserver(([entry]) => {
-    if (!entry.isIntersecting) return
-    observer.disconnect()
-    // The React-owned project description remains usable if enhancement fails.
-    void import('./experiences').then(m => m.mountExperiences()).catch(() => {})
-  }, { rootMargin: '600px' })
-  observer.observe(section)
-}
-if (document.readyState === 'complete') experiences()
-else window.addEventListener('load', experiences, { once: true })
-
 if (document.documentElement.hasAttribute('data-spatial-capable')) {
   const enhance = () => requestAnimationFrame(() => requestAnimationFrame(() => {
     void import('./motion/portfolio').then(m => m.mountMotion()).catch(() => {
