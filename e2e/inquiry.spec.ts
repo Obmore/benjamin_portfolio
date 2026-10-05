@@ -8,15 +8,18 @@ for (const width of [360, 390, 1024, 1440]) test(`${width}: spatial explanation,
   await page.goto('/megrendeles/', { waitUntil: 'networkidle' })
   const choosePosition = () => page.locator('.mg-choose').evaluate(e => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y + scrollY, w: r.width, h: r.height } })
   const before = await choosePosition()
-  const shapes = []
+  const positions = [[27, 27, -44], [50, 25, -70], [0, 0, 75]]
   for (let i = 0; i < 3; i++) {
     await page.locator('[data-flow-step]').nth(i).click()
     await expect(page.locator('[data-flow-step]').nth(i)).toHaveAttribute('aria-pressed', 'true')
-    await page.waitForTimeout(680)
-    shapes.push(await page.locator('.mg-flow-result').evaluate(e => getComputedStyle(e).transform))
+    // Wait for the rendered pose, not a fixed delay or engine-specific matrix
+    // string. WebKit can update composited transitions on a later frame.
+    await expect.poll(() => page.locator('.mg-flow-result').evaluate(e => {
+      const matrix = new DOMMatrix(getComputedStyle(e).transform)
+      return [matrix.m41, matrix.m42, matrix.m43].map(Math.round)
+    })).toEqual(positions[i])
     expect(await choosePosition()).toEqual(before)
   }
-  expect(new Set(shapes).size).toBe(3)
   await page.screenshot({ path: `tmp/inquiry-evidence/intro-${width}.png` })
   await page.locator('.mg-choose a').nth(2).click()
   await expect.poll(() => page.locator('#szolgaltatas-adatok').evaluate(e => Math.abs(e.getBoundingClientRect().top - 88))).toBeLessThanOrEqual(2)

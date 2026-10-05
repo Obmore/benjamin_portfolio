@@ -17,6 +17,10 @@ Base: `111c223ea5f13606473a1b23d15188c5592a13d9` (PR #29).
   pending section snap before returning to the top, resume order scroll-following
   after reduced motion is disabled unless the visitor chose a phase manually,
   and ignore stale clipboard completions after the draft changes.
+- Firefox restored the previous scroll offset after the early reset on reload.
+  Reapply the reset once on the first frame after `pageshow`, without attaching
+  any persistent scroll correction. Cross-engine tests also wait for the actual
+  rendered order illustration pose instead of a fixed transition delay.
 - Publish a static, script-free Hungarian privacy notice linked from both
   homepage languages and the order page. It describes the browser-local mail
   draft, mailto and clipboard flow, GitHub Pages/Fastly hosting, Gmail, local
@@ -58,6 +62,8 @@ and visitor-path checks must be verified before claiming the release complete.
 - [Vite: loading failures after deployments](https://vite.dev/guide/build.html#load-error-handling).
 - [MDN: requestAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame)
   and [dynamic import caching](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import).
+- [MDN: scroll restoration](https://developer.mozilla.org/en-US/docs/Web/API/History/scrollRestoration)
+  and [navigation type](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceNavigationTiming/type).
 - [GitHub Pages security logging](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages),
   [GitHub privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement),
   [Fastly privacy statement](https://www.fastly.com/privacy) and
