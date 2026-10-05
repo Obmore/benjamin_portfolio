@@ -14,17 +14,21 @@ export function createRollinScene(svg: SVGSVGElement) {
   for (let z = -55; z <= 135; z += 40) new Shape({ addTo: floor, path: [{ x: -150, z }, { x: 150, z }], stroke: .6, color: '#d4e3df' })
   new Ellipse({ addTo: floor, width: 282, height: 92, rotate: { x: Math.PI / 2 }, translate: { z: -10, y: -.2 }, stroke: 12, fill: true, color: '#dae5e1' })
   // Within this front-facing camera arc the station stays behind the vehicle.
-  // Sort station solids internally, never interleave their averaged depths
-  // with the much taller steering column while it moves past the next dock.
+  // Never interleave station solids with the much taller steering column.
   const model = new Group({ addTo: world })
-  const station = new Group({ addTo: model, updateSort: true })
-  new Box({ addTo: station, width: 268, height: 10, depth: 40, translate: { y: 34, z: -10 }, stroke: 1, color: '#a2babe', topFace: '#fcfefd', frontFace: '#b9cdce', rightFace: '#88a7af' })
+  // The wide plinth's average depth does not describe the depth beneath each
+  // dock. Paint its complete solid first, then the housings standing on it;
+  // otherwise its top face erases the far housing at oblique viewpoints.
+  const station = new Group({ addTo: model })
+  const plinth = new Group({ addTo: station, updateSort: true })
+  new Box({ addTo: plinth, width: 268, height: 10, depth: 40, translate: { y: 34, z: -10 }, stroke: 1, color: '#a2babe', topFace: '#fcfefd', frontFace: '#b9cdce', rightFace: '#88a7af' })
+  const docks = new Group({ addTo: station, updateSort: true })
   const lights: Shape[] = []
   let gate!: Anchor
   for (let i = 0; i < 4; i++) {
     // Surface indicators are drawn after their solid housing. The restricted
     // camera always sees this face, avoiding painter-order loss of small decals.
-    const dock = new Group({ addTo: station, translate: { x: -99 + i * 66, y: 6, z: 0 } })
+    const dock = new Group({ addTo: docks, translate: { x: -99 + i * 66, y: 6, z: 0 } })
     const housing = new Group({ addTo: dock, updateSort: true })
     new Box({ addTo: housing, width: 28, height: 45, depth: 27, stroke: 1, color: '#294e59', topFace: '#5b7d85', leftFace: '#3c6470', rightFace: '#153946', frontFace: '#244b58' })
     new Box({ addTo: housing, width: 19, height: 6, depth: 9, translate: { y: -12, z: 17 }, color: '#72939b', stroke: 1, topFace: '#bbd0d2' })
