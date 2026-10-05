@@ -5,7 +5,7 @@ import config from './playwright.config'
 // Windows/Chromium environment, as recommended by Playwright.
 export default defineConfig({
   ...config,
-  testMatch: ['privacy.spec.ts', 'reliability.spec.ts', 'experiences.spec.ts', 'inquiry.spec.ts', 'order-motion.spec.ts'],
+  testMatch: ['privacy.spec.ts', 'reliability.spec.ts', 'experiences.spec.ts', 'inquiry.spec.ts', 'order-motion.spec.ts', 'rollin-occlusion.spec.ts'],
   projects: [
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
