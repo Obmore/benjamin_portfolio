@@ -14,17 +14,21 @@ export function createRollinScene(svg: SVGSVGElement) {
   for (let z = -55; z <= 135; z += 40) new Shape({ addTo: floor, path: [{ x: -150, z }, { x: 150, z }], stroke: .6, color: '#d4e3df' })
   new Ellipse({ addTo: floor, width: 282, height: 92, rotate: { x: Math.PI / 2 }, translate: { z: -10, y: -.2 }, stroke: 12, fill: true, color: '#dae5e1' })
   // Within this front-facing camera arc the station stays behind the vehicle.
-  // Sort station solids internally, never interleave their averaged depths
-  // with the much taller steering column while it moves past the next dock.
+  // Never interleave station solids with the much taller steering column.
   const model = new Group({ addTo: world })
-  const station = new Group({ addTo: model, updateSort: true })
-  new Box({ addTo: station, width: 268, height: 10, depth: 40, translate: { y: 34, z: -10 }, stroke: 1, color: '#a2babe', topFace: '#fcfefd', frontFace: '#b9cdce', rightFace: '#88a7af' })
+  // The wide plinth's average depth does not describe the depth beneath each
+  // dock. Paint its complete solid first, then the housings standing on it;
+  // otherwise its top face erases the far housing at oblique viewpoints.
+  const station = new Group({ addTo: model })
+  const plinth = new Group({ addTo: station, updateSort: true })
+  new Box({ addTo: plinth, width: 268, height: 10, depth: 40, translate: { y: 34, z: -10 }, stroke: 1, color: '#a2babe', topFace: '#fcfefd', frontFace: '#b9cdce', rightFace: '#88a7af' })
+  const docks = new Group({ addTo: station, updateSort: true })
   const lights: Shape[] = []
   let gate!: Anchor
   for (let i = 0; i < 4; i++) {
     // Surface indicators are drawn after their solid housing. The restricted
     // camera always sees this face, avoiding painter-order loss of small decals.
-    const dock = new Group({ addTo: station, translate: { x: -99 + i * 66, y: 6, z: 0 } })
+    const dock = new Group({ addTo: docks, translate: { x: -99 + i * 66, y: 6, z: 0 } })
     const housing = new Group({ addTo: dock, updateSort: true })
     new Box({ addTo: housing, width: 28, height: 45, depth: 27, stroke: 1, color: '#294e59', topFace: '#5b7d85', leftFace: '#3c6470', rightFace: '#153946', frontFace: '#244b58' })
     new Box({ addTo: housing, width: 19, height: 6, depth: 9, translate: { y: -12, z: 17 }, color: '#72939b', stroke: 1, topFace: '#bbd0d2' })
@@ -46,16 +50,24 @@ export function createRollinScene(svg: SVGSVGElement) {
       new Shape({ addTo: wheel, translate: { z: side * 5.3 }, stroke: 5, color: '#294d5b' })
     }
   }
-  new Box({ addTo: scooter, width: 17, height: 6, depth: 85, translate: { y: 16, z: 88 }, stroke: 2, color: '#6d8d97', topFace: '#1a3c49', rightFace: '#abc0c6' })
+  const deck = new Group({ addTo: scooter, updateSort: true })
+  new Box({ addTo: deck, width: 17, height: 6, depth: 85, translate: { y: 16, z: 88 }, stroke: 2, color: '#6d8d97', topFace: '#1a3c49', rightFace: '#abc0c6' })
   new Shape({ addTo: scooter, path: [{ y: 24, z: 137 }, { y: 8, z: 125 }, { y: 8, z: 113 }], stroke: 5, color: '#406776' })
   new Shape({ addTo: scooter, path: [{ y: 16, z: 48 }, { y: -1, z: 28 }, { y: 25, z: 27 }], stroke: 6, color: '#527887' })
-  new Shape({ addTo: scooter, path: [{ y: 13, z: 27 }, { y: -102, z: 2 }], stroke: 7, color: '#94b1bb' })
-  new Shape({ addTo: scooter, path: [{ x: 2, y: 7, z: 26 }, { x: 2, y: -100, z: 3 }], stroke: 2, color: '#e2edee' })
-  new Shape({ addTo: scooter, path: [{ x: -22, y: -104, z: 2 }, { x: 22, y: -104, z: 2 }], stroke: 7, color: ink })
-  new Box({ addTo: scooter, width: 8, height: 3, depth: 10, translate: { y: -108, z: 3 }, color: teal, stroke: 1 })
-  new Shape({ addTo: scooter, translate: { y: -9, z: 27 }, stroke: 7, color: teal })
+  // The reflector and clamp belong to the column surface. Sorting their
+  // average depths separately flipped the reflector behind the column between
+  // -24 and -23 degrees. Keep these attached details in a fixed paint order.
+  const steering = new Group({ addTo: scooter })
+  new Shape({ addTo: steering, path: [{ y: 13, z: 27 }, { y: -102, z: 2 }], stroke: 7, color: '#94b1bb' })
+  new Shape({ addTo: steering, path: [{ x: 2, y: 7, z: 26 }, { x: 2, y: -100, z: 3 }], stroke: 2, color: '#e2edee' })
+  new Shape({ addTo: steering, translate: { y: -9, z: 22.2 }, stroke: 7, color: teal })
+  new Shape({ addTo: steering, path: [{ x: -22, y: -104, z: 2 }, { x: 22, y: -104, z: 2 }], stroke: 7, color: ink })
+  const display = new Group({ addTo: steering, updateSort: true })
+  new Box({ addTo: display, width: 8, height: 3, depth: 10, translate: { y: -108, z: 3 }, color: teal, stroke: 1 })
   const signal = new Shape({ addTo: model, translate: { x: -99, y: 1, z: 20 }, stroke: 6, color: '#25b898', visible: false })
-  const charging = new Group({ addTo: world, translate: { x: 75, y: -30, z: 15 }, visible: false })
+  // Keep the charging indicator beside the occupied third bay, clear of the
+  // steering column throughout the supported camera arc.
+  const charging = new Group({ addTo: world, translate: { x: 10, y: -34, z: 15 }, visible: false })
   new Ellipse({ addTo: charging, diameter: 23, stroke: 1.5, fill: true, color: '#f3fffa' })
   new Shape({ addTo: charging, path: [{ x: 2, y: -8 }, { x: -5, y: 1 }, { x: 0, y: 1 }, { x: -2, y: 8 }, { x: 5, y: -1 }, { x: 0, y: -1 }], closed: true, stroke: 1, fill: true, color: teal })
   let pose = { travel: 0, lock: 0, signal: 0 }, frame = 0

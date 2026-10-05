@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 // Baselines are reviewed artwork, not automatically accepted screenshots.
 // Use the pinned Playwright Chromium on Windows (see docs/interactive-experience.md).
-for (const width of [390, 1440]) for (const angle of ['-42', '-24', '-8']) {
+for (const width of [390, 1440]) for (const angle of ['-42', '-24', '-23', '-8']) {
   test(`${width}, viewpoint ${angle}: station geometry through the rental cycle`, async ({ page }) => {
     const errors: string[] = []
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()) })
