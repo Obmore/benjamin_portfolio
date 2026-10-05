@@ -135,7 +135,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         } else {
           await runLangCssFallback(swap)
         }
-        restoreViewportAnchor(anchor)
+        // The layout effect aligns the new content before paint. Realigning
+        // again after the animation would undo scrolling during the transition.
       } catch {
         setLocaleError(true)
       } finally {

@@ -53,6 +53,13 @@ test('all six packages preserve the description and correctly encode a local ema
   for (const id of ids) {
     await page.locator(`#szolgaltatas-${id} .mg-plan-cta`).click()
     await expect(page.locator('#mg-service')).toHaveValue(id)
+    // Complete the visitor's smooth journey to the draft before auto-scrolling
+    // back to a different card. Otherwise WebKit's old scroll can move the next
+    // link between pointer-down and pointer-up.
+    await expect.poll(() => page.locator('#kapcsolat-email').evaluate(e => {
+      const top = e.getBoundingClientRect().top + scrollY - parseFloat(getComputedStyle(e).scrollMarginTop)
+      return Math.abs(scrollY - Math.min(top, document.documentElement.scrollHeight - innerHeight))
+    })).toBeLessThanOrEqual(2)
     await expect(page.locator('#mg-description')).toHaveValue(description)
     const url = new URL((await page.locator('#mg-write').getAttribute('href'))!)
     expect(url.protocol).toBe('mailto:')

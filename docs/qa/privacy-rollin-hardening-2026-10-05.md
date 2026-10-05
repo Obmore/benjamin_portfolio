@@ -21,6 +21,10 @@ Base: `111c223ea5f13606473a1b23d15188c5592a13d9` (PR #29).
   Reapply the reset once on the first frame after `pageshow`, without attaching
   any persistent scroll correction. Cross-engine tests also wait for the actual
   rendered order illustration pose instead of a fixed transition delay.
+- Keep language-change anchor alignment in the layout effect, before paint.
+  A redundant correction after the transition could undo a visitor's intervening
+  scroll; the CI cinema test exposed that race. Order CTA tests await the draft
+  scroll destination before navigating back to another card.
 - Publish a static, script-free Hungarian privacy notice linked from both
   homepage languages and the order page. It describes the browser-local mail
   draft, mailto and clipboard flow, GitHub Pages/Fastly hosting, Gmail, local
