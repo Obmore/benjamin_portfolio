@@ -75,7 +75,7 @@ if (notFound) {
   mustNotInclude('404', notFound, '<select')
   mustNotInclude('404', notFound, 'gtag')
   mustNotInclude('404', notFound, 'googletagmanager')
-  mustNotInclude('404', notFound, 'bendzsiott1998@gmail.com')
+  mustNotInclude('404', notFound, 'ott.benjamin.ev@ottbenjamin.hu')
   const external = [...notFound.matchAll(/https?:\/\/[^\s"'<>]+/gi)].map((match) => match[0])
   if (external.length > 0) {
     errors.push(`404: unexpected external URL ${JSON.stringify(external)}`)

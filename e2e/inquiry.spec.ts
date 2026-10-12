@@ -63,7 +63,7 @@ test('all six packages preserve the description and correctly encode a local ema
     await expect(page.locator('#mg-description')).toHaveValue(description)
     const url = new URL((await page.locator('#mg-write').getAttribute('href'))!)
     expect(url.protocol).toBe('mailto:')
-    expect(url.pathname).toBe('bendzsiott1998@gmail.com')
+    expect(url.pathname).toBe('ott.benjamin.ev@ottbenjamin.hu')
     expect([...url.searchParams.keys()]).toEqual(['subject', 'body'])
     expect(url.searchParams.get('body')).toContain(description)
     expect(url.searchParams.get('body')).toContain(await page.locator(`#szolgaltatas-${id} h2`).innerText())

@@ -253,7 +253,7 @@ export const contentEn: SiteContent = {
   contact: {
     title: 'Contact',
     text: 'I am open to opportunities in software development, technical project engineering, industrial/energy systems and R&D.',
-    email: 'bendzsiott1998@gmail.com',
+    email: 'ott.benjamin.ev@ottbenjamin.hu',
     location: 'Budapest, Hungary',
     linkedIn: 'linkedin.com/in/benjaminottee',
     prompt: "Write me an email and I'll get back to you soon.",

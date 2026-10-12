@@ -251,7 +251,7 @@ export const contentHu: SiteContent = {
   contact: {
     title: 'Kapcsolat',
     text: 'Szívesen dolgozom szoftverfejlesztési és műszaki projekteken, ipari és energetikai rendszereken, valamint kutatás-fejlesztési feladatokon.',
-    email: 'bendzsiott1998@gmail.com',
+    email: 'ott.benjamin.ev@ottbenjamin.hu',
     location: 'Budapest',
     linkedIn: 'linkedin.com/in/benjaminottee',
     prompt: 'Írjon nekem e-mailt, és hamarosan válaszolok.',

@@ -52,7 +52,7 @@ if (order) {
     '<meta property="og:url" content="https://ottbenjamin.hu/megrendeles/" />',
   )
   mustInclude('megrendeles', order, '<title>Megrendelés és ajánlatkérés</title>')
-  mustInclude('megrendeles', order, 'mailto:bendzsiott1998@gmail.com?subject=Megrendel%C3%A9s')
+  mustInclude('megrendeles', order, 'mailto:ott.benjamin.ev@ottbenjamin.hu?subject=Megrendel%C3%A9s')
   mustInclude('megrendeles', order, '129&nbsp;000 Ft egyszeri díj.')
   mustInclude('megrendeles', order, 'Üzemeltetés kérésre havi 4&nbsp;900 Ft.')
   mustInclude('megrendeles', order, 'Egyedi webes megoldás')
@@ -89,7 +89,7 @@ if (order) {
   mustInclude('megrendeles', order, 'Írjon nekem e-mailt, és hamarosan válaszolok.')
   mustNotInclude('megrendeles', order, 'mg-kicker')
   mustNotInclude('megrendeles', order, 'a domain külön költség, és az Ön nevére szól')
-  if (count(order, /bendzsiott1998@gmail\.com/g) !== 3) {
+  if (count(order, /ott\.benjamin\.ev@ottbenjamin\.hu/g) !== 3) {
     errors.push('megrendeles: gmail address must appear exactly 3 times')
   }
   if (count(order, /129(?:&nbsp;|\u00a0| )000 Ft egyszeri díj\./g) !== 1) {

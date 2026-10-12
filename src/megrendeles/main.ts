@@ -2,7 +2,7 @@ import './styles.css'
 import { mountInquiry } from './inquiry'
 import { mountFlow } from './flow'
 
-const EMAIL = 'bendzsiott1998@gmail.com'
+const EMAIL = 'ott.benjamin.ev@ottbenjamin.hu'
 const COPIED_ANNOUNCEMENT = 'E-mail-cím a vágólapra másolva'
 
 const copyBtn = document.querySelector<HTMLButtonElement>('#mg-copy')

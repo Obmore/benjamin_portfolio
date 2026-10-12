@@ -4,7 +4,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 
 const ORDER_PATH = '/megrendeles/'
-const EMAIL = 'bendzsiott1998@gmail.com'
+const EMAIL = 'ott.benjamin.ev@ottbenjamin.hu'
 const VIEWPORTS = [
   { width: 360, height: 800 },
   { width: 390, height: 844 },
