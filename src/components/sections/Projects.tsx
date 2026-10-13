@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, type MouseEvent } from 'react'
-import { useI18n } from '@/context/I18nContext'
+import { useI18n } from '@/context/useI18n'
 import { Icon } from '@/components/ui/Icon'
 import { SECTION_IDS, SECTION_SHEETS } from '@/lib/constants'
 import { useRevealOnce } from '@/hooks/useRevealOnce'

@@ -1,4 +1,4 @@
-import { useI18n } from '@/context/I18nContext'
+import { useI18n } from '@/context/useI18n'
 
 export function LangToggle() {
   const { locale, toggleLocale, content, localeLoading, localeError } = useI18n()

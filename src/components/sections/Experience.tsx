@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { useI18n } from '@/context/I18nContext'
+import { useI18n } from '@/context/useI18n'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
 import { SECTION_IDS, SECTION_SHEETS } from '@/lib/constants'

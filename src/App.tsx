@@ -10,7 +10,8 @@ import { Skills } from '@/components/sections/Skills'
 import { Projects } from '@/components/sections/Projects'
 import { CvDownload } from '@/components/sections/CvDownload'
 import { Contact } from '@/components/sections/Contact'
-import { I18nProvider, useI18n } from '@/context/I18nContext'
+import { I18nProvider } from '@/context/I18nContext'
+import { useI18n } from '@/context/useI18n'
 import { useInitialHash } from '@/hooks/useInitialHash'
 
 function SkipLink() {

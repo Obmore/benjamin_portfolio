@@ -1,4 +1,4 @@
-import { useI18n } from '@/context/I18nContext'
+import { useI18n } from '@/context/useI18n'
 import { EMAIL, LINKEDIN_URL } from '@/lib/constants'
 
 const SITE_URL = 'https://ottbenjamin.hu/'
