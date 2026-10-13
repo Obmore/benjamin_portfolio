@@ -1,7 +1,5 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -10,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { flushSync } from 'react-dom'
+import { I18nContext } from './i18n-context'
 import type { Locale, SiteContent } from '@/data/types'
 import { contentHu } from '@/data/content.hu'
 import {
@@ -24,16 +23,6 @@ const LOCALE_STORAGE_KEY = 'portfolio-locale'
 const HEADER_OFFSET_PX = 64
 
 type ViewportAnchor = { id: string; top: number }
-
-interface I18nContextValue {
-  locale: Locale
-  content: SiteContent
-  localeLoading: boolean
-  localeError: boolean
-  toggleLocale: () => void
-}
-
-const I18nContext = createContext<I18nContextValue | null>(null)
 
 let enLoadPromise: Promise<SiteContent> | null = null
 
@@ -203,10 +192,4 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   )
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
-}
-
-export function useI18n() {
-  const context = useContext(I18nContext)
-  if (!context) throw new Error('useI18n must be used within I18nProvider')
-  return context
 }

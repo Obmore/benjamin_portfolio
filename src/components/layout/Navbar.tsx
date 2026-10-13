@@ -1,5 +1,5 @@
 import { useEffect, useState, type MouseEvent } from 'react'
-import { useI18n } from '@/context/I18nContext'
+import { useI18n } from '@/context/useI18n'
 import { SECTION_IDS } from '@/lib/constants'
 import { useActiveSection } from '@/hooks/useActiveSection'
 import { goToPageTop, navigateTo } from '@/lib/anchors'

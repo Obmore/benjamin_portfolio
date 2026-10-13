@@ -1,5 +1,5 @@
 import type { MouseEvent } from 'react'
-import { useI18n } from '@/context/I18nContext'
+import { useI18n } from '@/context/useI18n'
 import { Button } from '@/components/ui/Button'
 import { OrderLink } from '@/components/ui/OrderLink'
 import { HeroVisual } from '@/components/visuals/HeroVisual'

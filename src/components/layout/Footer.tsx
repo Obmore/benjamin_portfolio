@@ -1,4 +1,4 @@
-import { useI18n } from '@/context/I18nContext'
+import { useI18n } from '@/context/useI18n'
 import { OrderLink } from '@/components/ui/OrderLink'
 
 export function Footer() {

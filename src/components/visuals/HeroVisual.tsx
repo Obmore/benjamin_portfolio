@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { useI18n } from '@/context/I18nContext'
+import { useI18n } from '@/context/useI18n'
 import { SECTION_SHEETS } from '@/lib/constants'
 import { HeroK1Poster } from './HeroK1Poster'
 

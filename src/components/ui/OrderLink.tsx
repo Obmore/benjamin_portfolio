@@ -1,5 +1,5 @@
 import type { AnchorHTMLAttributes } from 'react'
-import { useI18n } from '@/context/I18nContext'
+import { useI18n } from '@/context/useI18n'
 import { ORDER_HREF } from '@/lib/flags'
 
 type OrderLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'lang'>

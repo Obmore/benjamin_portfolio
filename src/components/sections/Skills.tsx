@@ -1,4 +1,4 @@
-import { useI18n } from '@/context/I18nContext'
+import { useI18n } from '@/context/useI18n'
 import { Card } from '@/components/ui/Card'
 import { Chip } from '@/components/ui/Chip'
 import { SectionHeading } from '@/components/ui/SectionHeading'
