@@ -37,7 +37,7 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const classes = `ui-pressable inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${className}`
+  const classes = `ui-pressable inline-flex h-12 items-center justify-center gap-2 rounded-md px-5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${className}`
 
   if (href) {
     const linkProps = props as AnchorHTMLAttributes<HTMLAnchorElement>

@@ -15,7 +15,7 @@ export function Card({ children, className = '', delay = 0 }: CardProps) {
       ref={ref}
       data-reveal
       style={{ '--reveal-delay': `${delay}s` } as CSSProperties}
-      className={`card-elev rounded-2xl border border-line bg-surface/90 p-6 ${className}`}
+      className={`card-elev rounded-none border border-line bg-surface/90 p-6 ${className}`}
     >
       {children}
     </div>
