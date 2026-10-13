@@ -122,7 +122,7 @@ export function Navbar() {
               key={item.id}
               type="button"
               onClick={() => handleNavClick(item.id)}
-              className={`shrink-0 rounded-lg px-2 py-2 text-sm xl:px-3 ${
+              className={`shrink-0 rounded-md px-2 py-2 text-sm xl:px-3 ${
                 activeId === item.id
                   ? 'text-accent'
                   : 'text-muted hover:text-foreground'
@@ -139,7 +139,7 @@ export function Navbar() {
           <LangToggle />
           <button
             type="button"
-            className="inline-flex h-11 min-h-11 w-11 min-w-11 items-center justify-center rounded-lg border border-border/70 text-muted lg:hidden"
+            className="inline-flex h-11 min-h-11 w-11 min-w-11 items-center justify-center rounded-md border border-control-border text-muted lg:hidden"
             aria-label={content.common.menuToggle}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((open) => !open)}
@@ -169,7 +169,7 @@ export function Navbar() {
               type="button"
               tabIndex={menuOpen ? 0 : -1}
               onClick={() => handleNavClick(item.id)}
-              className={`rounded-lg px-3 py-2 text-left text-sm ${
+              className={`rounded-md px-3 py-2 text-left text-sm ${
                 activeId === item.id ? 'text-accent' : 'text-muted'
               }`}
               aria-current={activeId === item.id ? 'true' : undefined}

@@ -14,7 +14,7 @@ import { CV_SIZE_LABEL } from '@/lib/cv-size'
 import { navigateTo, onResolvedHashClick } from '@/lib/anchors'
 
 const HERO_ORDER_CLASS =
-  'hero-btn hero-btn-order ui-pressable inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-medium border-[1.5px] border-accent bg-surface/60 text-foreground hover:bg-accent/5'
+  'hero-btn hero-btn-order ui-pressable inline-flex h-12 items-center justify-center gap-2 rounded-md px-5 text-sm font-medium border-[1.5px] border-accent bg-surface/60 text-foreground hover:bg-accent/5'
 
 export function Hero() {
   const { content, locale } = useI18n()

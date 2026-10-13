@@ -18,7 +18,7 @@ export function Contact() {
       <p className="mb-10">
         <OrderLink className="text-accent underline-offset-4 hover:underline focus-visible:underline" />
       </p>
-      <div className="rounded-2xl border border-line bg-surface/90 p-6 md:p-8">
+      <div className="rounded-none border border-line bg-surface/90 p-6 md:p-8">
         <p className="mb-8 max-w-2xl text-muted leading-relaxed">{content.contact.prompt}</p>
         <ContactInfo
           email={content.contact.email}
