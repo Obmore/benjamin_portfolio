@@ -370,7 +370,7 @@ a:focus:not(:focus-visible) {
   margin: 20px 0 0;
   color: var(--mg-ink);
   font-family: var(--mg-mono);
-  font-size: clamp(16px, 4.2vw, 28px);
+  font-size: clamp(14px, 3.9vw, 28px);
   white-space: nowrap;
   font-weight: 500;
   line-height: 1.3;
