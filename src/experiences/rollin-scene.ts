@@ -1,4 +1,4 @@
-import { Anchor, Box, Cylinder, Ellipse, Group, Illustration, Shape } from 'zdog'
+import { Anchor, Box, Cylinder, Ellipse, Group, Illustration, Shape, SvgRenderer, type Vector } from 'zdog'
 
 export type RollinStage = 'docked' | 'signal' | 'open' | 'leaving' | 'ride' | 'return' | 'locking' | 'charge'
 
@@ -8,21 +8,62 @@ export type RollinScene = {
   destroy(): void
 }
 
+// Zdog 1.1.3 graph internals that @types/zdog leaves out. The version is
+// pinned: the first frame below walks them instead of updateRenderGraph().
+declare module 'zdog' {
+  export const SvgRenderer: unknown
+}
+type Item = Anchor & {
+  children: Item[]
+  flatGraph: Item[]
+  sortValue: number
+  visible?: boolean
+  reset(): void
+  transform(translation: Vector, rotation: Vector, scale: Vector): void
+  updateFlatGraph(): void
+  updateSortValue(): void
+  render(svg: SVGSVGElement, renderer: unknown): void
+}
+const groupRender = (Group.prototype as unknown as Item).render
+
+// Anchor#update(), which no Zdog class overrides: reset, update the children,
+// then apply the own transform. Yields after each child with descendants.
+function* update(item: Item): Generator<void, void, void> {
+  item.reset()
+  for (const child of item.children) {
+    yield* update(child)
+    if (child.children.length) yield
+  }
+  item.transform(item.translate, item.rotate, item.scale)
+}
+
+// Group#render() paints its sorted flat graph while visible. Any other item,
+// including a cylinder's own group, paints itself. Yields after each group.
+function* render(item: Item, svg: SVGSVGElement): Generator<void, void, void> {
+  if (item.render !== groupRender) return item.render(svg, SvgRenderer)
+  if (!item.visible) return
+  for (const child of item.flatGraph) yield* render(child, svg)
+  yield
+}
+
 // One coordinate system and complete solids keep the scooter aligned with a
 // single dock. This is an original illustration, not a manufacturer CAD model.
-// Building and first painting the scene takes about 35 ms of main-thread work
-// at 4x CPU throttling, too close to the 50 ms long-task budget for one task.
-// Each bare `yield` is a point where the caller may hand the main thread back;
-// the scene is complete when the generator returns.
+// Building and first painting the scene takes about 80 ms of main-thread work
+// at 8x CPU throttling; the first frame's transform pass alone took ~20 ms.
+// Each bare `yield` is a point where the caller may hand the main thread back.
+// At 8x a step between them takes 0.4 ms (median), 5 ms (95th percentile)
+// and 14 ms at worst seen. The scene is complete when the generator returns.
 export function* buildRollinScene(svg: SVGSVGElement): Generator<void, RollinScene, void> {
   const illo = new Illustration({ element: svg, zoom: 1.25, dragRotate: false })
   illo.setSize(500, 310)
   const world = new Group({ addTo: illo, rotate: { x: -.38, y: -24 * Math.PI / 180 }, translate: { x: -15, y: 0 } })
   const ink = '#183c4a', teal = '#198570'
+  yield
   const floor = new Group({ addTo: world, translate: { y: 43 } })
   for (let x = -150; x <= 150; x += 40) new Shape({ addTo: floor, path: [{ x, z: -55 }, { x, z: 135 }], stroke: .6, color: '#d4e3df' })
   for (let z = -55; z <= 135; z += 40) new Shape({ addTo: floor, path: [{ x: -150, z }, { x: 150, z }], stroke: .6, color: '#d4e3df' })
   new Ellipse({ addTo: floor, width: 282, height: 92, rotate: { x: Math.PI / 2 }, translate: { z: -10, y: -.2 }, stroke: 12, fill: true, color: '#dae5e1' })
+  yield
   // Within this front-facing camera arc the station stays behind the vehicle.
   // Never interleave station solids with the much taller steering column.
   const model = new Group({ addTo: world })
@@ -32,6 +73,7 @@ export function* buildRollinScene(svg: SVGSVGElement): Generator<void, RollinSce
   const station = new Group({ addTo: model })
   const plinth = new Group({ addTo: station, updateSort: true })
   new Box({ addTo: plinth, width: 268, height: 10, depth: 40, translate: { y: 34, z: -10 }, stroke: 1, color: '#a2babe', topFace: '#fcfefd', frontFace: '#b9cdce', rightFace: '#88a7af' })
+  yield
   const docks = new Group({ addTo: station, updateSort: true })
   const lights: Shape[] = []
   let gate!: Anchor
@@ -46,8 +88,8 @@ export function* buildRollinScene(svg: SVGSVGElement): Generator<void, RollinSce
     new Shape({ addTo: latch, path: [{}, { x: 18 }], stroke: 4, color: '#d7e6e4' })
     if (i === 2) gate = latch
     lights.push(new Shape({ addTo: dock, path: [{ x: -7 }, { x: 7 }], translate: { y: 8, z: 14.2 }, stroke: 3, color: i === 2 ? teal : '#89aeb0' }))
+    yield
   }
-  yield
   // Zdog sorts by each shape's average depth, not by pixel depth. Keep the
   // vehicle together so a dock cannot cut through its long steering column.
   // https://zzz.dog/extras#z-fighting
@@ -60,11 +102,13 @@ export function* buildRollinScene(svg: SVGSVGElement): Generator<void, RollinSce
       new Ellipse({ addTo: wheel, diameter: 16, translate: { z: side * 5 }, stroke: 3, fill: true, color: '#87a7af' })
       new Shape({ addTo: wheel, translate: { z: side * 5.3 }, stroke: 5, color: '#294d5b' })
     }
+    yield
   }
   const deck = new Group({ addTo: scooter, updateSort: true })
   new Box({ addTo: deck, width: 17, height: 6, depth: 85, translate: { y: 16, z: 88 }, stroke: 2, color: '#6d8d97', topFace: '#1a3c49', rightFace: '#abc0c6' })
   new Shape({ addTo: scooter, path: [{ y: 24, z: 137 }, { y: 8, z: 125 }, { y: 8, z: 113 }], stroke: 5, color: '#406776' })
   new Shape({ addTo: scooter, path: [{ y: 16, z: 48 }, { y: -1, z: 28 }, { y: 25, z: 27 }], stroke: 6, color: '#527887' })
+  yield
   // The reflector and clamp belong to the column surface. Sorting their
   // average depths separately flipped the reflector behind the column between
   // -24 and -23 degrees. Keep these attached details in a fixed paint order.
@@ -81,6 +125,7 @@ export function* buildRollinScene(svg: SVGSVGElement): Generator<void, RollinSce
   const charging = new Group({ addTo: world, translate: { x: 10, y: -34, z: 15 }, visible: false })
   new Ellipse({ addTo: charging, diameter: 23, stroke: 1.5, fill: true, color: '#f3fffa' })
   new Shape({ addTo: charging, path: [{ x: 2, y: -8 }, { x: -5, y: 1 }, { x: 0, y: 1 }, { x: -2, y: 8 }, { x: 5, y: -1 }, { x: 0, y: -1 }], closed: true, stroke: 1, fill: true, color: teal })
+  yield
   let pose = { travel: 0, lock: 0, signal: 0 }, frame = 0
   const place = () => {
     scooter.translate.z = pose.travel * 72
@@ -111,12 +156,19 @@ export function* buildRollinScene(svg: SVGSVGElement): Generator<void, RollinSce
     frame = requestAnimationFrame(tick)
   }
   svg.dataset.motion = 'idle'
-  // The first frame is draw()'s updateRenderGraph(), split into its two halves.
+  // The first frame is draw()'s updateRenderGraph() in resumable steps: the
+  // same work in the same order, so it paints the same artwork.
   place()
+  const root = illo as unknown as Item
+  // Anchor#updateGraph()
+  yield* update(root)
+  root.updateFlatGraph()
+  root.flatGraph.forEach(item => item.updateSortValue())
+  root.flatGraph.sort((a, b) => a.sortValue - b.sortValue)
   yield
-  illo.updateGraph()
-  yield
-  illo.renderGraph()
+  // Illustration#renderGraph(). The <svg> is still empty and no onPrerender
+  // hook is set, so only the graph walk remains.
+  for (const item of root.flatGraph) yield* render(item, svg)
   return {
     show,
     view(degrees: number) { world.rotate.y = degrees * Math.PI / 180; draw() },

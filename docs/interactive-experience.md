@@ -27,9 +27,12 @@ interaction, not embedded live sites:
 The homepage loads the scene and device-preview enhancements in a separate bundle
 when the work section approaches the viewport. Their space is reserved before loading.
 The Rollin scene is built off-document in short steps that yield to the main
-thread, so no single task reaches the 50 ms long-task budget at 4x CPU
-throttling. The project description stays in place until the complete scene
-replaces it in one step; if the renderer fails, the description remains.
+thread, including the first frame's transform and render passes, which repeat
+Zdog's own `updateRenderGraph()` work in resumable steps (pinned `zdog`
+1.1.3). A task stops taking steps once it has run for 4 ms, so the build stays
+far below the 50 ms long-task budget at 8x CPU throttling. The project
+description stays in place until the complete scene replaces it in one step;
+if the renderer fails, the description remains.
 The Rollin controls use native buttons and a native range input. Its finite
 state sequence keeps keyboard focus, prevents overlapping actions, settles when
 the page is hidden, and switches immediately when reduced motion is requested.
