@@ -80,9 +80,14 @@ the main visitor paths on the live domain.
   product model. It was evaluated but is not installed. A manufacturer-approved
   asset would be needed before representing an actual station shape.
 - [Playwright visual comparisons](https://playwright.dev/docs/test-snapshots):
-  18 reviewed reference images cover mobile and desktop, three camera angles,
+  24 reviewed reference images cover mobile and desktop, four camera angles,
   and docked/ride/charging states. Twelve additional desktop images cover
-  opening, departure, return and lock closing at all three camera angles.
+  opening, departure, return and lock closing at three camera angles.
+  Before each scene screenshot the tests align the contained Rollin host to a
+  whole CSS pixel (`e2e/rollin-host.ts`). Otherwise any copy change above the
+  work section changes the host's fractional offset, and with it the artwork's
+  position within Playwright's whole-pixel clip. A guard test compares the
+  scene against its baseline after sub-pixel shifts of the page above it.
   [Playwright Clock](https://playwright.dev/docs/clock) makes those intermediate
   frames reproducible. Bounds tests include actual SVG path stroke
   widths. Functional tests also cover failed initialization, rapid clicks,
