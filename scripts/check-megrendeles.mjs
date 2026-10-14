@@ -119,8 +119,10 @@ if (orderSource) {
   for (const key of ['orderForm', 'orderFormSheet', 'introSite', 'hosting', 'hostingWithEdits']) {
     mustInclude('megrendeles source', orderSource, `{{huf:${key}}}`)
   }
-  if (/\d{1,3}&nbsp;\d{3}&nbsp;Ft/.test(orderSource)) {
-    errors.push('megrendeles source: write prices as {{huf:…}} placeholders, not literals')
+  // Any typed amount (spaces, NBSP, &nbsp; or none before "Ft") must be a placeholder.
+  const literal = orderSource.match(/\d(?:[\d  .]|&nbsp;)*(?:&nbsp;|[  ])?Ft\b/)
+  if (literal) {
+    errors.push(`megrendeles source: write prices as {{huf:…}} placeholders, not literals (${JSON.stringify(literal[0])})`)
   }
 }
 

@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <script>
       document.documentElement.classList.add('js', 'is-hero-poster')
+      // The static fallback in #root stays hidden while the app loads; React replaces it on mount.
+      // If the module is blocked or fails, show it after 4 s instead of an empty page.
+      setTimeout(function () {
+        if (document.querySelector('#root > .nojs')) document.documentElement.classList.add('nojs-late')
+      }, 4000)
       if (performance.getEntriesByType('navigation')[0]?.type === 'reload') {
         history.scrollRestoration = 'manual'
         history.replaceState(history.state, '', location.pathname + location.search)
@@ -74,7 +79,7 @@
     />
     <title>Ott Benjámin, villamosmérnök és szoftverfejlesztő</title>
     <style>
-      html.js .nojs { display: none; }
+      html.js:not(.nojs-late) .nojs { display: none; }
       .nojs { max-width: 42rem; margin: 0 auto; padding: 96px 20px; line-height: 1.6; }
       .nojs h1 { margin-bottom: 8px; font-size: 2rem; font-weight: 600; }
       .nojs p { margin-top: 12px; }

@@ -82,6 +82,14 @@ test.describe('AC1 hero speaks to clients, HU and EN in pairs', () => {
     await context.close()
   })
 
+  test('the fallback appears when the app module cannot load', async ({ page }) => {
+    await page.route(/\/assets\/main-[^/]+\.js$/, route => route.abort())
+    expect((await page.goto('/'))?.status()).toBe(200)
+    await expect(page.locator('.nojs')).toBeHidden()
+    await expect(page.locator('.nojs')).toBeVisible({ timeout: 8000 })
+    await expect(page.locator('.nojs')).toContainText(EMAIL)
+  })
+
   test('experience, skills and CV sit under About, not in the main navigation', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await gotoHome(page)
@@ -93,6 +101,11 @@ test.describe('AC1 hero speaks to clients, HU and EN in pairs', () => {
     expect([...order].sort((a, b) => a - b)).toEqual(order)
     for (const id of ['tapasztalat', 'kompetenciak', 'oneletrajz']) await expect(page.locator(`#rolam a[href$="#${id}"]`)).toHaveCount(1)
     await expect(page.locator('#hero a[href$=".pdf"]')).toHaveCount(0)
+    // The CV files are still offered, from the CV section under About.
+    for (const file of ['Ott_Benjamin_CV_HU.pdf', 'Ott_Benjamin_CV_EN.pdf']) {
+      await expect(page.locator(`#oneletrajz a[href="/cv/${file}"]`)).toHaveCount(1)
+      expect((await page.request.get(`/cv/${file}`)).status(), file).toBe(200)
+    }
   })
 })
 
@@ -121,10 +134,17 @@ test.describe('AC2 packages: one price source for the home page and /megrendeles
 
   test('amounts are written once, in the pricing module', () => {
     const literal = /\b(?:149|189|129)(?:[  _]|&nbsp;)?000\b|\b(?:4|9)(?:[  _]|&nbsp;)?900\b/
-    expect(fs.readFileSync('megrendeles/index.html', 'utf8')).not.toMatch(literal)
+    // Besides the known amounts, no typed "<digits> Ft" anywhere outside pricing.ts.
+    const typedPrice = /\d(?:[\d  .]|&nbsp;)*(?:&nbsp;|[  ])?Ft\b/
+    const pages = ['index.html', 'megrendeles/index.html', 'impresszum/index.html', 'en/imprint/index.html', 'aszf/index.html']
     const sources = fs.readdirSync('src', { recursive: true, encoding: 'utf8' })
       .filter(file => /\.(ts|tsx)$/.test(file) && path.basename(file) !== 'pricing.ts')
-    for (const file of sources) expect(fs.readFileSync(path.join('src', file), 'utf8'), file).not.toMatch(literal)
+      .map(file => path.join('src', file))
+    for (const file of [...pages, ...sources]) {
+      const text = fs.readFileSync(file, 'utf8')
+      expect(text, file).not.toMatch(literal)
+      expect(text, file).not.toMatch(typedPrice)
+    }
   })
 })
 
@@ -162,7 +182,8 @@ test.describe('AC3/AC4 footer links', () => {
     await expect(page.locator('footer a[href="/aszf/"]')).toHaveCount(1)
     for (const url of STATIC_PAGES) {
       await page.goto(url)
-      await expect(page.locator('footer a[href="/impresszum/"], footer a[href="/en/imprint/"]'), url).not.toHaveCount(0)
+      const imprint = url === '/en/imprint/' ? '/en/imprint/' : '/impresszum/'
+      await expect(page.locator(`footer a[href="${imprint}"]`), url).toHaveCount(1)
       await expect(page.locator('footer a[href="/aszf/"]'), url).toHaveCount(1)
     }
   })
@@ -196,6 +217,8 @@ test.describe('AC6 technical SEO', () => {
     expect(service.address).toMatchObject({ postalCode: '8944', addressLocality: 'Sárhida', streetAddress: 'Kossuth utca 32.', addressCountry: 'HU' })
     expect(service.areaServed).toMatchObject({ name: 'Magyarország' })
     expect(service.makesOffer).toHaveLength(6)
+    // Every price line is listed: A has three, E two, F two; B–D have none.
+    expect(service.makesOffer.map((offer: { priceSpecification?: unknown[] }) => offer.priceSpecification?.length ?? 0)).toEqual([3, 0, 0, 0, 2, 2])
     expect(graph.some((item: { '@type': string }) => item['@type'] === 'Person')).toBe(true)
     await switchToEnglish(page)
     await expect(page.locator('meta[name="description"]').first()).toHaveAttribute('content', /small and medium-sized businesses/i)

@@ -32,7 +32,7 @@ export function Packages() {
             </p>
             <h3 className="mt-3 text-lg font-medium text-foreground">{item.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted">{item.summary}</p>
-            <ul className="mt-4 space-y-1.5 text-sm leading-relaxed text-ink-2">
+            <ul role="list" className="mt-4 space-y-1.5 text-sm leading-relaxed text-ink-2">
               {item.facts.map((fact) => (
                 <li key={fact} className="flex gap-2">
                   <span aria-hidden="true" className="mt-2 h-1 w-1 shrink-0 bg-accent" />

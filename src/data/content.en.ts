@@ -58,8 +58,8 @@ export const contentEn: SiteContent = {
         ],
         prices: [
           { amount: 'orderForm', period: 'once' },
-          { label: 'Spreadsheet version', amount: 'orderFormSheet', period: 'once' },
-          { label: 'Hosting on request', amount: 'hosting', period: 'month' },
+          { label: 'Version that writes to your spreadsheet', amount: 'orderFormSheet', period: 'once' },
+          { label: 'Hosting and maintenance on request', amount: 'hosting', period: 'month' },
         ],
       },
       {
@@ -108,7 +108,7 @@ export const contentEn: SiteContent = {
         ],
         prices: [
           { amount: 'introSite', period: 'once' },
-          { label: 'Hosting on request', amount: 'hosting', period: 'month' },
+          { label: 'Hosting and maintenance on request', amount: 'hosting', period: 'month' },
         ],
       },
       {
@@ -123,7 +123,7 @@ export const contentEn: SiteContent = {
           'the domain fee is not included',
         ],
         prices: [
-          { label: 'Hosting', amount: 'hosting', period: 'month' },
+          { label: 'Hosting and maintenance', amount: 'hosting', period: 'month' },
           { label: 'With edits (up to half an hour a month)', amount: 'hostingWithEdits', period: 'month' },
         ],
       },

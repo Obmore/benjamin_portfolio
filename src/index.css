@@ -349,10 +349,15 @@ html.js [data-reveal][data-revealed="instant"] {
 }
 
 .hero-email-address {
+  display: inline-flex;
+  align-items: center;
   min-width: 0;
+  min-height: 44px;
   font-family: var(--font-mono);
   font-size: 14px;
-  color: var(--color-foreground);
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 4px;
   overflow-wrap: anywhere;
 }
 

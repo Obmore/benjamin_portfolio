@@ -10,24 +10,25 @@ const PERSON_ID = `${SITE_URL}#person`
 
 function offer(item: PackageItem) {
   const [main] = item.prices
-  const price = main
-    ? main.period === 'month'
-      ? {
-          priceSpecification: {
-            '@type': 'UnitPriceSpecification',
-            price: AMOUNTS[main.amount],
-            priceCurrency: 'HUF',
-            referenceQuantity: { '@type': 'QuantitativeValue', value: 1, unitCode: 'MON' },
-          },
-        }
-      : { price: AMOUNTS[main.amount], priceCurrency: 'HUF' }
-    : { description: item.priceNote }
   return {
     '@type': 'Offer',
     name: item.title,
     url: `${SITE_URL}${ORDER_HREF.slice(1)}#${item.anchor}`,
     itemOffered: { '@type': 'Service', name: item.title, description: item.summary },
-    ...price,
+    ...(main?.period === 'once' ? { price: AMOUNTS[main.amount], priceCurrency: 'HUF' } : {}),
+    ...(item.prices.length
+      ? {
+          priceSpecification: item.prices.map((line) => ({
+            '@type': 'UnitPriceSpecification',
+            name: line.label ?? item.title,
+            price: AMOUNTS[line.amount],
+            priceCurrency: 'HUF',
+            ...(line.period === 'month'
+              ? { referenceQuantity: { '@type': 'QuantitativeValue', value: 1, unitCode: 'MON' } }
+              : {}),
+          })),
+        }
+      : { description: item.priceNote }),
   }
 }
 
