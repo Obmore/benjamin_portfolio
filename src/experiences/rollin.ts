@@ -1,4 +1,4 @@
-import { createRollinScene, type RollinStage } from './rollin-scene'
+import { buildRollinScene, type RollinScene, type RollinStage } from './rollin-scene'
 
 const copy = {
   hu: {
@@ -23,10 +23,23 @@ const copy = {
   },
 }
 
+// Hands the main thread back between scene build steps. Where supported,
+// scheduler.yield() keeps the continuation ahead of other queued tasks.
+const yieldToMain = () => globalThis.scheduler?.yield?.() ?? new Promise<void>(resolve => setTimeout(resolve))
+
 export function mountRollin(host: HTMLElement) {
+  let cancelled = false, unmount: (() => void) | undefined
+  void mountScene(host, () => cancelled).then(cleanup => { if (cancelled) cleanup?.(); else unmount = cleanup })
+  return () => { cancelled = true; unmount?.() }
+}
+
+async function mountScene(host: HTMLElement, cancelled: () => boolean) {
   // Keep React's fallback node in place so locale reconciliation retains ownership.
   const fallback = host.querySelector<HTMLElement>('p')
-  host.insertAdjacentHTML('beforeend', `<div class="rd-shell" data-stage="docked">
+  // Build off-document in short tasks. The description stays until the
+  // complete scene replaces it in a single step.
+  const holder = document.createElement('div')
+  holder.innerHTML = `<div class="rd-shell" data-stage="docked">
     <div class="rd-heading"><p class="rd-eyebrow"></p><h4 id="rollin-demo-title"></h4><p class="rd-intro"></p></div>
     <div class="rd-scene" aria-hidden="true">
       <div class="rd-halo"></div><svg class="rd-render" width="500" height="310" focusable="false"></svg>
@@ -39,15 +52,24 @@ export function mountRollin(host: HTMLElement) {
       <div class="rd-actions"><button class="rd-action" type="button"></button><label class="rd-view"><span></span><input type="range" min="-42" max="-8" value="-24" /></label></div>
       <p class="rd-note"></p>
     </div>
-  </div>`)
-  const get = <T extends HTMLElement = HTMLElement>(selector: string) => host.querySelector<T>(selector)!
-  const shell = get('.rd-shell')
-  let scene: ReturnType<typeof createRollinScene>
-  try { scene = createRollinScene(host.querySelector<SVGSVGElement>('.rd-render')!) }
-  catch { shell.remove(); return () => {} }
+  </div>`
+  const shell = holder.firstElementChild as HTMLElement
+  const get = <T extends HTMLElement = HTMLElement>(selector: string) => shell.querySelector<T>(selector)!
+  let scene: RollinScene
+  try {
+    const build = buildRollinScene(shell.querySelector<SVGSVGElement>('.rd-render')!)
+    let step
+    do {
+      await yieldToMain()
+      if (cancelled()) return
+      step = build.next()
+    } while (!step.done)
+    scene = step.value
+  } catch { return }
+  host.append(shell)
   if (fallback) fallback.hidden = true
   const action = get<HTMLButtonElement>('.rd-action'), view = get<HTMLInputElement>('.rd-view input')
-  const status = get('.rd-status'), steps = [...host.querySelectorAll<HTMLElement>('.rd-steps li')]
+  const status = get('.rd-status'), steps = [...shell.querySelectorAll<HTMLElement>('.rd-steps li')]
   const media = matchMedia('(prefers-reduced-motion: reduce)')
   let stage: RollinStage = 'docked'
   let alive = true
