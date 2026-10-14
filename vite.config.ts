@@ -4,8 +4,29 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { VAT_LABEL, formatHuf, isAmountKey } from './src/data/pricing.ts'
 
 const root = path.dirname(fileURLToPath(import.meta.url))
+
+// Static pages read their prices from src/data/pricing.ts: {{huf:orderForm}} and {{vat}}.
+function pricePlaceholders(): Plugin {
+  return {
+    name: 'price-placeholders',
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html, context) {
+        const out = html.replace(/\{\{(huf:(\w+)|vat)\}\}/g, (placeholder, _kind: string, key?: string) => {
+          if (placeholder === '{{vat}}') return VAT_LABEL.hu
+          if (!key || !isAmountKey(key)) throw new Error(`${context.path}: unknown price ${placeholder}`)
+          return formatHuf(key, 'hu', '&nbsp;')
+        })
+        const leftover = out.match(/\{\{[^}]*\}\}/)
+        if (leftover) throw new Error(`${context.path}: unresolved placeholder ${leftover[0]}`)
+        return out
+      },
+    },
+  }
+}
 
 function decodePathname(urlPath: string): string {
   const pathname = urlPath.split('?')[0] ?? '/'
@@ -86,7 +107,7 @@ const cvEn = cvStats('Ott_Benjamin_CV_EN.pdf')
 export default defineConfig({
   base: '/',
   appType: 'mpa',
-  plugins: [react(), tailwindcss(), githubPagesPreview()],
+  plugins: [react(), tailwindcss(), pricePlaceholders(), githubPagesPreview()],
   define: {
     __CV_HU_KB__: JSON.stringify(cvHu.kb),
     __CV_EN_KB__: JSON.stringify(cvEn.kb),
@@ -104,6 +125,9 @@ export default defineConfig({
         main: path.resolve(root, 'index.html'),
         megrendeles: path.resolve(root, 'megrendeles/index.html'),
         adatkezeles: path.resolve(root, 'adatkezeles/index.html'),
+        impresszum: path.resolve(root, 'impresszum/index.html'),
+        imprint: path.resolve(root, 'en/imprint/index.html'),
+        aszf: path.resolve(root, 'aszf/index.html'),
       },
     },
   },

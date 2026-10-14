@@ -1,3 +1,5 @@
+import type { AmountKey } from './pricing'
+
 export type Locale = 'hu' | 'en'
 
 export interface NavLink {
@@ -35,6 +37,24 @@ export interface WorkProject {
   alt?: string
 }
 
+export interface PriceLine {
+  label?: string
+  amount: AmountKey
+  period: 'once' | 'month'
+}
+
+export interface PackageItem {
+  letter: 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
+  /** Card id on /megrendeles/. */
+  anchor: string
+  title: string
+  summary: string
+  facts: string[]
+  prices: PriceLine[]
+  /** Pricing for work without a fixed amount, as worded on /megrendeles/. */
+  priceNote?: string
+}
+
 export interface HighlightCard {
   title: string
   description: string
@@ -46,6 +66,7 @@ export interface SiteContent {
     description: string
   }
   nav: {
+    packages: string
     about: string
     experience: string
     skills: string
@@ -56,17 +77,27 @@ export interface SiteContent {
   hero: {
     headline: string
     subheadline: string
-    ctaContact: string
-    ctaCv: string
-    ctaLinkedIn: string
+    audience: string
+    ctaPackages: string
+    ctaEmail: string
     demoLabel: string
     inquiryLabel: string
     chips: string[]
+  }
+  packages: {
+    title: string
+    intro: string
+    sheet: string
+    detailLabel: string
+    /** "{amount}" is replaced with the formatted price. */
+    period: Record<PriceLine['period'], string>
+    items: PackageItem[]
   }
   about: {
     title: string
     text: string
     highlights: HighlightCard[]
+    moreLabel: string
   }
   experience: {
     title: string
@@ -103,6 +134,10 @@ export interface SiteContent {
   }
   footer: {
     text: string
+    privacy: string
+    imprint: string
+    imprintHref: string
+    terms: string
   }
   common: {
     emailLabel: string
@@ -114,6 +149,7 @@ export interface SiteContent {
     orderLink: string
     navMain: string
     navMobile: string
+    navLegal: string
     skipToContent: string
     backToTop: string
   }

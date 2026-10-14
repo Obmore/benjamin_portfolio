@@ -7,15 +7,15 @@ import { LangToggle } from '@/components/ui/LangToggle'
 import { OrderLink } from '@/components/ui/OrderLink'
 
 const navItems = [
+  { id: SECTION_IDS.packages, key: 'packages' as const },
   { id: SECTION_IDS.projects, key: 'projects' as const },
   { id: SECTION_IDS.about, key: 'about' as const },
-  { id: SECTION_IDS.experience, key: 'experience' as const },
-  { id: SECTION_IDS.skills, key: 'skills' as const },
-  { id: SECTION_IDS.cv, key: 'cv' as const },
   { id: SECTION_IDS.contact, key: 'contact' as const },
 ]
 
-const navSectionIds = navItems.map((item) => item.id)
+// Experience, skills and the CV sit under About: keep About highlighted there.
+const aboutSubsections: string[] = [SECTION_IDS.experience, SECTION_IDS.skills, SECTION_IDS.cv]
+const spiedSectionIds = [SECTION_IDS.packages, SECTION_IDS.projects, SECTION_IDS.about, ...aboutSubsections, SECTION_IDS.contact]
 
 function useHeaderScrolled() {
   const [scrolled, setScrolled] = useState(false)
@@ -47,7 +47,8 @@ export function Navbar() {
   const scrolled = useHeaderScrolled()
   const [menuOpen, setMenuOpen] = useState(false)
   const [pendingScrollId, setPendingScrollId] = useState<string | null>(null)
-  const activeId = useActiveSection(navSectionIds)
+  const spiedId = useActiveSection(spiedSectionIds)
+  const activeId = aboutSubsections.includes(spiedId) ? SECTION_IDS.about : spiedId
 
   useEffect(() => {
     if (!menuOpen) return

@@ -288,7 +288,18 @@ async function waitAligned(page: Page, id: string, timeout = 8_000) {
   )
 }
 
+// Experience, skills and the CV are linked from About since the customer-facing release.
+const ABOUT_SUBSECTIONS = new Set(['Tapasztalat', 'Kompetenciák', 'Önéletrajz'])
+
+async function clickAboutLink(page: Page, name: string) {
+  await page
+    .getByRole('navigation', { name: 'Rólam részletesen' })
+    .getByRole('link', { name, exact: true })
+    .click()
+}
+
 async function clickDesktopNav(page: Page, name: string) {
+  if (ABOUT_SUBSECTIONS.has(name)) return clickAboutLink(page, name)
   await page
     .getByRole('navigation', { name: 'Fő navigáció' })
     .getByRole('button', { name, exact: true })
@@ -296,6 +307,7 @@ async function clickDesktopNav(page: Page, name: string) {
 }
 
 async function clickMobileNav(page: Page, name: string) {
+  if (ABOUT_SUBSECTIONS.has(name)) return clickAboutLink(page, name)
   await page.getByRole('button', { name: 'Menü megnyitása' }).click()
   const mobile = page.getByRole('navigation', { name: 'Mobil navigáció' })
   await expect(mobile).toBeVisible()
@@ -680,10 +692,10 @@ test.describe('hash-fix PR7', () => {
       const nav = page.getByRole('navigation', { name: 'Fő navigáció' })
       await expect(nav).toBeVisible()
       const buttons = nav.getByRole('button')
-      await expect(buttons).toHaveCount(6)
+      await expect(buttons).toHaveCount(4)
       await expect(nav.locator('a[href="/megrendeles/"]')).toHaveCount(1)
       const items = nav.locator('button, a')
-      await expect(items).toHaveCount(7)
+      await expect(items).toHaveCount(5)
       const tops = await items.evaluateAll((els) =>
         els.map((el) => el.getBoundingClientRect().top),
       )

@@ -19,6 +19,7 @@ function read(filePath) {
 
 const main = read(mainPath)
 const order = read(orderPath).replaceAll('&nbsp;Ft', ' Ft')
+const orderSource = read(path.join(root, 'megrendeles/index.html'))
 
 function mustInclude(label, html, snippet) {
   if (!html.includes(snippet)) errors.push(`${label}: missing ${JSON.stringify(snippet)}`)
@@ -40,7 +41,8 @@ if (main) {
 }
 
 if (order) {
-  mustInclude('megrendeles', order, '<meta name="robots" content="noindex" />')
+  // The package page is public and indexable since the customer-facing release.
+  mustNotInclude('megrendeles', order, '<meta name="robots"')
   mustInclude(
     'megrendeles',
     order,
@@ -90,7 +92,10 @@ if (order) {
   mustNotInclude('megrendeles', order, 'mg-kicker')
   mustNotInclude('megrendeles', order, 'a domain külön költség, és az Ön nevére szól')
   if (count(order, /ott\.benjamin\.ev@ottbenjamin\.hu/g) !== 3) {
-    errors.push('megrendeles: gmail address must appear exactly 3 times')
+    errors.push('megrendeles: business e-mail address must appear exactly 3 times')
+  }
+  if (count(order, /class="mg-vat">AAM \(áfamentes\)</g) !== 7) {
+    errors.push('megrendeles: each of the seven amounts needs its „AAM (áfamentes)” label')
   }
   if (count(order, /129(?:&nbsp;|\u00a0| )000 Ft egyszeri díj\./g) !== 1) {
     errors.push('megrendeles: „129 000 Ft egyszeri díj.” must appear exactly once')
@@ -110,6 +115,15 @@ if (order) {
   }
 }
 
+if (orderSource) {
+  for (const key of ['orderForm', 'orderFormSheet', 'introSite', 'hosting', 'hostingWithEdits']) {
+    mustInclude('megrendeles source', orderSource, `{{huf:${key}}}`)
+  }
+  if (/\d{1,3}&nbsp;\d{3}&nbsp;Ft/.test(orderSource)) {
+    errors.push('megrendeles source: write prices as {{huf:…}} placeholders, not literals')
+  }
+}
+
 const assetsDir = path.join(dist, 'assets')
 if (fs.existsSync(assetsDir)) {
   const mainJs = fs
@@ -122,14 +136,11 @@ if (fs.existsSync(assetsDir)) {
   mustNotInclude('main js', mainJs, 'SHOW_ORDER_LINK')
   mustNotInclude('main js', mainJs, '59 000')
   mustNotInclude('main js', mainJs, '59000')
-  mustNotInclude('main js', mainJs, '4 900')
-  mustNotInclude('main js', mainJs, '4900')
-  mustNotInclude('main js', mainJs, 'Egyedi webes megoldás')
   mustNotInclude('main js', mainJs, 'Bemutatkozó oldal vállalkozásoknak')
-  const ajanlatOnHome = [...mainJs.matchAll(/ajánlat/gi)].length
-  if (ajanlatOnHome !== 0) {
-    errors.push(`S1: főoldal JS „ajánlat” találat ${ajanlatOnHome}, elvárt 0`)
-  }
+  // Since the customer-facing release the home page shows the packages and prices
+  // (#csomagok); e2e/customer-site.spec.ts checks that they match this page.
+  mustInclude('main js', mainJs, 'Egyedi webes megoldás')
+  mustInclude('main js', mainJs, 'AAM (áfamentes)')
 
   const orderJs = fs
     .readdirSync(assetsDir)

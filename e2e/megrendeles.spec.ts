@@ -47,7 +47,8 @@ test.describe('/megrendeles/', () => {
       await expect(page.locator('#mg-email-text')).toHaveText(EMAIL)
       await expect(page.locator('#adatkezeles')).toHaveCount(0)
       await expect(page.locator('.mg-kicker')).toHaveCount(0)
-      await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex')
+      // Indexable since the customer-facing release (listed in sitemap.xml).
+      await expect(page.locator('meta[name="robots"]')).toHaveCount(0)
       await expect(page.locator('.mg-plan')).toHaveCount(6)
       await expect(page.locator('.mg-plan').nth(4).locator('.mg-list li')).toHaveText([
         'legfeljebb hat tartalmi rész, például bemutatkozás, szolgáltatások, munkák, elérhetőség',
@@ -56,7 +57,7 @@ test.describe('/megrendeles/', () => {
         'alapvető keresőbeállítás: oldalcím és leírás a Google-találatokhoz, valamint az oldal regisztrálása a Google Search Console-ban',
         'egy javítási kör',
       ])
-      await expect(page.locator('.mg-plan').nth(4).locator('.mg-price')).toHaveText('129 000 Ft egyszeri díj.')
+      await expect(page.locator('.mg-plan').nth(4).locator('.mg-price')).toHaveText('129 000 Ft egyszeri díj. AAM (áfamentes)')
       await expect(page.locator('body')).not.toContainText('alanyi adómentes')
       await expect(page.locator('body')).not.toContainText('59 000')
 
@@ -159,13 +160,13 @@ test.describe('/megrendeles/', () => {
       await expect(all).toHaveCount(5)
       await expect(page.locator('#kapcsolat a[href="/megrendeles/"]')).toHaveCount(1)
       await expect(page.locator('header a[href="/megrendeles/"]')).toHaveCount(2)
-      await expect(page.locator('.hero-actions a[href="/megrendeles/"]')).toHaveCount(1)
+      await expect(page.locator('#hero a[href="/megrendeles/"]')).toHaveCount(1)
       await expect(page.locator('footer a[href="/megrendeles/"]')).toHaveCount(1)
       const contact = page.locator('#kapcsolat a[href="/megrendeles/"]')
       const htmlLang = await page.locator('html').getAttribute('lang')
       const orderLabel = htmlLang === 'en' ? 'Order' : 'Megrendelés'
-      const workLabel = htmlLang === 'en' ? 'My work' : 'Munkáim'
-      const cvLabel = htmlLang === 'en' ? 'Download resume' : 'Önéletrajz letöltése'
+      const packagesLabel = htmlLang === 'en' ? 'Packages and prices' : 'Csomagok és árak'
+      const emailLabel = htmlLang === 'en' ? 'Write to us' : 'Írjon nekünk'
       await expect(contact).not.toHaveAttribute('lang')
       await expect(contact).toHaveText(orderLabel)
       const orderCount = await all.count()
@@ -173,12 +174,11 @@ test.describe('/megrendeles/', () => {
         await expect(all.nth(i)).not.toHaveAttribute('lang')
       }
       const heroActions = page.locator('.hero-actions a, .hero-actions button')
-      await expect(heroActions).toHaveCount(3)
-      await expect(heroActions.nth(0)).toHaveText(workLabel)
-      await expect(heroActions.nth(1)).toContainText(cvLabel)
-      await expect(heroActions.nth(2)).toHaveText(htmlLang === 'en' ? 'Discuss your project' : 'Beszéljük meg a feladatát')
-      const bodyText = await page.locator('body').innerText()
-      expect([...bodyText.matchAll(/ajánlat/gi)].length, 'S1 ajánlat count').toBe(0)
+      await expect(heroActions).toHaveCount(2)
+      await expect(heroActions.nth(0)).toHaveText(packagesLabel)
+      await expect(heroActions.nth(1)).toHaveText(emailLabel)
+      await expect(page.locator('#hero a[href="/megrendeles/"]')).toHaveText(htmlLang === 'en' ? '↗ Discuss your project' : '↗ Beszéljük meg a feladatát')
+      // The former „no ajánlat on the home page” rule (S1) ended with the customer-facing hero.
     }
 
     await assertOrderEntryPoints()

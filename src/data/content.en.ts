@@ -4,9 +4,10 @@ export const contentEn: SiteContent = {
   meta: {
     title: 'Ott Benjámin, electrical engineer and software developer',
     description:
-      'Ott Benjámin, electrical engineer and software developer. Python, full-stack development, industrial systems, energy and telecommunications R&D.',
+      'Web order and quote request forms, automation and measurement data processing for small and medium-sized businesses. Packages and prices on the page.',
   },
   nav: {
+    packages: 'Packages',
     about: 'About',
     experience: 'Experience',
     skills: 'Skills',
@@ -15,11 +16,11 @@ export const contentEn: SiteContent = {
     contact: 'Contact',
   },
   hero: {
-    headline: "Software that sets systems in motion.",
-    subheadline: "As an electrical engineer and software developer, I build web interfaces, automation and software that connects to physical devices.",
-    ctaContact: 'Get in touch',
-    ctaCv: 'Download resume',
-    ctaLinkedIn: 'LinkedIn profile',
+    headline: 'Web forms and automation for small and medium-sized businesses.',
+    subheadline: 'I build order and quote request forms for your website, automate repetitive manual work with Excel, CSV and email in Python, process measurement data, and develop software that connects to physical devices.',
+    audience: 'For example, panel cutting and furniture businesses, UNAS webshops and small B2B companies.',
+    ctaPackages: 'Packages and prices',
+    ctaEmail: 'Write to us',
     demoLabel: "See it in action",
     inquiryLabel: "Discuss your project",
     chips: [
@@ -36,24 +37,117 @@ export const contentEn: SiteContent = {
       'R&D',
     ],
   },
+  packages: {
+    title: 'Packages and prices',
+    intro: 'Fixed-fee packages and work within a budget agreed in advance. The full scope and the ordering process are on the order page (in Hungarian).',
+    sheet: 'SHEET',
+    detailLabel: 'Details and ordering (Hungarian)',
+    period: { once: '{amount} one-off fee', month: '{amount} per month' },
+    items: [
+      {
+        letter: 'A',
+        anchor: 'szolgaltatas-rendelolap',
+        title: 'Web order or quote request form',
+        summary: 'Customers enter their order or quote request on your website and can upload files. You receive each request in one tidy email.',
+        facts: [
+          'up to ten fields, built into your existing website',
+          'file upload, for example Excel, PDF or DXF',
+          'confirmation email to the customer',
+          'one round of revisions',
+          'usually ready within three weeks',
+        ],
+        prices: [
+          { amount: 'orderForm', period: 'once' },
+          { label: 'Spreadsheet version', amount: 'orderFormSheet', period: 'once' },
+          { label: 'Hosting on request', amount: 'hosting', period: 'month' },
+        ],
+      },
+      {
+        letter: 'B',
+        anchor: 'szolgaltatas-automatizalas',
+        title: 'Automating repetitive tasks',
+        summary: 'Work done the same way by hand every week or every day, such as merging spreadsheets or retyping data, can often be done by a small program.',
+        facts: ['Excel files, CSV exports and emails', 'the program is written in Python', 'short user guide'],
+        prices: [],
+        priceNote: 'Hourly rate with an upper limit agreed in advance.',
+      },
+      {
+        letter: 'C',
+        anchor: 'szolgaltatas-adatok',
+        title: 'Processing measurement and technical data in Python',
+        summary: 'A Python program that can be rerun at any time sorts and summarises the files exported from instruments or systems.',
+        facts: ['summary table or chart', 'rerunnable program', 'short description'],
+        prices: [],
+        priceNote: 'Hourly rate with an upper limit agreed in advance.',
+      },
+      {
+        letter: 'D',
+        anchor: 'szolgaltatas-egyedi',
+        title: 'Custom web solution',
+        summary: 'For orders, quote requests or internal records that need calculations, status tracking or their own admin interface.',
+        facts: [
+          'I review how it works today and we discuss it',
+          'written quote with the scope, price and expected duration',
+          'for larger projects, a smaller usable version comes first',
+        ],
+        prices: [],
+        priceNote: 'The price is set after a needs assessment.',
+      },
+      {
+        letter: 'E',
+        anchor: 'szolgaltatas-bemutatkozo',
+        title: 'Introduction website',
+        summary: 'A simple site that reads well on mobile and tells visitors what you do and how to reach you.',
+        facts: [
+          'up to six content sections',
+          'six to ten photos that you provide',
+          'basic search engine setup',
+          'one round of revisions',
+          'usually ready within three weeks',
+          'the domain fee is paid separately',
+        ],
+        prices: [
+          { amount: 'introSite', period: 'once' },
+          { label: 'Hosting on request', amount: 'hosting', period: 'month' },
+        ],
+      },
+      {
+        letter: 'F',
+        anchor: 'szolgaltatas-uzemeltetes',
+        title: 'Hosting and maintenance',
+        summary: 'An optional add-on to the web packages if you would rather not deal with hosting and technical details.',
+        facts: [
+          'hosting and a secure (https) connection',
+          'regular backups',
+          'monitoring and repair if the site goes down',
+          'the domain fee is not included',
+        ],
+        prices: [
+          { label: 'Hosting', amount: 'hosting', period: 'month' },
+          { label: 'With edits (up to half an hour a month)', amount: 'hostingWithEdits', period: 'month' },
+        ],
+      },
+    ],
+  },
   about: {
     title: 'About',
-    text: 'I am a software developer and technical project engineer with an electrical engineering background. I am interested in roles where engineering thinking, software development and system-level problem solving come together.\n\nI have worked on web and backend development, Python-based engineering tasks, telecommunications R&D environments, and the technical coordination of industrial and energy projects. My strength is bridging developers, engineers and business stakeholders.',
+    moreLabel: 'More about me',
+    text: 'I am an electrical engineer, software developer and technical project engineer. I like working on tasks that call for engineering thinking, programming and an overview of the whole system.\n\nI have built web interfaces, server-side systems and Python-based engineering tools. I have worked in telecommunications R&D and on the technical coordination of industrial and energy projects. I also help developers, engineers and business partners work together.',
     highlights: [
       {
         title: 'Engineering systems mindset',
         description:
-          'Structured analysis, system-level thinking and a comprehensive approach to technical problems.',
+          'I look at technical problems in context, keeping the whole system in mind.',
       },
       {
         title: 'Software development background',
         description:
-          'Full-stack experience with modern web and backend technologies, plus Python-based engineering development.',
+          'I build web interfaces, server-side systems and Python-based engineering tools.',
       },
       {
         title: 'Project and partner coordination',
         description:
-          'Alignment between developers, engineers and business stakeholders, plus documentation and testing support.',
+          'I coordinate the work of developers, engineers and business partners, and support documentation and testing.',
       },
     ],
   },
@@ -109,7 +203,7 @@ export const contentEn: SiteContent = {
         period: 'Since 2024',
         bullets: [
           'Development of web and technical solutions based on business needs.',
-          'Frontend, backend and automation-oriented tasks.',
+          'Frontend and backend development and automation of repetitive tasks.',
           'Use of modern development tools and AI-assisted workflows.',
         ],
       },
@@ -152,9 +246,7 @@ export const contentEn: SiteContent = {
           'Git',
           'Docker',
           'Linux',
-          'CI/CD',
-          'Cursor',
-          'AI-assisted development',
+          'Automated testing and deployment',
         ],
       },
       {
@@ -252,7 +344,7 @@ export const contentEn: SiteContent = {
   },
   contact: {
     title: 'Contact',
-    text: 'I am open to opportunities in software development, technical project engineering, industrial/energy systems and R&D.',
+    text: 'Tell me briefly which task you would like to make simpler. I work on web forms, automation, measurement data processing and software that connects to physical devices.',
     email: 'ott.benjamin.ev@ottbenjamin.hu',
     location: 'Budapest, Hungary',
     linkedIn: 'linkedin.com/in/benjaminottee',
@@ -263,6 +355,10 @@ export const contentEn: SiteContent = {
   },
   footer: {
     text: '© 2026 Ott Benjámin, electrical engineer and software developer',
+    privacy: 'Privacy notice (Hungarian)',
+    imprint: 'Imprint',
+    imprintHref: '/en/imprint/',
+    terms: 'Terms and conditions (draft, Hungarian)',
   },
   common: {
     emailLabel: 'Email',
@@ -274,6 +370,7 @@ export const contentEn: SiteContent = {
     orderLink: 'Order',
     navMain: 'Main navigation',
     navMobile: 'Mobile navigation',
+    navLegal: 'Legal information',
     skipToContent: 'Skip to content',
     backToTop: 'OB. - Ott Benjámin, back to top',
   },

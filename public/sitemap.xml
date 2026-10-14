@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://ottbenjamin.hu/</loc>
+  </url>
+  <url>
+    <loc>https://ottbenjamin.hu/megrendeles/</loc>
+  </url>
+  <url>
+    <loc>https://ottbenjamin.hu/impresszum/</loc>
+    <xhtml:link rel="alternate" hreflang="hu" href="https://ottbenjamin.hu/impresszum/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://ottbenjamin.hu/en/imprint/" />
+  </url>
+  <url>
+    <loc>https://ottbenjamin.hu/en/imprint/</loc>
+    <xhtml:link rel="alternate" hreflang="hu" href="https://ottbenjamin.hu/impresszum/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://ottbenjamin.hu/en/imprint/" />
+  </url>
+  <url>
+    <loc>https://ottbenjamin.hu/aszf/</loc>
+  </url>
+  <url>
+    <loc>https://ottbenjamin.hu/adatkezeles/</loc>
+  </url>
+</urlset>
