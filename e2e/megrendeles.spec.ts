@@ -166,7 +166,7 @@ test.describe('/megrendeles/', () => {
       const htmlLang = await page.locator('html').getAttribute('lang')
       const orderLabel = htmlLang === 'en' ? 'Order' : 'Megrendelés'
       const packagesLabel = htmlLang === 'en' ? 'Packages and prices' : 'Csomagok és árak'
-      const emailLabel = htmlLang === 'en' ? 'Write to us' : 'Írjon nekünk'
+      const emailLabel = htmlLang === 'en' ? 'Get in touch' : 'Keressen bátran'
       await expect(contact).not.toHaveAttribute('lang')
       await expect(contact).toHaveText(orderLabel)
       const orderCount = await all.count()

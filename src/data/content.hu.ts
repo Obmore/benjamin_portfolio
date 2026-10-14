@@ -20,7 +20,7 @@ export const contentHu: SiteContent = {
     subheadline: 'Megrendelő és ajánlatkérő űrlapot készítek a honlapjára, Pythonnal automatizálom az Excel-, CSV- és e-mail-alapú ismétlődő kézi munkát, feldolgozom a mérési adatokat, és fizikai eszközökhöz kapcsolódó szoftvert fejlesztek.',
     audience: 'Például lapszabászatoknak és bútoripari cégeknek, UNAS-webshopoknak és kisebb B2B-vállalkozásoknak.',
     ctaPackages: 'Csomagok és árak',
-    ctaEmail: 'Írjon nekünk',
+    ctaEmail: 'Keressen bátran',
     demoLabel: "Nézze meg működés közben",
     inquiryLabel: "Beszéljük meg a feladatát",
     chips: [

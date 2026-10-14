@@ -141,7 +141,7 @@ test.describe('homepage /megrendeles/ entry points', () => {
 
     await assertHeroActionOrder(page, {
       packages: 'Csomagok és árak',
-      email: 'Írjon nekünk',
+      email: 'Keressen bátran',
       order: '↗ Beszéljük meg a feladatát',
     })
     // Prices are on the home page now (#csomagok); customer-site.spec.ts compares them with /megrendeles/.
@@ -230,7 +230,7 @@ test.describe('homepage /megrendeles/ entry points', () => {
 
     await assertHeroActionOrder(page, {
       packages: 'Packages and prices',
-      email: 'Write to us',
+      email: 'Get in touch',
       order: '↗ Discuss your project',
     })
   })

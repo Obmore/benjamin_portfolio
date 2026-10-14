@@ -20,7 +20,7 @@ export const contentEn: SiteContent = {
     subheadline: 'I build order and quote request forms for your website, automate repetitive manual work with Excel, CSV and email in Python, process measurement data, and develop software that connects to physical devices.',
     audience: 'For example, panel cutting and furniture businesses, UNAS webshops and small B2B companies.',
     ctaPackages: 'Packages and prices',
-    ctaEmail: 'Write to us',
+    ctaEmail: 'Get in touch',
     demoLabel: "See it in action",
     inquiryLabel: "Discuss your project",
     chips: [
