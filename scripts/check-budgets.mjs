@@ -9,9 +9,10 @@ const mainHtmlPath = path.join(dist, 'index.html')
 const orderHtmlPath = path.join(dist, 'megrendeles/index.html')
 
 const MAIN_BUDGETS = {
-  entryJs: 73728,
+  // Raised from 73728 / 9420 for the customer-facing home page (packages, hero e-mail, JSON-LD).
+  entryJs: 76800,
   allJs: 160 * 1024,
-  css: 9420,
+  css: 9728,
   fonts: 120 * 1024,
   preloadFonts: 60 * 1024,
 }

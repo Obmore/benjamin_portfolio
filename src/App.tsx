@@ -4,6 +4,7 @@ import { Footer } from '@/components/layout/Footer'
 import { SeoHead } from '@/components/SeoHead'
 import { GridBackground } from '@/components/visuals/GridBackground'
 import { Hero } from '@/components/sections/Hero'
+import { Packages } from '@/components/sections/Packages'
 import { About } from '@/components/sections/About'
 import { Experience } from '@/components/sections/Experience'
 import { Skills } from '@/components/sections/Skills'
@@ -42,6 +43,7 @@ function AppShell() {
       <Navbar />
       <main id="main" tabIndex={-1} className="outline-none">
         <Hero />
+        <Packages />
         <section className="motion-story" data-motion-story />
         <Projects />
         <About />

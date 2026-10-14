@@ -1,6 +1,6 @@
 # Ott Benjámin - Portfolio
 
-Premium minimal portfolio website for Ott Benjámin - Electrical Engineer & Software Developer.
+Customer-facing website of Ott Benjámin, sole proprietor: web order forms, automation and measurement data processing for small and medium-sized businesses.
 
 ## Stack
 
@@ -65,6 +65,9 @@ Place PDFs in `public/cv/`:
 - SEO meta tags and JSON-LD
 - Contact section with mailto and copy-to-clipboard
 - Static Hungarian privacy notice at `/adatkezeles/`, linked from both footers
+- Packages and prices on the home page (`#csomagok`) and on `/megrendeles/`, from one price source
+- Imprint at `/impresszum/` (Hungarian) and `/en/imprint/` (English), draft terms at `/aszf/`
+- `sitemap.xml` with the indexable pages, referenced from `robots.txt`
 
 Visual sources and implementation notes: [interactive experience](docs/interactive-experience.md).
 
@@ -84,6 +87,13 @@ for baseline updates and browser limitations.
 Pull requests run the same build, budget and browser checks on a Windows runner.
 Failed browser tests retain screenshots and Playwright traces as CI artifacts.
 The Rollin suite covers both resting poses and timed intermediate frames.
+
+Package prices have one source: `src/data/pricing.ts`. The home page imports it,
+and the build writes the same amounts into `megrendeles/index.html` through
+`{{huf:…}}` and `{{vat}}` placeholders (see `vite.config.ts`). Never type an amount
+into the HTML; `npm run check:megrendeles` and `e2e/customer-site.spec.ts` fail if
+the two pages drift apart. `npm run check:site` checks the sitemap against the
+built pages, the single contact address and the colour palette.
 
 The privacy notice has one source: `adatkezeles/index.html`. Its reviewed article
 is fingerprinted in `docs/privacy-content.sha256` and compared with the built page

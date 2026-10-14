@@ -6,6 +6,7 @@ export const CV_HU_FILENAME = 'Ott_Benjamin_CV_HU.pdf'
 export const CV_EN_FILENAME = 'Ott_Benjamin_CV_EN.pdf'
 
 export const SECTION_IDS = {
+  packages: 'csomagok',
   about: 'rolam',
   experience: 'tapasztalat',
   skills: 'kompetenciak',
@@ -19,11 +20,12 @@ export const ANCHOR_ALIASES: Record<string, string> = {
 }
 
 export const SECTION_SHEETS = {
-  hero: '01/07',
-  projects: '02/07',
-  about: '03/07',
-  experience: '04/07',
-  skills: '05/07',
-  cv: '06/07',
-  contact: '07/07',
+  hero: '01/08',
+  packages: '02/08',
+  projects: '03/08',
+  about: '04/08',
+  experience: '05/08',
+  skills: '06/08',
+  cv: '07/08',
+  contact: '08/08',
 } as const

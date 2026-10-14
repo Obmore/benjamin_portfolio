@@ -4,9 +4,10 @@ export const contentHu: SiteContent = {
   meta: {
     title: 'Ott Benjámin, villamosmérnök és szoftverfejlesztő',
     description:
-      'Ott Benjámin, villamosmérnök és szoftverfejlesztő. Python, webfejlesztés, ipari rendszerek, energetika és távközlési kutatás-fejlesztés.',
+      'Webes megrendelő és ajánlatkérő űrlap, automatizálás és mérési adatok feldolgozása kis- és középvállalkozásoknak. Csomagok és árak az oldalon.',
   },
   nav: {
+    packages: 'Csomagok',
     about: 'Rólam',
     experience: 'Tapasztalat',
     skills: 'Kompetenciák',
@@ -15,11 +16,11 @@ export const contentHu: SiteContent = {
     contact: 'Kapcsolat',
   },
   hero: {
-    headline: "Szoftver, ami mozgásba hozza a rendszereket.",
-    subheadline: "Villamosmérnökként és szoftverfejlesztőként webes felületeket, automatizálást és fizikai eszközökhöz kapcsolódó szoftvereket készítek.",
-    ctaContact: 'Kapcsolatfelvétel',
-    ctaCv: 'Önéletrajz letöltése',
-    ctaLinkedIn: 'LinkedIn-profil',
+    headline: 'Webes űrlapok és automatizálás kis- és középvállalkozásoknak.',
+    subheadline: 'Megrendelő és ajánlatkérő űrlapot készítek a honlapjára, Pythonnal automatizálom az Excel-, CSV- és e-mail-alapú ismétlődő kézi munkát, feldolgozom a mérési adatokat, és fizikai eszközökhöz kapcsolódó szoftvert fejlesztek.',
+    audience: 'Például lapszabászatoknak és bútoripari cégeknek, UNAS-webshopoknak és kisebb B2B-vállalkozásoknak.',
+    ctaPackages: 'Csomagok és árak',
+    ctaEmail: 'Keressen bátran',
     demoLabel: "Nézze meg működés közben",
     inquiryLabel: "Beszéljük meg a feladatát",
     chips: [
@@ -36,8 +37,101 @@ export const contentHu: SiteContent = {
       'Kutatás és fejlesztés',
     ],
   },
+  packages: {
+    title: 'Csomagok és árak',
+    intro: 'Fix díjas csomagok és előre egyeztetett keretű munkák. A részletes tartalmat és a megrendelés menetét a megrendelő oldalon találja.',
+    sheet: 'LAP',
+    detailLabel: 'Részletek és megrendelés',
+    period: { once: '{amount} egyszeri díj', month: 'havi {amount}' },
+    items: [
+      {
+        letter: 'A',
+        anchor: 'szolgaltatas-rendelolap',
+        title: 'Webes rendelőlap vagy ajánlatkérő',
+        summary: 'A vevő az Ön honlapján adja meg a rendelés vagy az ajánlatkérés adatait, és fájlt is feltölthet. Ön a kérést egyben, rendezetten kapja meg e-mailben.',
+        facts: [
+          'legfeljebb tíz mező, a meglévő honlapjába építve',
+          'fájlfeltöltés, például Excel-, PDF- vagy DXF-fájl',
+          'visszaigazoló e-mail a vevőnek',
+          'egy javítási kör',
+          'általában három héten belül elkészül',
+        ],
+        prices: [
+          { amount: 'orderForm', period: 'once' },
+          { label: 'Táblázatba író változat', amount: 'orderFormSheet', period: 'once' },
+          { label: 'Üzemeltetés kérésre', amount: 'hosting', period: 'month' },
+        ],
+      },
+      {
+        letter: 'B',
+        anchor: 'szolgaltatas-automatizalas',
+        title: 'Ismétlődő feladatok automatizálása',
+        summary: 'Amit hetente vagy naponta ugyanúgy, kézzel végeznek, például táblázatokat másolnak össze vagy adatokat írnak át, azt gyakran egy kis program is el tudja végezni.',
+        facts: ['Excel-fájlok, CSV-exportok és e-mailek', 'a program Pythonban készül', 'rövid használati leírás'],
+        prices: [],
+        priceNote: 'Óradíj alapján, előre egyeztetett felső kerettel.',
+      },
+      {
+        letter: 'C',
+        anchor: 'szolgaltatas-adatok',
+        title: 'Mérési és műszaki adatok feldolgozása Pythonban',
+        summary: 'A műszerekből vagy rendszerekből exportált fájlok rendezését és összesítését egy bármikor újra lefuttatható Python-program végzi el.',
+        facts: ['összesítő táblázat vagy grafikon', 'újra lefuttatható program', 'rövid leírás'],
+        prices: [],
+        priceNote: 'Óradíj alapján, előre egyeztetett felső kerettel.',
+      },
+      {
+        letter: 'D',
+        anchor: 'szolgaltatas-egyedi',
+        title: 'Egyedi webes megoldás',
+        summary: 'Számolást, állapotkövetést vagy saját kezelőfelületet igénylő rendeléshez, ajánlatkéréshez vagy belső nyilvántartáshoz.',
+        facts: [
+          'átnézem, hogyan működik most, és egyeztetünk',
+          'írásos ajánlat a tartalommal, az árral és a várható időtartammal',
+          'nagyobb munkánál először egy kisebb, már használható változat',
+        ],
+        prices: [],
+        priceNote: 'Az árat az igényfelmérés után adom meg.',
+      },
+      {
+        letter: 'E',
+        anchor: 'szolgaltatas-bemutatkozo',
+        title: 'Bemutatkozó oldal',
+        summary: 'Egyszerű, mobilon is jól olvasható oldal, amelyből a látogató megtudja, mivel foglalkozik Ön, és hogyan érheti el.',
+        facts: [
+          'legfeljebb hat tartalmi rész',
+          'legalább hat, legfeljebb tíz fotó, amelyet Ön ad át',
+          'alapvető keresőbeállítás',
+          'egy javítási kör',
+          'általában három héten belül elkészül',
+          'a domain díja külön fizetendő',
+        ],
+        prices: [
+          { amount: 'introSite', period: 'once' },
+          { label: 'Üzemeltetés kérésre', amount: 'hosting', period: 'month' },
+        ],
+      },
+      {
+        letter: 'F',
+        anchor: 'szolgaltatas-uzemeltetes',
+        title: 'Üzemeltetés',
+        summary: 'A webes csomagokhoz választható kiegészítő, ha nem szeretne a tárhellyel és a technikai részletekkel foglalkozni.',
+        facts: [
+          'tárhely és biztonságos (https) kapcsolat',
+          'rendszeres mentés',
+          'működésfigyelés és javítás, ha az oldal leáll',
+          'a domain díja nincs benne',
+        ],
+        prices: [
+          { label: 'Üzemeltetés', amount: 'hosting', period: 'month' },
+          { label: 'Módosításokkal (havonta legfeljebb fél óra)', amount: 'hostingWithEdits', period: 'month' },
+        ],
+      },
+    ],
+  },
   about: {
     title: 'Rólam',
+    moreLabel: 'Rólam részletesen',
     text: 'Villamosmérnök, szoftverfejlesztő és műszaki projektmérnök vagyok. Olyan feladatokon szeretek dolgozni, amelyekhez mérnöki gondolkodásra, programozásra és a teljes rendszer átlátására is szükség van.\n\nFejlesztettem webes felületeket, szerveroldali rendszereket és Python-alapú mérnöki eszközöket. Dolgoztam távközlési kutatás-fejlesztésben, valamint ipari és energetikai projektek műszaki koordinációján is. A fejlesztők, mérnökök és üzleti partnerek közötti együttműködést is segítem.',
     highlights: [
       {
@@ -250,7 +344,7 @@ export const contentHu: SiteContent = {
   },
   contact: {
     title: 'Kapcsolat',
-    text: 'Szívesen dolgozom szoftverfejlesztési és műszaki projekteken, ipari és energetikai rendszereken, valamint kutatás-fejlesztési feladatokon.',
+    text: 'Írja le röviden, melyik feladatát szeretné egyszerűbbé tenni. Webes űrlapokon, automatizáláson, mérési adatok feldolgozásán és fizikai eszközökhöz kapcsolódó szoftvereken dolgozom.',
     email: 'ott.benjamin.ev@ottbenjamin.hu',
     location: 'Budapest',
     linkedIn: 'linkedin.com/in/benjaminottee',
@@ -261,6 +355,10 @@ export const contentHu: SiteContent = {
   },
   footer: {
     text: '© 2026 Ott Benjámin, villamosmérnök és szoftverfejlesztő',
+    privacy: 'Adatkezelési tájékoztató',
+    imprint: 'Impresszum',
+    imprintHref: '/impresszum/',
+    terms: 'ÁSZF (tervezet)',
   },
   common: {
     emailLabel: 'E-mail',
@@ -272,6 +370,7 @@ export const contentHu: SiteContent = {
     orderLink: 'Megrendelés',
     navMain: 'Fő navigáció',
     navMobile: 'Mobil navigáció',
+    navLegal: 'Jogi információk',
     skipToContent: 'Ugrás a tartalomra',
     backToTop: 'OB. - Ott Benjámin, ugrás az oldal tetejére',
   },
