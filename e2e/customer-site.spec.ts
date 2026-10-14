@@ -155,6 +155,10 @@ test.describe('AC3 imprint pages', () => {
     expect((await page.goto(url))?.status()).toBe(200)
     await expect(page.locator('html')).toHaveAttribute('lang', lang)
     for (const fact of facts) await expect(page.locator('main')).toContainText(fact)
+    for (const contact of ['https://support.github.com/contact', 'https://www.fastly.com/contact-us']) {
+      await expect(page.locator(`main a[href="${contact}"]`)).toHaveCount(1)
+    }
+    await expect(page.locator('main')).not.toContainText('[KÉRDÉS')
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([])
   })
 })
