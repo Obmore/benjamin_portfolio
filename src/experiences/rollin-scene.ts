@@ -2,9 +2,19 @@ import { Anchor, Box, Cylinder, Ellipse, Group, Illustration, Shape } from 'zdog
 
 export type RollinStage = 'docked' | 'signal' | 'open' | 'leaving' | 'ride' | 'return' | 'locking' | 'charge'
 
+export type RollinScene = {
+  show(stage: RollinStage, animate?: boolean, complete?: () => void): void
+  view(degrees: number): void
+  destroy(): void
+}
+
 // One coordinate system and complete solids keep the scooter aligned with a
 // single dock. This is an original illustration, not a manufacturer CAD model.
-export function createRollinScene(svg: SVGSVGElement) {
+// Building and first painting the scene takes about 35 ms of main-thread work
+// at 4x CPU throttling, too close to the 50 ms long-task budget for one task.
+// Each bare `yield` is a point where the caller may hand the main thread back;
+// the scene is complete when the generator returns.
+export function* buildRollinScene(svg: SVGSVGElement): Generator<void, RollinScene, void> {
   const illo = new Illustration({ element: svg, zoom: 1.25, dragRotate: false })
   illo.setSize(500, 310)
   const world = new Group({ addTo: illo, rotate: { x: -.38, y: -24 * Math.PI / 180 }, translate: { x: -15, y: 0 } })
@@ -37,6 +47,7 @@ export function createRollinScene(svg: SVGSVGElement) {
     if (i === 2) gate = latch
     lights.push(new Shape({ addTo: dock, path: [{ x: -7 }, { x: 7 }], translate: { y: 8, z: 14.2 }, stroke: 3, color: i === 2 ? teal : '#89aeb0' }))
   }
+  yield
   // Zdog sorts by each shape's average depth, not by pixel depth. Keep the
   // vehicle together so a dock cannot cut through its long steering column.
   // https://zzz.dog/extras#z-fighting
@@ -71,14 +82,14 @@ export function createRollinScene(svg: SVGSVGElement) {
   new Ellipse({ addTo: charging, diameter: 23, stroke: 1.5, fill: true, color: '#f3fffa' })
   new Shape({ addTo: charging, path: [{ x: 2, y: -8 }, { x: -5, y: 1 }, { x: 0, y: 1 }, { x: -2, y: 8 }, { x: 5, y: -1 }, { x: 0, y: -1 }], closed: true, stroke: 1, fill: true, color: teal })
   let pose = { travel: 0, lock: 0, signal: 0 }, frame = 0
-  const draw = () => {
+  const place = () => {
     scooter.translate.z = pose.travel * 72
     shadow.translate.z = 77 + pose.travel * 72
     shadow.color = pose.travel ? '#d4e0da' : '#c8d9d3'
     gate.rotate.z = -pose.lock * Math.PI / 2
     signal.translate.x = -99 + pose.signal * 132
-    illo.updateRenderGraph()
   }
+  const draw = () => { place(); illo.updateRenderGraph() }
   const cancel = () => { cancelAnimationFrame(frame); frame = 0; svg.dataset.motion = 'idle' }
   const show = (stage: RollinStage, animate = false, complete?: () => void) => {
     cancel()
@@ -100,7 +111,12 @@ export function createRollinScene(svg: SVGSVGElement) {
     frame = requestAnimationFrame(tick)
   }
   svg.dataset.motion = 'idle'
-  draw()
+  // The first frame is draw()'s updateRenderGraph(), split into its two halves.
+  place()
+  yield
+  illo.updateGraph()
+  yield
+  illo.renderGraph()
   return {
     show,
     view(degrees: number) { world.rotate.y = degrees * Math.PI / 180; draw() },
