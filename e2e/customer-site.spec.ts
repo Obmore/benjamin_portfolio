@@ -149,7 +149,7 @@ test.describe('AC2 packages: one price source for the home page and /megrendeles
 })
 
 test.describe('AC3 imprint pages', () => {
-  const facts = ['Ott Benjámin', '8944 Sárhida, Kossuth utca 32.', '59492319', '90312599-1-40', EMAIL, 'GitHub, Inc.', 'Fastly, Inc.', '[KÉRDÉS: területi kereskedelmi és iparkamara neve]']
+  const facts = ['Ott Benjámin', '8944 Sárhida, Kossuth utca 32.', '59492319', '90312599-1-40', EMAIL, 'GitHub, Inc.', 'Fastly, Inc.', 'Zala Vármegyei Kereskedelmi és Iparkamara']
   for (const [url, lang] of [['/impresszum/', 'hu'], ['/en/imprint/', 'en']] as const) test(`${url} lists the required data`, async ({ page }) => {
     expect((await page.goto(url))?.status()).toBe(200)
     await expect(page.locator('html')).toHaveAttribute('lang', lang)
