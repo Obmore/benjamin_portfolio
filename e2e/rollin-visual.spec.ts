@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { alignRollinHost } from './rollin-host'
 
 // Baselines are reviewed artwork, not automatically accepted screenshots.
 // Use the pinned Playwright Chromium on Windows (see docs/interactive-experience.md).
@@ -13,12 +14,29 @@ for (const width of [390, 1440]) for (const angle of ['-42', '-24', '-23', '-8']
     await page.getByRole('slider', { name: 'Nézőpont' }).fill(angle)
     for (const stage of ['docked', 'ride', 'charge']) {
       await expect(page.locator('.rd-shell')).toHaveAttribute('data-stage', stage)
+      await alignRollinHost(page)
       await expect(page.locator('.rd-scene')).toHaveScreenshot(`rollin-${width}-${angle}-${stage}.png`, { maxDiffPixelRatio: .001 })
       await page.locator('.rd-action').click()
     }
     expect(errors).toEqual([])
   })
 }
+
+// Copy above the work section moves the scene by fractions of a pixel.
+// The reviewed artwork must not depend on that offset.
+for (const width of [390, 1440]) test(`${width}: baseline ignores sub-pixel shifts of the copy above`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  for (const shift of [.25, .5, .75]) {
+    // A fragment-only goto would stay in the same document; start each shift from a fresh load.
+    await page.goto('about:blank')
+    await page.goto('/#munka-hotel-rental', { waitUntil: 'networkidle' })
+    await page.addStyleTag({ content: `body { padding-top: ${shift}px !important }` })
+    await page.getByRole('slider', { name: 'Nézőpont' }).fill('-24')
+    await alignRollinHost(page)
+    await expect(page.locator('.rd-scene'), `${shift}px above`).toHaveScreenshot(`rollin-${width}--24-docked.png`, { maxDiffPixelRatio: .001 })
+  }
+})
 
 test('unlock stays busy until the vehicle stops; idle artwork does not keep repainting', async ({ page }) => {
   await page.goto('/#munka-hotel-rental', { waitUntil: 'networkidle' })

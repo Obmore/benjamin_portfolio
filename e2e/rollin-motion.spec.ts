@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { alignRollinHost } from './rollin-host'
 
 // Exercise intermediate poses with a controlled clock; endpoint snapshots
 // alone cannot catch a dock painting over the moving steering column.
@@ -23,6 +24,7 @@ for (const angle of ['-42', '-24', '-8']) test(`Rollin motion remains coherent a
     expect(paths.lastHousing).toBeGreaterThan(-1)
     expect(paths.stem).toBeGreaterThan(paths.lastHousing)
     expect(paths.clipped).toBe(0)
+    await alignRollinHost(page)
     await expect(page.locator('.rd-scene')).toHaveScreenshot(`rollin-${angle}-${stage}.png`, { maxDiffPixelRatio: .001 })
   }
   await page.locator('.rd-action').click()
