@@ -38,6 +38,20 @@ for (const width of [390, 1440]) test(`${width}: baseline ignores sub-pixel shif
   }
 })
 
+// The baselines above are taken after a viewpoint input, which repaints through
+// Zdog's updateRenderGraph(). The first frame is built in resumable steps instead.
+test('the first frame paints exactly what Zdog renders for the same viewpoint', async ({ page }) => {
+  await page.goto('/#munka-hotel-rental', { waitUntil: 'networkidle' })
+  await expect(page.locator('.rd-shell')).toHaveAttribute('data-stage', 'docked')
+  const slider = page.getByRole('slider', { name: 'Nézőpont' })
+  const markup = () => page.locator('.rd-render').evaluate(svg => svg.outerHTML)
+  const first = await markup()
+  await slider.fill('-23')
+  expect(await markup()).not.toBe(first)
+  await slider.fill('-24')
+  expect(await markup()).toBe(first)
+})
+
 test('unlock stays busy until the vehicle stops; idle artwork does not keep repainting', async ({ page }) => {
   await page.goto('/#munka-hotel-rental', { waitUntil: 'networkidle' })
   await page.clock.install({ time: new Date('2026-10-05T10:00:00Z') })

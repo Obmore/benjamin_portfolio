@@ -112,6 +112,9 @@ for (const width of [390, 1440]) test(`${width}: delayed motion failure preserve
   expect(new URL(page.url()).hash).toBe('#tapasztalat')
 })
 
+type CinemaFrame = { startTime: number, duration: number, renderStart: number, scripts: { invoker: string, sourceURL: string, startTime: number, duration: number }[] }
+type CinemaProbe = { cinemaTasks: PerformanceEntry[], cinemaFrames: CinemaFrame[] }
+
 test('4x CPU: full cinema scrub has no long tasks over 50ms in three fresh pages', async ({ browser }) => {
   // Three throttled browser contexts plus trace teardown can exceed the default
   // 30s on shared CI runners. The measured 50ms task budget remains unchanged.
@@ -123,15 +126,30 @@ test('4x CPU: full cinema scrub has no long tasks over 50ms in three fresh pages
     await ready(page)
     await pose(page, 0)
     await page.evaluate(() => {
-      Object.assign(window, { cinemaTasks: [] })
-      new PerformanceObserver(list => (window as unknown as { cinemaTasks: number[] }).cinemaTasks.push(...list.getEntries().map(e => e.duration))).observe({ type: 'longtask' })
+      const probe = window as unknown as CinemaProbe
+      Object.assign(probe, { cinemaTasks: [], cinemaFrames: [] })
+      new PerformanceObserver(list => probe.cinemaTasks.push(...list.getEntries())).observe({ type: 'longtask' })
+      // Only for the failure message: the scripts and rendering behind a long task.
+      new PerformanceObserver(list => probe.cinemaFrames.push(...list.getEntries() as unknown as CinemaFrame[])).observe({ type: 'long-animation-frame' })
     })
     for (let i = 0; i < 30; i++) {
-      await page.evaluate(() => scrollBy({ top: 60, behavior: 'instant' }))
+      await page.evaluate(i => { performance.mark(`cinema-step-${i}`); scrollBy({ top: 60, behavior: 'instant' }) }, i)
       await page.waitForTimeout(35)
     }
-    const tasks = await page.evaluate(() => (window as unknown as { cinemaTasks: number[] }).cinemaTasks)
-    expect(tasks.every(t => t <= 50), JSON.stringify(tasks)).toBe(true)
+    const tasks = await page.evaluate(() => {
+      const { cinemaTasks, cinemaFrames } = window as unknown as CinemaProbe
+      const steps = performance.getEntriesByType('mark').filter(m => m.name.startsWith('cinema-step-'))
+      return cinemaTasks.map(({ startTime: start, duration }) => {
+        const end = start + duration
+        const ran = cinemaFrames.flatMap(f => [
+          ...f.scripts.filter(s => s.startTime < end && s.startTime + s.duration > start)
+            .map(s => `${s.invoker}@${s.sourceURL.split('/').pop()} ${Math.round(s.duration)}ms`),
+          ...(f.renderStart && f.renderStart < end && f.startTime + f.duration > start ? [`render ${Math.round(Math.min(end, f.startTime + f.duration) - Math.max(start, f.renderStart))}ms`] : []),
+        ])
+        return { duration, step: steps.filter(m => m.startTime <= start).length - 1, ran }
+      })
+    })
+    expect(tasks.every(t => t.duration <= 50), JSON.stringify(tasks)).toBe(true)
     await context.close()
   }
 })

@@ -26,6 +26,9 @@ const copy = {
 // Hands the main thread back between scene build steps. Where supported,
 // scheduler.yield() keeps the continuation ahead of other queued tasks.
 const yieldToMain = () => globalThis.scheduler?.yield?.() ?? new Promise<void>(resolve => setTimeout(resolve))
+// Build steps rarely take over 5 ms even at 8x CPU throttling, so tasks that
+// stop taking steps after sliceMs stay far below the 50 ms long-task budget.
+const sliceMs = 4
 
 export function mountRollin(host: HTMLElement) {
   let cancelled = false, unmount: (() => void) | undefined
@@ -34,10 +37,17 @@ export function mountRollin(host: HTMLElement) {
 }
 
 async function mountScene(host: HTMLElement, cancelled: () => boolean) {
+  // Build off-document in short tasks. The description stays until the
+  // complete scene replaces it in a single step. Steps share a task until it
+  // has run for sliceMs; the chunk evaluation has already filled the first.
+  let task = -Infinity
+  const proceed = async () => {
+    if (performance.now() - task >= sliceMs) { await yieldToMain(); task = performance.now() }
+    return !cancelled()
+  }
+  if (!await proceed()) return
   // Keep React's fallback node in place so locale reconciliation retains ownership.
   const fallback = host.querySelector<HTMLElement>('p')
-  // Build off-document in short tasks. The description stays until the
-  // complete scene replaces it in a single step.
   const holder = document.createElement('div')
   holder.innerHTML = `<div class="rd-shell" data-stage="docked">
     <div class="rd-heading"><p class="rd-eyebrow"></p><h4 id="rollin-demo-title"></h4><p class="rd-intro"></p></div>
@@ -60,12 +70,12 @@ async function mountScene(host: HTMLElement, cancelled: () => boolean) {
     const build = buildRollinScene(shell.querySelector<SVGSVGElement>('.rd-render')!)
     let step
     do {
-      await yieldToMain()
-      if (cancelled()) return
+      if (!await proceed()) return
       step = build.next()
     } while (!step.done)
     scene = step.value
   } catch { return }
+  if (!await proceed()) return
   host.append(shell)
   if (fallback) fallback.hidden = true
   const action = get<HTMLButtonElement>('.rd-action'), view = get<HTMLInputElement>('.rd-view input')
