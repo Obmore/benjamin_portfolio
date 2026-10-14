@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { SectionWrapper } from '@/components/ui/SectionWrapper'
 import { SECTION_IDS, SECTION_SHEETS } from '@/lib/constants'
+import { onResolvedHashClick } from '@/lib/anchors'
 
 const icons = [
   <svg key="1" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -22,6 +23,11 @@ const icons = [
 export function About() {
   const { content } = useI18n()
   const paragraphs = content.about.text.split('\n\n')
+  const subsections = [
+    { id: SECTION_IDS.experience, label: content.nav.experience },
+    { id: SECTION_IDS.skills, label: content.nav.skills },
+    { id: SECTION_IDS.cv, label: content.nav.cv },
+  ]
 
   return (
     <SectionWrapper id={SECTION_IDS.about}>
@@ -42,6 +48,21 @@ export function About() {
           ))}
         </div>
       </div>
+      <nav aria-label={content.about.moreLabel} className="mt-10">
+        <ul role="list" className="flex flex-wrap gap-3">
+          {subsections.map(({ id, label }) => (
+            <li key={id}>
+              <a
+                href={`/#${id}`}
+                onClick={event => onResolvedHashClick(event, id)}
+                className="inline-flex min-h-11 items-center gap-2 rounded-md border border-control-border px-4 text-sm text-foreground hover:border-accent hover:text-accent"
+              >
+                {label} <span aria-hidden="true">↓</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </SectionWrapper>
   )
 }

@@ -109,7 +109,7 @@ for (const width of [390, 1440]) test(`${width}: clean URL on ordinary browsing,
   await page.setViewportSize({ width, height: 900 })
   await page.goto('/?source=preview', { waitUntil: 'networkidle' })
   await page.locator('.hero-actions a').first().click()
-  await expect.poll(() => page.locator('#munkaim').evaluate(e => Math.abs(e.getBoundingClientRect().top - 64))).toBeLessThanOrEqual(2)
+  await expect.poll(() => page.locator('#csomagok').evaluate(e => Math.abs(e.getBoundingClientRect().top - 64))).toBeLessThanOrEqual(2)
   await page.mouse.wheel(0, 350)
   await page.waitForTimeout(250)
   expect(new URL(page.url()).hash).toBe('')
@@ -117,10 +117,8 @@ for (const width of [390, 1440]) test(`${width}: clean URL on ordinary browsing,
   await page.locator('.work-index-link').last().click()
   await expect.poll(() => page.locator('.work-card').last().evaluate(e => Math.abs(e.getBoundingClientRect().top - 64))).toBeLessThanOrEqual(2)
   expect(new URL(page.url()).hash).toBe('')
-  if (width === 390) {
-    await page.locator('header button[aria-expanded]').click()
-    await page.locator('.mobile-nav').getByRole('button', { name: 'Tapasztalat', exact: true }).click()
-  } else await page.getByRole('button', { name: 'Tapasztalat', exact: true }).click()
+  // Experience is linked from About since the customer-facing release.
+  await page.getByRole('navigation', { name: 'Rólam részletesen' }).getByRole('link', { name: 'Tapasztalat', exact: true }).click()
   await expect.poll(() => page.locator('#tapasztalat').evaluate(e => Math.abs(e.getBoundingClientRect().top - 64))).toBeLessThanOrEqual(2)
   expect(new URL(page.url()).hash).toBe('')
   const href = (await page.locator('.work-index-link').last().getAttribute('href'))!

@@ -1,30 +1,15 @@
-import type { MouseEvent } from 'react'
+import { useRef } from 'react'
 import { useI18n } from '@/context/useI18n'
 import { Button } from '@/components/ui/Button'
+import { CopyEmailButton } from '@/components/ui/CopyEmailButton'
 import { OrderLink } from '@/components/ui/OrderLink'
 import { HeroVisual } from '@/components/visuals/HeroVisual'
-import {
-  CV_EN_FILENAME,
-  CV_EN_PATH,
-  CV_HU_FILENAME,
-  CV_HU_PATH,
-  SECTION_IDS,
-} from '@/lib/constants'
-import { CV_SIZE_LABEL } from '@/lib/cv-size'
-import { navigateTo, onResolvedHashClick } from '@/lib/anchors'
-
-const HERO_ORDER_CLASS =
-  'hero-btn hero-btn-order ui-pressable inline-flex h-12 items-center justify-center gap-2 rounded-md px-5 text-sm font-medium border-[1.5px] border-accent bg-surface/60 text-foreground hover:bg-accent/5'
+import { EMAIL, SECTION_IDS } from '@/lib/constants'
+import { onResolvedHashClick } from '@/lib/anchors'
 
 export function Hero() {
-  const { content, locale } = useI18n()
-  const cvPath = locale === 'hu' ? CV_HU_PATH : CV_EN_PATH
-  const cvFile = locale === 'hu' ? CV_HU_FILENAME : CV_EN_FILENAME
-
-  const onWorkClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault()
-    navigateTo(SECTION_IDS.projects)
-  }
+  const { content } = useI18n()
+  const emailRef = useRef<HTMLAnchorElement>(null)
 
   return (
     <section id="hero" className="hero-section scroll-mt-16">
@@ -36,29 +21,32 @@ export function Hero() {
               <span className="hero-headline">{content.hero.headline}</span>
             </h1>
             <p className="hero-sub">{content.hero.subheadline}</p>
-            <a className="hero-demo ui-pressable" href="/#munka-hotel-rental" onClick={event => onResolvedHashClick(event, 'munka-hotel-rental')}>
-              <span aria-hidden="true">↗</span> {content.hero.demoLabel}
-            </a>
+            <p className="hero-audience">{content.hero.audience}</p>
             <div className="hero-actions">
               <Button
-                href={`/#${SECTION_IDS.projects}`}
+                href={`/#${SECTION_IDS.packages}`}
                 className="hero-btn hero-btn-primary"
-                onClick={onWorkClick}
+                onClick={event => onResolvedHashClick(event, SECTION_IDS.packages)}
               >
-                {content.nav.projects}
+                {content.hero.ctaPackages}
               </Button>
-              <Button
-                variant="outline"
-                href={cvPath}
-                download={cvFile}
-                className="hero-btn hero-btn-cv"
-              >
-                <span className="hero-cv-stack">
-                  <span>{content.hero.ctaCv}</span>
-                  <span className="hero-cv-meta">{CV_SIZE_LABEL[locale]}</span>
-                </span>
+              <Button variant="outline" href={`mailto:${EMAIL}`} className="hero-btn hero-btn-email">
+                {content.hero.ctaEmail}
               </Button>
-              <OrderLink className={HERO_ORDER_CLASS}>{content.hero.inquiryLabel}</OrderLink>
+            </div>
+            <div className="hero-email">
+              <a ref={emailRef} href={`mailto:${EMAIL}`} className="hero-email-address">
+                {EMAIL}
+              </a>
+              <CopyEmailButton email={EMAIL} linkRef={emailRef} />
+            </div>
+            <div className="hero-links">
+              <OrderLink className="hero-demo ui-pressable">
+                <span aria-hidden="true">↗</span> {content.hero.inquiryLabel}
+              </OrderLink>
+              <a className="hero-demo ui-pressable" href="/#munka-hotel-rental" onClick={event => onResolvedHashClick(event, 'munka-hotel-rental')}>
+                <span aria-hidden="true">↗</span> {content.hero.demoLabel}
+              </a>
             </div>
             <ul className="hero-chips">
               {content.hero.chips.map((chip) => (

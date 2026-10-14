@@ -65,28 +65,28 @@ async function assertNoLangOnOrderLinks(page: Page): Promise<void> {
   }
 }
 
+// Since the customer-facing release the hero offers packages and e-mail; the
+// order page link sits below them and the CV moved under About.
 async function assertHeroActionOrder(
   page: Page,
-  labels: { work: string; cv: string; order: string },
-  cvFile: string,
+  labels: { packages: string; email: string; order: string },
 ): Promise<void> {
   const actions = page.locator('.hero-actions a, .hero-actions button')
-  await expect(actions).toHaveCount(3)
-  await expect(page.locator('.hero-actions').locator(`a[href="${ORDER_HREF}"]`)).toHaveCount(1)
+  await expect(actions).toHaveCount(2)
+  await expect(page.locator('#hero a[href$=".pdf"]')).toHaveCount(0)
 
-  const work = actions.nth(0)
-  const cv = actions.nth(1)
-  const order = actions.nth(2)
+  const packages = actions.nth(0)
+  const email = actions.nth(1)
+  const order = page.locator('#hero').locator(`a[href="${ORDER_HREF}"]`)
 
-  await expect(work).toHaveText(labels.work)
-  await expect(work).toHaveAttribute('href', '/#munkaim')
-  await expect(cv).toContainText(labels.cv)
-  await expect(cv).toHaveAttribute('href', new RegExp(`${cvFile}$`))
-  await expect(cv).toHaveAttribute('download', cvFile)
+  await expect(packages).toHaveText(labels.packages)
+  await expect(packages).toHaveAttribute('href', '/#csomagok')
+  await expect(email).toHaveText(labels.email)
+  await expect(email).toHaveAttribute('href', 'mailto:ott.benjamin.ev@ottbenjamin.hu')
   await assertOrderLink(order, 'hero', labels.order)
 
-  for (const name of ['work', 'cv', 'order'] as const) {
-    const box = await { work, cv, order }[name].boundingBox()
+  for (const name of ['packages', 'email', 'order'] as const) {
+    const box = await { packages, email, order }[name].boundingBox()
     expect(box, `${name} tap target`).toBeTruthy()
     expect(box!.height, `${name} min 44px`).toBeGreaterThanOrEqual(44)
   }
@@ -125,13 +125,13 @@ test.describe('homepage /megrendeles/ entry points', () => {
 
     const headerNav = page.getByRole('navigation', { name: 'Fő navigáció' }).locator(`a[href="${ORDER_HREF}"]`)
     const mobileNav = page.locator('nav[aria-label="Mobil navigáció"]').locator(`a[href="${ORDER_HREF}"]`)
-    const hero = page.locator('.hero-actions').locator(`a[href="${ORDER_HREF}"]`)
+    const hero = page.locator('#hero').locator(`a[href="${ORDER_HREF}"]`)
     const contact = page.locator('#kapcsolat').locator(`a[href="${ORDER_HREF}"]`)
     const footer = page.locator('footer').locator(`a[href="${ORDER_HREF}"]`)
 
     await assertOrderLink(headerNav, 'desktop nav')
     await assertOrderLink(mobileNav, 'mobile nav')
-    await assertOrderLink(hero, 'hero', 'Beszéljük meg a feladatát')
+    await assertOrderLink(hero, 'hero', '↗ Beszéljük meg a feladatát')
     await assertOrderLink(contact, 'contact')
     await assertOrderLink(footer, 'footer')
 
@@ -139,15 +139,14 @@ test.describe('homepage /megrendeles/ entry points', () => {
     await expect(navItems.last()).toHaveText('Megrendelés')
     await expect(navItems.nth(-2)).toHaveText('Kapcsolat')
 
-    await assertHeroActionOrder(
-      page,
-      { work: 'Munkáim', cv: 'Önéletrajz letöltése', order: 'Beszéljük meg a feladatát' },
-      'Ott_Benjamin_CV_HU.pdf',
-    )
-    await expect(page.locator('body')).not.toContainText(/ajánlat/i)
-    await expect(page.locator('body')).not.toContainText(/\d[\d\s\u00a0.]*Ft/)
+    await assertHeroActionOrder(page, {
+      packages: 'Csomagok és árak',
+      email: 'Keressen bátran',
+      order: '↗ Beszéljük meg a feladatát',
+    })
+    // Prices are on the home page now (#csomagok); customer-site.spec.ts compares them with /megrendeles/.
+    await expect(page.locator('#csomagok')).toContainText('Egyedi webes megoldás')
     await expect(page.locator('body')).not.toContainText('Bemutatkozó oldal vállalkozásoknak')
-    await expect(page.locator('body')).not.toContainText('Egyedi webes megoldás')
 
     const heading = page.locator('#hero h1')
     const sub = page.locator('.hero-sub')
@@ -173,7 +172,7 @@ test.describe('homepage /megrendeles/ entry points', () => {
     )
 
     await gotoHome(page)
-    await clickOrderAndExpectPage(page, page.locator('.hero-actions').locator(`a[href="${ORDER_HREF}"]`))
+    await clickOrderAndExpectPage(page, page.locator('#hero').locator(`a[href="${ORDER_HREF}"]`))
 
     await gotoHome(page)
     await clickOrderAndExpectPage(page, page.locator('#kapcsolat').locator(`a[href="${ORDER_HREF}"]`))
@@ -197,6 +196,8 @@ test.describe('homepage /megrendeles/ entry points', () => {
     await assertOrderLink(mobileLink, 'mobile nav order link')
     await expect(mobileNav.locator('button, a').last()).toHaveText('Megrendelés')
 
+    // Measure the settled menu, not a frame of its 200ms slide-in.
+    await mobileNav.evaluate((nav) => Promise.all(nav.getAnimations().map((animation) => animation.finished)))
     const box = await mobileLink.boundingBox()
     expect(box).toBeTruthy()
     expect(box!.height, 'mobile tap target').toBeGreaterThanOrEqual(44)
@@ -217,21 +218,21 @@ test.describe('homepage /megrendeles/ entry points', () => {
 
     const headerNav = page.getByRole('navigation', { name: 'Main navigation' }).locator(`a[href="${ORDER_HREF}"]`)
     const mobileNav = page.locator('nav[aria-label="Mobile navigation"]').locator(`a[href="${ORDER_HREF}"]`)
-    const hero = page.locator('.hero-actions').locator(`a[href="${ORDER_HREF}"]`)
+    const hero = page.locator('#hero').locator(`a[href="${ORDER_HREF}"]`)
     const contact = page.locator('#kapcsolat').locator(`a[href="${ORDER_HREF}"]`)
     const footer = page.locator('footer').locator(`a[href="${ORDER_HREF}"]`)
 
     await assertOrderLink(headerNav, 'desktop nav EN', 'Order')
     await assertOrderLink(mobileNav, 'mobile nav EN', 'Order')
-    await assertOrderLink(hero, 'hero EN', 'Discuss your project')
+    await assertOrderLink(hero, 'hero EN', '↗ Discuss your project')
     await assertOrderLink(contact, 'contact EN', 'Order')
     await assertOrderLink(footer, 'footer EN', 'Order')
 
-    await assertHeroActionOrder(
-      page,
-      { work: 'My work', cv: 'Download resume', order: 'Discuss your project' },
-      'Ott_Benjamin_CV_EN.pdf',
-    )
+    await assertHeroActionOrder(page, {
+      packages: 'Packages and prices',
+      email: 'Get in touch',
+      order: '↗ Discuss your project',
+    })
   })
 
   test('desktop nav stays on one line at 1025–1280 and 1440', async ({ page }) => {
@@ -320,7 +321,7 @@ test.describe('homepage /megrendeles/ entry points', () => {
 
     await page.getByRole('button', { name: /váltás angolra/i }).click()
     await expect(page.locator('html')).toHaveAttribute('lang', 'en')
-    await expect(page.locator('.hero-actions').locator(`a[href="${ORDER_HREF}"]`)).toHaveText('Discuss your project')
+    await expect(page.locator('#hero').locator(`a[href="${ORDER_HREF}"]`)).toHaveText('↗ Discuss your project')
     await page.screenshot({
       path: path.join(ARTIFACTS, 'go_hero_en_1440.png'),
       animations: 'disabled',

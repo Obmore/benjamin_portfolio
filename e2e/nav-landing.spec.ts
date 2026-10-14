@@ -3,12 +3,17 @@ import path from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 
 const NAV_ITEMS = [
+  { name: 'Csomagok', id: 'csomagok' },
   { name: 'Munkáim', id: 'munkaim' },
   { name: 'Rólam', id: 'rolam' },
+  { name: 'Kapcsolat', id: 'kapcsolat' },
+] as const
+
+// Experience, skills and the CV are linked from About, not from the main navigation.
+const ABOUT_LINKS = [
   { name: 'Tapasztalat', id: 'tapasztalat' },
   { name: 'Kompetenciák', id: 'kompetenciak' },
   { name: 'Önéletrajz', id: 'oneletrajz' },
-  { name: 'Kapcsolat', id: 'kapcsolat' },
 ] as const
 
 const ARTIFACTS = path.join(process.cwd(), 'test-results')
@@ -97,6 +102,26 @@ async function clickMobileNav(page: Page, name: string) {
   await mobile.getByRole('button', { name, exact: true }).click()
 }
 
+async function landFromAboutLink(page: Page, item: (typeof ABOUT_LINKS)[number]): Promise<Landing> {
+  const link = page
+    .getByRole('navigation', { name: 'Rólam részletesen' })
+    .getByRole('link', { name: item.name, exact: true })
+  // Bring the link into view first so its own scroll does not count as the landing.
+  await link.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+  await page.waitForTimeout(300)
+  await armLandingMeasure(page, item.id)
+  await page.evaluate(() => {
+    ;(window as unknown as { __navLanding: { armed: boolean } }).__navLanding.armed = true
+  })
+  await link.click()
+  return readLanding(page)
+}
+
+function expectLanded(id: string, landing: Landing) {
+  expect(Math.abs(landing.atEnd), `${id} scrollend delta ${landing.atEnd}`).toBeLessThanOrEqual(2)
+  expect(Math.abs(landing.at700), `${id} +700ms delta ${landing.at700}`).toBeLessThanOrEqual(2)
+}
+
 async function namedSiteHeaders(page: Page) {
   return page.evaluate(() =>
     [...document.querySelectorAll('*')]
@@ -132,6 +157,10 @@ test.describe('warm nav landing from the top', () => {
         `${item.id} +700ms delta ${landing.at700}`,
       ).toBeLessThanOrEqual(2)
     }
+    for (const item of ABOUT_LINKS) {
+      results[item.id] = await landFromAboutLink(page, item)
+      expectLanded(item.id, results[item.id])
+    }
 
     fs.mkdirSync(ARTIFACTS, { recursive: true })
     fs.writeFileSync(
@@ -163,6 +192,10 @@ test.describe('warm nav landing from the top', () => {
         `${item.id} +700ms delta ${landing.at700}`,
       ).toBeLessThanOrEqual(2)
     }
+    for (const item of ABOUT_LINKS) {
+      results[item.id] = await landFromAboutLink(page, item)
+      expectLanded(item.id, results[item.id])
+    }
 
     fs.mkdirSync(ARTIFACTS, { recursive: true })
     fs.writeFileSync(
@@ -180,7 +213,7 @@ test.describe('warm nav landing from the top', () => {
 
     for (const viewport of viewports) {
       results[String(viewport.width)] = {}
-      for (const item of NAV_ITEMS) {
+      for (const item of [...NAV_ITEMS, ...ABOUT_LINKS]) {
         await page.setViewportSize(viewport)
         await page.goto(`/?cold=${viewport.width}-${item.id}#${item.id}`, {
           waitUntil: 'networkidle',
@@ -224,6 +257,7 @@ test.describe('warm nav landing from the top', () => {
       expect(Math.abs(landing.atEnd), `${item.id} scrollend ${landing.atEnd}`).toBeLessThanOrEqual(2)
       expect(Math.abs(landing.at700), `${item.id} +700ms ${landing.at700}`).toBeLessThanOrEqual(2)
     }
+    for (const item of ABOUT_LINKS) expectLanded(item.id, await landFromAboutLink(page, item))
   })
 })
 
