@@ -6,7 +6,8 @@ import AxeBuilder from '@axe-core/playwright'
 // Acceptance criteria for the customer-facing site (honlap-ugyfelre).
 const EMAIL = 'ott.benjamin.ev@ottbenjamin.hu'
 const SITE = 'https://ottbenjamin.hu'
-const LIVE_PATHS = ['/', '/megrendeles/', '/impresszum/', '/en/imprint/', '/aszf/', '/adatkezeles/']
+// Indexable pages; the /aszf/ draft stays noindex and out of the sitemap until its final version.
+const LIVE_PATHS = ['/', '/megrendeles/', '/impresszum/', '/en/imprint/', '/adatkezeles/']
 const STATIC_PAGES = ['/megrendeles/', '/impresszum/', '/en/imprint/', '/aszf/', '/adatkezeles/']
 // Package letter on the home page -> card id on /megrendeles/.
 const PACKAGE_CARDS = {
@@ -161,6 +162,7 @@ test.describe('AC3 imprint pages', () => {
 test.describe('AC4 terms draft', () => {
   test('/aszf/ is marked as a draft at the top and has no prices', async ({ page }) => {
     expect((await page.goto('/aszf/'))?.status()).toBe(200)
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex')
     const banner = page.locator('main').getByText('Tervezet – jogi ellenőrzés előtt')
     await expect(banner).toBeVisible()
     const firstText = await page.locator('main').evaluate(main => (main as HTMLElement).innerText.trim().split('\n')[0])
