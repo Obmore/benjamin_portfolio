@@ -692,7 +692,8 @@ html.js .mg-btn-copy {
 .mg-plan-terms > :first-child { margin-top: 0; }
 .mg-subplan { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--mg-line); }
 .mg-subplan .mg-plan-title { font-size: 18px; }
-.mg-plan:last-child .mg-price { font-size: 20px; }
+/* Compact price lines on the hosting card only; not tied to the card's position in the list. */
+#szolgaltatas-uzemeltetes .mg-price { font-size: 20px; }
 /* Inquiry guide: the approved catalog remains intact below this introduction. */
 .mg-intro { padding-top: 48px; padding-bottom: 48px; }
 .mg-intro .mg-wrap { display: block; }

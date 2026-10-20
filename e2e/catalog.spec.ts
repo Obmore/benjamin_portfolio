@@ -49,6 +49,15 @@ for (const width of [360,380,390,1023,1024,1440]) test(`Content-sized cards, rea
   if([360,390,1024,1440].includes(width)) await page.screenshot({path:`test-results/catalog-${width}.png`,fullPage:true})
 })
 
+test('hosting price lines stay compact; package prices keep the base size', async ({ page }) => {
+  await page.goto('/megrendeles/')
+  const sizes = (id: string) => page.locator(`#${id} .mg-price`).evaluateAll(es => es.map(e => getComputedStyle(e).fontSize))
+  expect(await sizes('szolgaltatas-uzemeltetes')).toEqual(['20px', '20px'])
+  expect(await sizes('szolgaltatas-rendelolap')).toEqual(['32px', '32px'])
+  expect(await sizes('szolgaltatas-bemutatkozo')).toEqual(['32px'])
+  expect(await sizes('szolgaltatas-termekleiras')).toEqual(['32px'])
+})
+
 test('catalog frame draw 900ms; reduced motion none',async({page})=>{
   await page.setViewportSize({width:1440,height:900});await page.goto('/megrendeles/')
   expect(await page.locator('.mg-plan-stroke').evaluateAll(es=>es.map(e=>getComputedStyle(e).animationDuration))).toEqual(Array(7).fill('0.9s'))
