@@ -42,7 +42,7 @@ export const contentEn: SiteContent = {
     intro: 'Fixed-fee packages and work within a budget agreed in advance. The full scope and the ordering process are on the order page (in Hungarian).',
     sheet: 'SHEET',
     detailLabel: 'Details and ordering (Hungarian)',
-    period: { once: '{amount} one-off fee', month: '{amount} per month' },
+    period: { once: '{amount} one-off fee', month: '{amount} per month', batch: '{amount}' },
     items: [
       {
         letter: 'A',
@@ -125,6 +125,21 @@ export const contentEn: SiteContent = {
         prices: [
           { label: 'Hosting and maintenance', amount: 'hosting', period: 'month' },
           { label: 'With edits (up to half an hour a month)', amount: 'hostingWithEdits', period: 'month' },
+        ],
+      },
+      {
+        letter: 'G',
+        anchor: 'szolgaltatas-termekleiras',
+        title: 'Product descriptions for your webshop',
+        summary: 'If many product pages in your UNAS or Shoprenter webshop have no description, or only a single line, I write descriptions for those products.',
+        facts: [
+          'descriptions for 20 products with a consistent structure, in Hungarian',
+          'written from your own materials and the manufacturer’s data',
+          'an import file for your UNAS or Shoprenter webshop',
+          'you approve them before they are uploaded',
+        ],
+        prices: [
+          { label: 'Trial round, 20 products', amount: 'productDescriptionsTrial', period: 'batch' },
         ],
       },
     ],

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-const ids = ['rendelolap', 'automatizalas', 'adatok', 'egyedi', 'bemutatkozo', 'uzemeltetes']
+const ids = ['rendelolap', 'automatizalas', 'adatok', 'egyedi', 'bemutatkozo', 'uzemeltetes', 'termekleiras']
 for (const width of [360, 390, 1024, 1440]) test(`${width}: spatial explanation, quick choice and readable draft`, async ({ page }) => {
   await page.setViewportSize({ width, height: 900 })
   const errors: string[] = []
@@ -44,7 +44,7 @@ for (const width of [360, 390, 1024, 1440]) test(`${width}: spatial explanation,
   await page.screenshot({ path: `tmp/inquiry-evidence/contact-${width}.png` })
 })
 
-test('all six packages preserve the description and correctly encode a local email draft', async ({ page }) => {
+test('all seven packages preserve the description and correctly encode a local email draft', async ({ page }) => {
   const requests: string[] = []
   await page.goto('/megrendeles/', { waitUntil: 'networkidle' })
   page.on('request', request => requests.push(request.url()))

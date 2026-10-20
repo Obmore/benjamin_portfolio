@@ -8,6 +8,8 @@ export const AMOUNTS = {
   introSite: 129_000,
   hosting: 4_900,
   hostingWithEdits: 9_900,
+  // Termékleírás webshopba: trial round of 20 products (owner's decision, 2026-10-20).
+  productDescriptionsTrial: 49_000,
 } as const
 
 export type AmountKey = keyof typeof AMOUNTS

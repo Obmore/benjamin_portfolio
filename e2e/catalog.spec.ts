@@ -3,9 +3,9 @@ import fs from 'node:fs'
 const catalog = JSON.parse(fs.readFileSync(new URL('./fixtures/catalog-approved.json', import.meta.url), 'utf8'))
 
 const normalize = (s: string) => s.replace(/\s+/g, ' ').trim()
-test('V1–V4: exact approved catalog, six cards, five amounts, no 3D', async ({ page }) => {
+test('V1–V4: exact approved catalog, seven cards, six amounts, no 3D', async ({ page }) => {
   await page.goto('/megrendeles/')
-  await expect(page.locator('.mg-plan')).toHaveCount(6)
+  await expect(page.locator('.mg-plan')).toHaveCount(7)
   for (const [i, card] of catalog.entries()) {
     const texts = [card.title, ...card.paragraphs]
     if (card.sub) texts.push(card.sub.title, ...card.sub.paragraphs)
@@ -14,7 +14,7 @@ test('V1–V4: exact approved catalog, six cards, five amounts, no 3D', async ({
   }
   const text = normalize(await page.locator('body').innerText())
   expect([...new Set([...text.matchAll(/\d{1,3}(?: \d{3})* Ft/g)].map(m => m[0]))].sort())
-    .toEqual(['129 000 Ft','149 000 Ft','189 000 Ft','4 900 Ft','9 900 Ft'].sort())
+    .toEqual(['129 000 Ft','149 000 Ft','189 000 Ft','4 900 Ft','9 900 Ft','49 000 Ft'].sort())
   expect(text).not.toMatch(/Ft\/óra|3D termék|59 000/)
 })
 
@@ -51,8 +51,8 @@ for (const width of [360,380,390,1023,1024,1440]) test(`Content-sized cards, rea
 
 test('catalog frame draw 900ms; reduced motion none',async({page})=>{
   await page.setViewportSize({width:1440,height:900});await page.goto('/megrendeles/')
-  expect(await page.locator('.mg-plan-stroke').evaluateAll(es=>es.map(e=>getComputedStyle(e).animationDuration))).toEqual(Array(6).fill('0.9s'))
-  expect(await page.locator('.mg-plan-stroke').evaluateAll(es=>es.map(e=>getComputedStyle(e).animationDelay))).toEqual(Array(6).fill('0s'))
+  expect(await page.locator('.mg-plan-stroke').evaluateAll(es=>es.map(e=>getComputedStyle(e).animationDuration))).toEqual(Array(7).fill('0.9s'))
+  expect(await page.locator('.mg-plan-stroke').evaluateAll(es=>es.map(e=>getComputedStyle(e).animationDelay))).toEqual(Array(7).fill('0s'))
   await page.emulateMedia({reducedMotion:'reduce'})
-  expect(await page.locator('.mg-plan-stroke').evaluateAll(es=>es.map(e=>getComputedStyle(e).animationName))).toEqual(Array(6).fill('none'))
+  expect(await page.locator('.mg-plan-stroke').evaluateAll(es=>es.map(e=>getComputedStyle(e).animationName))).toEqual(Array(7).fill('none'))
 })

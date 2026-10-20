@@ -49,7 +49,7 @@ test.describe('/megrendeles/', () => {
       await expect(page.locator('.mg-kicker')).toHaveCount(0)
       // Indexable since the customer-facing release (listed in sitemap.xml).
       await expect(page.locator('meta[name="robots"]')).toHaveCount(0)
-      await expect(page.locator('.mg-plan')).toHaveCount(6)
+      await expect(page.locator('.mg-plan')).toHaveCount(7)
       await expect(page.locator('.mg-plan').nth(4).locator('.mg-list li')).toHaveText([
         'legfeljebb hat tartalmi rész, például bemutatkozás, szolgáltatások, munkák, elérhetőség',
         'legalább hat, legfeljebb tíz fotó, amelyet Ön ad át, és amelyek felhasználására jogosult',

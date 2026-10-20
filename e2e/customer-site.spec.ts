@@ -17,6 +17,7 @@ const PACKAGE_CARDS = {
   D: 'szolgaltatas-egyedi',
   E: 'szolgaltatas-bemutatkozo',
   F: 'szolgaltatas-uzemeltetes',
+  G: 'szolgaltatas-termekleiras',
 } as const
 const AMOUNT = /\d{1,3}(?:[  ]\d{3})*[  ]Ft/g
 const VAT = 'AAM (áfamentes)'
@@ -111,7 +112,7 @@ test.describe('AC1 hero speaks to clients, HU and EN in pairs', () => {
 })
 
 test.describe('AC2 packages: one price source for the home page and /megrendeles/', () => {
-  test('six packages show the same amounts and VAT label on both pages', async ({ page }) => {
+  test('seven packages show the same amounts and VAT label on both pages', async ({ page }) => {
     await page.goto('/megrendeles/')
     await expect(page.locator('meta[name="robots"]')).toHaveCount(0)
     const order: Record<string, { amounts: string[]; vat: number }> = {}
@@ -120,10 +121,10 @@ test.describe('AC2 packages: one price source for the home page and /megrendeles
       order[letter] = { amounts: amounts(text), vat: count(text, VAT) }
       expect(order[letter].vat, `/megrendeles/ ${letter} VAT label per amount`).toBe(order[letter].amounts.length)
     }
-    expect(Object.values(order).flatMap(card => card.amounts).length).toBeGreaterThanOrEqual(7)
+    expect(Object.values(order).flatMap(card => card.amounts).length).toBeGreaterThanOrEqual(8)
 
     await gotoHome(page)
-    await expect(page.locator('#csomagok [data-package]')).toHaveCount(6)
+    await expect(page.locator('#csomagok [data-package]')).toHaveCount(7)
     for (const letter of Object.keys(PACKAGE_CARDS)) {
       const card = page.locator(`#csomagok [data-package="${letter}"]`)
       const text = await card.innerText()
@@ -134,7 +135,7 @@ test.describe('AC2 packages: one price source for the home page and /megrendeles
   })
 
   test('amounts are written once, in the pricing module', () => {
-    const literal = /\b(?:149|189|129)(?:[  _]|&nbsp;)?000\b|\b(?:4|9)(?:[  _]|&nbsp;)?900\b/
+    const literal = /\b(?:149|189|129|49)(?:[  _]|&nbsp;)?000\b|\b(?:4|9)(?:[  _]|&nbsp;)?900\b/
     // Besides the known amounts, no typed "<digits> Ft" anywhere outside pricing.ts.
     const typedPrice = /\d(?:[\d  .]|&nbsp;)*(?:&nbsp;|[  ])?Ft\b/
     const pages = ['index.html', 'megrendeles/index.html', 'impresszum/index.html', 'en/imprint/index.html', 'aszf/index.html']
@@ -222,9 +223,9 @@ test.describe('AC6 technical SEO', () => {
     expect(service.email).toBe(EMAIL)
     expect(service.address).toMatchObject({ postalCode: '8944', addressLocality: 'Sárhida', streetAddress: 'Kossuth utca 32.', addressCountry: 'HU' })
     expect(service.areaServed).toMatchObject({ name: 'Magyarország' })
-    expect(service.makesOffer).toHaveLength(6)
-    // Every price line is listed: A has three, E two, F two; B–D have none.
-    expect(service.makesOffer.map((offer: { priceSpecification?: unknown[] }) => offer.priceSpecification?.length ?? 0)).toEqual([3, 0, 0, 0, 2, 2])
+    expect(service.makesOffer).toHaveLength(7)
+    // Every price line is listed: A has three, E two, F two, G one; B–D have none.
+    expect(service.makesOffer.map((offer: { priceSpecification?: unknown[] }) => offer.priceSpecification?.length ?? 0)).toEqual([3, 0, 0, 0, 2, 2, 1])
     expect(graph.some((item: { '@type': string }) => item['@type'] === 'Person')).toBe(true)
     await switchToEnglish(page)
     await expect(page.locator('meta[name="description"]').first()).toHaveAttribute('content', /small and medium-sized businesses/i)
