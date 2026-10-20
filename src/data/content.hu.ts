@@ -135,8 +135,9 @@ export const contentHu: SiteContent = {
         facts: [
           '20 termék leírása egységes szerkezetben, magyarul',
           'az Ön saját anyagaiból és a gyártó műszaki adataiból',
-          'a leírások fájlban, a webshopba való feltöltéshez',
-          'a feltöltés előtt Ön hagyja jóvá',
+          'a leírások fájlban; a feltöltést Ön végzi',
+          'a feltöltés előtt Ön hagyja jóvá, egy javítási körrel',
+          'általában két héten belül elkészül',
         ],
         prices: [
           { label: 'Próbakör, 20 termék', amount: 'productDescriptionsTrial', period: 'batch' },

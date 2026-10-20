@@ -135,8 +135,9 @@ export const contentEn: SiteContent = {
         facts: [
           'descriptions for 20 products with a consistent structure, in Hungarian',
           'written from your own materials and the manufacturer’s technical data',
-          'the descriptions in a file, ready to upload to your webshop',
-          'you approve them before they are uploaded',
+          'the descriptions in a file; you upload them to your webshop',
+          'you approve them before upload, with one round of revisions',
+          'usually ready within two weeks',
         ],
         prices: [
           { label: 'Trial round, 20 products', amount: 'productDescriptionsTrial', period: 'batch' },
