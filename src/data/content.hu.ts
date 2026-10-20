@@ -134,8 +134,8 @@ export const contentHu: SiteContent = {
         summary: 'Ha az UNAS- vagy Shoprenter-webshopjában sok termékoldalon nincs leírás, vagy csak egy sor szerepel, ezekhez a termékekhez leírást készítek.',
         facts: [
           '20 termék leírása egységes szerkezetben, magyarul',
-          'az Ön saját anyagaiból és a gyártói adatokból',
-          'importálható fájl UNAS- vagy Shoprenter-webshophoz',
+          'az Ön saját anyagaiból és a gyártó műszaki adataiból',
+          'a leírások fájlban, a webshopba való feltöltéshez',
           'a feltöltés előtt Ön hagyja jóvá',
         ],
         prices: [

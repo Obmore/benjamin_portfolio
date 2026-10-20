@@ -134,8 +134,8 @@ export const contentEn: SiteContent = {
         summary: 'If many product pages in your UNAS or Shoprenter webshop have no description, or only a single line, I write descriptions for those products.',
         facts: [
           'descriptions for 20 products with a consistent structure, in Hungarian',
-          'written from your own materials and the manufacturer’s data',
-          'an import file for your UNAS or Shoprenter webshop',
+          'written from your own materials and the manufacturer’s technical data',
+          'the descriptions in a file, ready to upload to your webshop',
           'you approve them before they are uploaded',
         ],
         prices: [
