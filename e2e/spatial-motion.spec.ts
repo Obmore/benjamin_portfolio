@@ -118,7 +118,7 @@ test('language switch preserves one animated illustration and original order con
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
   await expect(page.locator('#hero .pm-scene')).toHaveCount(1)
   await page.getByRole('link', { name: 'Order', exact: true }).first().click()
-  await expect(page.locator('.mg-plan')).toHaveCount(6)
+  await expect(page.locator('.mg-plan')).toHaveCount(7)
   await expect(page.locator('#hero .pm-scene')).toHaveCount(0)
 })
 

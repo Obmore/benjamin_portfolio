@@ -40,11 +40,12 @@ export interface WorkProject {
 export interface PriceLine {
   label?: string
   amount: AmountKey
-  period: 'once' | 'month'
+  /** 'batch': the amount covers the quantity named in the label, without period wording. */
+  period: 'once' | 'month' | 'batch'
 }
 
 export interface PackageItem {
-  letter: 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
+  letter: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G'
   /** Card id on /megrendeles/. */
   anchor: string
   title: string

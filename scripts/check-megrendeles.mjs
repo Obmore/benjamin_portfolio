@@ -89,13 +89,18 @@ if (order) {
     'Általában három héten belül elkészül, miután megkaptam a szövegeket és a fotókat.',
   )
   mustInclude('megrendeles', order, 'Írjon nekem e-mailt, és hamarosan válaszolok.')
+  // Termékleírás webshopba (owner's decision, 2026-10-20): card, quick-choice tile and draft option.
+  mustInclude('megrendeles', order, 'id="szolgaltatas-termekleiras"')
+  mustInclude('megrendeles', order, 'href="#szolgaltatas-termekleiras"')
+  mustInclude('megrendeles', order, '<option value="termekleiras">Termékleírás webshopba</option>')
+  mustInclude('megrendeles', order, '49&nbsp;000 Ft / 20 termék, próbakör.')
   mustNotInclude('megrendeles', order, 'mg-kicker')
   mustNotInclude('megrendeles', order, 'a domain külön költség, és az Ön nevére szól')
   if (count(order, /ott\.benjamin\.ev@ottbenjamin\.hu/g) !== 3) {
     errors.push('megrendeles: business e-mail address must appear exactly 3 times')
   }
-  if (count(order, /class="mg-vat">AAM \(áfamentes\)</g) !== 7) {
-    errors.push('megrendeles: each of the seven amounts needs its „AAM (áfamentes)” label')
+  if (count(order, /class="mg-vat">AAM \(áfamentes\)</g) !== 8) {
+    errors.push('megrendeles: each of the eight amounts needs its „AAM (áfamentes)” label')
   }
   if (count(order, /129(?:&nbsp;|\u00a0| )000 Ft egyszeri díj\./g) !== 1) {
     errors.push('megrendeles: „129 000 Ft egyszeri díj.” must appear exactly once')
@@ -116,7 +121,7 @@ if (order) {
 }
 
 if (orderSource) {
-  for (const key of ['orderForm', 'orderFormSheet', 'introSite', 'hosting', 'hostingWithEdits']) {
+  for (const key of ['orderForm', 'orderFormSheet', 'introSite', 'hosting', 'hostingWithEdits', 'productDescriptionsTrial']) {
     mustInclude('megrendeles source', orderSource, `{{huf:${key}}}`)
   }
   // Any typed amount (spaces, NBSP, &nbsp; or none before "Ft") must be a placeholder.

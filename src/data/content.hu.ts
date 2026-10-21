@@ -42,7 +42,7 @@ export const contentHu: SiteContent = {
     intro: 'Fix díjas csomagok és előre egyeztetett keretű munkák. A részletes tartalmat és a megrendelés menetét a megrendelő oldalon találja.',
     sheet: 'LAP',
     detailLabel: 'Részletek és megrendelés',
-    period: { once: '{amount} egyszeri díj', month: 'havi {amount}' },
+    period: { once: '{amount} egyszeri díj', month: 'havi {amount}', batch: '{amount}' },
     items: [
       {
         letter: 'A',
@@ -125,6 +125,22 @@ export const contentHu: SiteContent = {
         prices: [
           { label: 'Üzemeltetés', amount: 'hosting', period: 'month' },
           { label: 'Módosításokkal (havonta legfeljebb fél óra)', amount: 'hostingWithEdits', period: 'month' },
+        ],
+      },
+      {
+        letter: 'G',
+        anchor: 'szolgaltatas-termekleiras',
+        title: 'Termékleírás webshopba',
+        summary: 'Ha az UNAS- vagy Shoprenter-webshopjában sok termékoldalon nincs leírás, vagy csak egy sor szerepel, ezekhez a termékekhez leírást készítek.',
+        facts: [
+          '20 termék leírása egységes szerkezetben, magyarul',
+          'az Ön saját anyagaiból és a gyártó műszaki adataiból',
+          'a leírások fájlban; a feltöltést Ön végzi',
+          'a feltöltés előtt Ön hagyja jóvá, egy javítási körrel',
+          'általában két héten belül elkészül',
+        ],
+        prices: [
+          { label: 'Próbakör, 20 termék', amount: 'productDescriptionsTrial', period: 'batch' },
         ],
       },
     ],

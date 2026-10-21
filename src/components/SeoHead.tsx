@@ -15,7 +15,7 @@ function offer(item: PackageItem) {
     name: item.title,
     url: `${SITE_URL}${ORDER_HREF.slice(1)}#${item.anchor}`,
     itemOffered: { '@type': 'Service', name: item.title, description: item.summary },
-    ...(main?.period === 'once' ? { price: AMOUNTS[main.amount], priceCurrency: 'HUF' } : {}),
+    ...(main && main.period !== 'month' ? { price: AMOUNTS[main.amount], priceCurrency: 'HUF' } : {}),
     ...(item.prices.length
       ? {
           priceSpecification: item.prices.map((line) => ({
