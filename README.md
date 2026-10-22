@@ -80,6 +80,9 @@ npm run check
 npm run test:e2e
 ```
 
+`npm run test:e2e` builds the site first (the Playwright web server runs
+`npm run build` before `vite preview`), so it also works on a clean checkout.
+
 Visual baselines are reviewed Windows/Chromium screenshots. See the
 [renderer and verification notes](docs/interactive-experience.md#renderer-and-review-tools)
 for baseline updates and browser limitations.
