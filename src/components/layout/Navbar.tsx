@@ -2,7 +2,7 @@ import { useEffect, useState, type MouseEvent } from 'react'
 import { useI18n } from '@/context/useI18n'
 import { SECTION_IDS } from '@/lib/constants'
 import { useActiveSection } from '@/hooks/useActiveSection'
-import { goToPageTop, navigateTo } from '@/lib/anchors'
+import { goToPageTop, isPlainPrimaryClick, navigateTo } from '@/lib/anchors'
 import { LangToggle } from '@/components/ui/LangToggle'
 import { OrderLink } from '@/components/ui/OrderLink'
 
@@ -88,6 +88,8 @@ export function Navbar() {
   }
 
   const handleNameClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    // Ctrl/Cmd/Shift-click and friends keep the browser's own link behavior (new tab, new window).
+    if (!isPlainPrimaryClick(event)) return
     event.preventDefault()
     if (menuOpen) {
       document.body.style.overflow = ''

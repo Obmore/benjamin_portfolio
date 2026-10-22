@@ -25,17 +25,20 @@ export function goToPageTop() {
   })
 }
 
+/** A plain primary-button click: the only kind an in-page anchor handler may take over. */
+export function isPlainPrimaryClick(event: MouseEvent<HTMLAnchorElement>) {
+  return (
+    !event.defaultPrevented &&
+    event.button === 0 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey
+  )
+}
+
 export function onResolvedHashClick(event: MouseEvent<HTMLAnchorElement>, id: string) {
-  if (
-    event.defaultPrevented ||
-    event.button !== 0 ||
-    event.metaKey ||
-    event.ctrlKey ||
-    event.shiftKey ||
-    event.altKey
-  ) {
-    return
-  }
+  if (!isPlainPrimaryClick(event)) return
   event.preventDefault()
   navigateTo(id)
 }
