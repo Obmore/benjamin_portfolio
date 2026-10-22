@@ -1,0 +1,4 @@
+# Python toolchain of `npm run build:fonts` (subsetting and WOFF2 output).
+# Install: python -m pip install -r scripts/requirements-fonts.txt
+fonttools==4.67.0
+brotli==1.2.0

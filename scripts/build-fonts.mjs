@@ -7,10 +7,12 @@ import dmSansMetrics from '@capsizecss/metrics/dMSans'
 import arialMetrics from '@capsizecss/metrics/arial'
 import jetBrainsMetrics from '@capsizecss/metrics/jetBrainsMono'
 import courierNewMetrics from '@capsizecss/metrics/courierNew'
+import { defaultPython, preloadBytes, pythonSetupProblem } from './lib/font-build.mjs'
 
 const require = createRequire(import.meta.url)
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = path.join(root, 'public/fonts')
+const python = defaultPython(process.env, process.platform)
 
 const UNICODE_RANGE =
   'U+0000-00FF,U+0131,U+0150-0151,U+0152-0153,U+0170-0171,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191-2193,U+2197,U+2212,U+2215,U+2713,U+FEFF,U+FFFD'
@@ -161,7 +163,7 @@ function resolveSources(pkg, filePrefix, weight) {
 }
 
 function subsetFont(inputs, output) {
-  const result = spawnSync('python3', ['-c', PYTHON], {
+  const result = spawnSync(python, ['-c', PYTHON], {
     input: JSON.stringify({ inputs, output, unicodes: UNICODE_RANGE }),
     encoding: 'utf8',
     maxBuffer: 16 * 1024 * 1024,
@@ -189,6 +191,12 @@ function fallbackOverrides(preferred, fallback) {
     lineGapOverride: toPercent(lineGap),
   }
 }
+
+const setupProblem = pythonSetupProblem({
+  python,
+  run: (command, args) => spawnSync(command, args, { encoding: 'utf8' }),
+})
+if (setupProblem) fail(setupProblem)
 
 fs.mkdirSync(outDir, { recursive: true })
 
@@ -220,10 +228,16 @@ for (const font of FONTS) {
 
 const files = FONTS.map((font) => path.join(outDir, `${font.id}.woff2`))
 const total = files.reduce((sum, file) => sum + fs.statSync(file).size, 0)
-const preload = fs.statSync(path.join(outDir, 'dm-sans-600.woff2')).size
+// The budget covers every font index.html preloads, as the browser fetches all of them.
+const { files: preloadFiles, total: preload } = preloadBytes(
+  fs.readFileSync(path.join(root, 'index.html'), 'utf8'),
+  path.join(root, 'public'),
+)
 
 console.log(`\nTotal woff2: ${total} bytes (limit 122880)`)
-console.log(`Preload 600: ${preload} bytes (limit 61440)`)
+console.log(
+  `Preload ${preloadFiles.length} fonts (${preloadFiles.map((file) => path.basename(file.href, '.woff2')).join(', ')}): ${preload} bytes (limit 61440)`,
+)
 
 const dmFallback = fallbackOverrides(dmSansMetrics, arialMetrics)
 const monoFallback = fallbackOverrides(jetBrainsMetrics, courierNewMetrics)
