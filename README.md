@@ -45,6 +45,21 @@ src/
 └── lib/          Constants, clipboard helper
 ```
 
+## Fonts
+
+The subsetted WOFF2 files in `public/fonts/` are committed. Rebuild them only after a
+font package update; the build needs Python 3 with fonttools and Brotli:
+
+```bash
+python -m pip install -r scripts/requirements-fonts.txt
+npm run build:fonts
+```
+
+The script runs `python3` (`python` on Windows, where `python3` is usually a Store stub).
+Set `PYTHON` to use another interpreter, for example one from a virtual environment. If
+Python or a module is missing, `build:fonts` stops with the command to run. Its preload
+budget (60 KB) covers every font that `index.html` preloads.
+
 ## CV files
 
 Place PDFs in `public/cv/`:
@@ -79,6 +94,10 @@ npx playwright install chromium
 npm run check
 npm run test:e2e
 ```
+
+`npm run test:e2e` builds the site first (the Playwright web server runs
+`npm run build` before `vite preview`), so it also works on a clean checkout.
+`npm run check` includes the Node unit tests of the build scripts (`npm run test:scripts`).
 
 Visual baselines are reviewed Windows/Chromium screenshots. See the
 [renderer and verification notes](docs/interactive-experience.md#renderer-and-review-tools)

@@ -11,7 +11,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',
+    // vite preview only serves an existing build; dist/ is not committed, so a clean checkout needs one.
+    command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',
     url: 'http://127.0.0.1:4173/megrendeles/',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

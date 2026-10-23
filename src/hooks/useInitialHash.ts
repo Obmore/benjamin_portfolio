@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { resolveAnchor, replaceLocationHash, stripJunkHash, rawLocationHash } from '@/lib/hash'
 import { scrollToSection } from '@/hooks/useActiveSection'
 
@@ -58,9 +58,16 @@ function realignHash(id: string) {
 }
 
 export function useInitialHash() {
+  // The layout effect strips a junk hash (/#, /#root, /#top), so the effect below can no longer
+  // tell from the URL that it forced instant scrolling; remember it here instead.
+  const forcedInstantScroll = useRef(false)
+
   useLayoutEffect(() => {
     const hadHash = Boolean(window.location.hash) || /#$/.test(window.location.href)
-    if (hadHash) document.documentElement.style.scrollBehavior = 'auto'
+    if (hadHash) {
+      document.documentElement.style.scrollBehavior = 'auto'
+      forcedInstantScroll.current = true
+    }
     scrollToHashSync()
     if (hadHash) markViewportRevealsInstant()
   }, [])
@@ -68,7 +75,6 @@ export function useInitialHash() {
   useEffect(() => {
     let cancelled = false
     const retryTimers: number[] = []
-    const hadHash = Boolean(window.location.hash) || /#$/.test(window.location.href)
 
     const restoreSmooth = () => {
       requestAnimationFrame(() => {
@@ -101,7 +107,7 @@ export function useInitialHash() {
           )
         }
       }
-      if (hadHash) {
+      if (forcedInstantScroll.current) {
         retryTimers.push(window.setTimeout(restoreSmooth, id ? 520 : 0))
       }
     })()

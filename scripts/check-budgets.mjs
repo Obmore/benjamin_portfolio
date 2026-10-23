@@ -10,7 +10,8 @@ const orderHtmlPath = path.join(dist, 'megrendeles/index.html')
 
 const MAIN_BUDGETS = {
   // Raised from 73728 / 9420 for the customer-facing home page (packages, hero e-mail, JSON-LD).
-  entryJs: 76800,
+  // 76800 -> 76900: main had 5 B of headroom; the hash and logo-click fixes cost 16 B gzipped.
+  entryJs: 76900,
   allJs: 160 * 1024,
   css: 9728,
   fonts: 120 * 1024,
